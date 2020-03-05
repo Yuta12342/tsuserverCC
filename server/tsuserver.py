@@ -1,6 +1,8 @@
-# tsuserver3, an Attorney Online server
+# tsuserverCC, an Attorney Online server.
 #
-# Copyright (C) 2016 argoneus <argoneuscze@gmail.com>
+# Copyright (C) 2020 Kaiser <kaiserkaisie@gmail.com>
+#
+# Derivative of tsuserver3, an Attorney Online server. Copyright (C) 2016 argoneus <argoneuscze@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -38,12 +40,12 @@ from server.network.aoprotocol_ws import new_websocket_client
 from server.network.masterserverclient import MasterServerClient
 import server.logger
 
-class TsuServer3:
+class TsuServerCC:
     """The main class for tsuserver3 server software."""
     def __init__(self):
-        self.software = 'tsuserver3'
-        self.release = 3
-        self.major_version = 3
+        self.software = 'tsuservercc'
+        self.release = 1
+        self.major_version = 0
         self.minor_version = 0
 
         self.config = None

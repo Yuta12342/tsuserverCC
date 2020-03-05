@@ -268,10 +268,13 @@ def ooc_cmd_party(client, arg):
             msg += f'\n[{member.area.name}][{member.id}] {member.char_name}: {member.name}'
             if party.leader == member:
                 msg += ' (Party Leader)'
-            if party.leader == client:
+            if party.rolesvisible:
                 if member.partyrole != '':
                     msg += f' ({member.partyrole})'
-            if member == client and member != party.leader:
+            elif party.leader == client:
+                if member.partyrole != '':
+                    msg += f' ({member.partyrole})'
+            elif member == client and member != party.leader:
                 if member.partyrole != '':
                     msg += f' ({member.partyrole})'
         client.send_ooc(msg)
