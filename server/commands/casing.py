@@ -20,16 +20,17 @@ __all__ = [
     'ooc_cmd_blockwtce',
     'ooc_cmd_unblockwtce',
     'ooc_cmd_judgelog',
+    'ooc_cmd_woosh',
     'ooc_cmd_cleartestimony'
 ]
 
-def ooc_cmd_swoosh(client, arg):
+def ooc_cmd_woosh(client, arg):
     """
     Prevent a user from using Witness Testimony/Cross Examination buttons
     as a judge.
     Usage: /blockwtce <id>
     """
-    if len(arg) =! 0:
+    if len(arg) != 0:
         raise ArgumentError('This command takes no arguments.')
     if client.can_wtce:
         client.can_wtce = False
