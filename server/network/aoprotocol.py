@@ -537,7 +537,8 @@ class AOProtocol(asyncio.Protocol):
                                       statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
                                       statement.other_folder, statement.other_emote, statement.offset_pair,
                                       statement.other_offset, statement.other_flip, statement.nonint_pre)
-                self.client.area.send_command('RT', 'testimony2')
+                if self.client.can_wtce:
+                    self.client.area.send_command('RT', 'testimony2')
                 self.client.area.statement = 0
         elif msg.startswith('//'):
             if self.client in self.client.area.owners and not self.client.area.is_recording:
@@ -554,7 +555,8 @@ class AOProtocol(asyncio.Protocol):
                 statement.id = self.client.area.statement
                 self.client.area.recorded_messages.append(statement)
                 self.client.send_ooc('Recording testimony!')
-                self.client.area.send_command('RT', 'testimony1')
+                if self.client.can_wtce:
+                    self.client.area.send_command('RT', 'testimony1')
         if msg.startswith('/end'):
             if self.client in self.client.area.owners and self.client.area.is_recording:
                 self.client.area.is_recording = False

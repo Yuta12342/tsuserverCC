@@ -23,6 +23,20 @@ __all__ = [
     'ooc_cmd_cleartestimony'
 ]
 
+def ooc_cmd_swoosh(client, arg):
+    """
+    Prevent a user from using Witness Testimony/Cross Examination buttons
+    as a judge.
+    Usage: /blockwtce <id>
+    """
+    if len(arg) =! 0:
+        raise ArgumentError('This command takes no arguments.')
+    if client.can_wtce:
+        client.can_wtce = False
+        client.send_ooc('You will no longer use judge signs.')
+    else:
+        client.can_wtce = True
+        client.send_ooc('You will now use judge signs again.')
 
 def ooc_cmd_doc(client, arg):
     """
