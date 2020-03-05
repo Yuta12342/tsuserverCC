@@ -152,7 +152,7 @@ def ooc_cmd_help(client, arg):
     """
     if len(arg) != 0:
         raise ArgumentError('This command has no arguments.')
-    help_url = 'https://github.com/AttorneyOnline/tsuserver3'
+    help_url = 'https://github.com/RealKaiser/tsuserverCC'
     help_msg = f'The commands available on this server can be found here: {help_url}'
     client.send_ooc(help_msg)
 
