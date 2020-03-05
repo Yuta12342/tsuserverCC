@@ -582,6 +582,22 @@ class AOProtocol(asyncio.Protocol):
                 statement.id = self.client.area.statement
                 self.client.area.recorded_messages.append(statement)
                 self.client.send_ooc('Statement added!')
+            elif self.client in self.client.area.owners and not self.client.area.is_recording
+                oldstatement = self.client.area.statement
+				self.client.area.statement += 1
+                msg = msg[1:]
+                statement = Statement(msg_type, pre, folder, anim, msg,
+                                      pos, sfx, anim_type, cid, sfx_delay,
+                                      button, evidence,
+                                      flip, ding, 1, showname, charid_pair,
+                                      other_folder, other_emote, offset_pair,
+                                      other_offset, other_flip, nonint_pre)
+                statement.id = self.client.area.statement
+                for s in self.client.area.recorded_messages:
+                    if s.id >= statement.id:
+                        s.id += 1
+                self.client.area.recorded_messages.append(statement)
+                self.client.send_ooc(f'Substatement added after statement {oldstatement}!')
 
         if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
             if not msg == '>' and not msg == '<' or len(self.client.area.recorded_messages) == 0:
@@ -616,7 +632,10 @@ class AOProtocol(asyncio.Protocol):
                     self.client.area.broadcast_ooc(f'{self.client.char_name} reached end, looping back to first statement.')
                 else:
                     self.client.area.broadcast_ooc(f'Testimony advanced by {self.client.char_name}.')
-                statement = self.client.area.recorded_messages[self.client.area.statement]
+                for s in self.client.area.recorded_messages:
+				    if s.id == self.client.area.statement:
+                        statement = s
+                        break
                 self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
                                       statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
                                       statement.button, self.client.evi_list[statement.evidence],
@@ -630,7 +649,10 @@ class AOProtocol(asyncio.Protocol):
                     self.client.area.statement = 1
                     self.client.send_ooc('At first statement, no previous statement available.')
                 else:
-                    statement = self.client.area.recorded_messages[self.client.area.statement]
+                    for s in self.client.area.recorded_messages:
+				        if s.id == self.client.area.statement:
+                            statement = s
+                            break
                     self.client.area.broadcast_ooc(f'Testimony advanced by {self.client.char_name}.')
                     self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
                                       statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
