@@ -8,9 +8,43 @@ __all__ = [
     'ooc_cmd_disemvowel',
     'ooc_cmd_undisemvowel',
     'ooc_cmd_shake',
+    'ooc_cmd_notepad',
+    'ooc_cmd_partynote',
+    'ooc_cmd_clearpartynote',
+    'ooc_cmd_digitalroot',
+    'ooc_cmd_knock',
+    'ooc_cmd_tutturu',
     'ooc_cmd_unshake'
 ]
 
+def ooc_cmd_tutturu(client, arg):
+    client.area.send_command('MS', 1, '-', 'Mayuri', '/hat/happy', 'Tutturu♪',
+                                      'wit', 'tutturu', 1, 398, 0,
+                                      0, 0,
+                                      0, 1, 0, 'Mayuri', -1,
+                                      '', '', 10,
+                                      0, 0, 0)
+    client.area.broadcast_ooc(f'Tutturu♪ {client.name}!')
+
+def ooc_cmd_knock(client, arg):
+    args = arg.split()
+    if len(args) == 0:
+        client.send_area_list()
+    elif len(args) == 1:
+        try:
+            area = client.server.area_manager.get_area_by_id(int(args[0]))
+        except ValueError:
+            raise ArgumentError('Area ID must be a number.')
+        except (AreaError, ClientError):
+            raise
+        area.broadcast_ooc(f'{client.name} knocked on the area\'s door!')
+
+def ooc_cmd_digitalroot(client, arg):
+    num = int(arg)
+    if num < 1:
+        raise ArgumentError('That does not seem to be a valid number.')
+    num = (num - 1) % 9 + 1
+    client.send_ooc(f'The digital root of {arg} is {num}.')
 
 @mod_only()
 def ooc_cmd_disemvowel(client, arg):
@@ -33,6 +67,76 @@ def ooc_cmd_disemvowel(client, arg):
     else:
         client.send_ooc('No targets found.')
 
+
+def ooc_cmd_notepad(client, arg):
+    """
+    Adds to the client's notes.
+    """
+    notepad = 'Notepad:'
+    if len(arg) > 256:
+        raise ArgumentError('That note is too large to add to your notes!')
+    elif len(arg) == 0:
+        if client.notepad == '':
+            notepad += '\nNothing is on the notepad.'
+            client.send_ooc(notepad)
+        else:
+            notepad += client.notepad
+            client.send_ooc(notepad)
+    else:
+        if len(client.notepad) > 2000:
+            raise ArgumentError('Your notes exceed the maximum of 2000 characters!')
+        else:
+            client.notepad += f'\n{arg}'
+            client.send_ooc('Note added.')
+
+def ooc_cmd_partynote(client, arg):
+    """
+    Adds to the client's notes.
+    """
+    notepad = 'Party Notepad:'
+    if not client.in_party:
+        raise ClientError('You aren\'t in a party.')
+    if len(arg) > 256:
+        raise ArgumentError('That note is too large to add to your notes!')
+    elif len(arg) == 0:
+        if client.party.notepad == '':
+            notepad += '\nNothing is on the notepad.'
+            client.send_ooc(notepad)
+        else:
+            notepad += client.party.notepad
+            client.send_ooc(notepad)
+    else:
+        if len(client.party.notepad) > 4000:
+            raise ArgumentError('Your notes exceed the maximum of 4000 characters!')
+        else:
+            client.party.notepad += f'\n{arg}'
+            for user in client.party.users:
+                user.send_ooc(f'{client.name} added a note to the party notepad.')
+
+def ooc_cmd_clearpartynote(client, arg):
+    """
+    Clears the client's notes.
+    """
+    if not client.in_party:
+        raise ClientError('You aren\'t in a party.')
+    if client.party.leader != client:
+        raise ClientError('You aren\'t the Party Leader.')
+    if len(arg) > 0:
+        raise ArgumentError('This command takes no arguments.')
+    else:
+        client.party.notepad = ''
+        for user in client.party.users:
+            user.send_ooc(f'Party notepad was cleared.')
+
+def ooc_cmd_clearnotepad(client, arg):
+    """
+    Clears the client's notes.
+    """
+    if len(arg) > 0:
+        raise ArgumentError('This command takes no arguments.')
+    else:
+        client.notepad = ''
+        client.send_ooc('Notes cleared.')
 
 @mod_only()
 def ooc_cmd_undisemvowel(client, arg):

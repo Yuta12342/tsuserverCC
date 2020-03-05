@@ -56,6 +56,11 @@ class TsuServer3:
         self.music_pages_ao1 = None
         self.backgrounds = None
         self.zalgo_tolerance = None
+        self.is_poll = False
+        self.poll = ''
+        self.pollyay = []
+        self.pollnay = []
+        self.parties = []
 
         self.ms_client = None
 
@@ -181,8 +186,6 @@ class TsuServer3:
 
         if isinstance(self.config['modpass'], str):
             self.config['modpass'] = {'default': {'password': self.config['modpass']}}
-        if 'multiclient_limit' not in self.config:
-            self.config['multiclient_limit'] = 16
 
     def load_characters(self):
         """Load the character list from a YAML file."""
@@ -343,6 +346,17 @@ class TsuServer3:
                                        name)
         self.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.is_mod)
 
+    def send_partychat(self, client, msg):
+        """
+        Send an OOC message to all mods.
+        :param client: sender
+        :param msg: message
+
+        """
+        name = client.name
+        ooc_name = '{}[{}]'.format(f'<dollar>[{client.party.name}]', name)
+        self.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.is_mod or x.party == client.party)
+
     def broadcast_need(self, client, msg):
         """
         Broadcast an OOC "need" message to all clients who do not
@@ -364,7 +378,7 @@ class TsuServer3:
 
     def send_arup(self, args):
         """Update the area properties for 2.6 clients.
-
+        
         Playercount:
             ARUP#0#<area1_p: int>#<area2_p: int>#...
         Status:
@@ -374,7 +388,8 @@ class TsuServer3:
         Lockedness:
             ARUP#3##<area1_l: string>##<area2_l: string>#...
 
-        :param args:
+
+        :param args: 
 
         """
         if len(args) < 2:
@@ -389,7 +404,7 @@ class TsuServer3:
                     _sanitised = int(part_arg)
                 except:
                     return
-        elif args[0] in (1, 2, 3):
+        elif args[0] in (1, 2, 3, 4):
             for part_arg in args[1:]:
                 try:
                     _sanitised = str(part_arg)

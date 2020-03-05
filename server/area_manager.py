@@ -65,19 +65,20 @@ class AreaManager:
             self.current_music_player_ipid = -1
             self.evi_list = EvidenceList()
             self.is_recording = False
+            self.is_restricted = False
             self.recorded_messages = []
+            self.statement = 0
+            self.connections = []
             self.evidence_mod = evidence_mod
             self.locking_allowed = locking_allowed
             self.showname_changes_allowed = showname_changes_allowed
             self.shouts_allowed = shouts_allowed
             self.abbreviation = abbreviation
             self.cards = dict()
-            """
-            #debug
-            self.evidence_list.append(Evidence("WOW", "desc", "1.png"))
-            self.evidence_list.append(Evidence("wewz", "desc2", "2.png"))
-            self.evidence_list.append(Evidence("weeeeeew", "desc3", "3.png"))
-            """
+            self.custom_list = dict()
+            self.cmusic_list = dict()
+            self.hidden = False
+            self.password = ''
 
             self.is_locked = self.Locked.FREE
             self.blankposting_allowed = True
@@ -87,7 +88,7 @@ class AreaManager:
             self.jukebox_prev_char_id = -1
 
             self.owners = []
-            self.afkers = []
+
         class Locked(Enum):
             """Lock state of an area."""
             FREE = 1,
@@ -104,10 +105,9 @@ class AreaManager:
         def remove_client(self, client):
             """Remove a disconnected client from the area."""
             self.clients.remove(client)
-            if client in self.afkers:
-                self.afkers.remove(client)
             if len(self.clients) == 0:
-                self.change_status('IDLE')
+                if len(self.owners) == 0:
+                    self.change_status('IDLE')
             if client.char_id != -1:
                 database.log_room('area.leave', client, self)
 
@@ -340,6 +340,64 @@ class AreaManager:
                 self.music_looper = asyncio.get_event_loop().call_later(
                     length, lambda: self.play_music(name, -1, length))
 
+        def music_shuffle(self, arg, client):
+            """
+            Play a track, but show showname as the player instead of character
+            ID.
+            :param name: track name
+            :param cid: origin character ID
+            :param showname: showname of origin user
+            :param length: track length (Default value = -1)
+            """
+            arg = arg
+            client = client
+            if len(arg) != 0:
+                index = 0
+                for item in self.server.music_list:
+                    if item['category'] == arg:
+                        for song in item['songs']:
+                            index += 1
+                if index == 0:
+                    client.send_ooc('Category/music not found.')
+                    return
+                else:
+                    music_set = set(range(index))
+                    trackid = random.choice(tuple(music_set))
+                    index = 0
+                    for item in self.server.music_list:
+                        if item['category'] == arg:
+                            for song in item['songs']:
+                                if index == trackid:
+                                    self.play_music_shownamed(song['name'], client.char_id, '{} Shuffle'.format(arg), -1)
+                                    self.music_looper = asyncio.get_event_loop().call_later(song['length'], lambda: self.music_shuffle(arg, client))
+                                    self.add_music_playing(client, song['name'])
+                                    database.log_room('play', client, self, message=song['name'])
+                                    return
+                                else:
+                                    index += 1
+            else:
+                index = 0
+                for item in self.server.music_list:
+                    for song in item['songs']:
+                        index += 1
+                if index == 0:
+                    client.send_ooc('Category/music not found.')
+                    return
+                else:
+                    music_set = set(range(index))
+                    trackid = random.choice(tuple(music_set))
+                    index = 1
+                    for item in self.server.music_list:
+                        for song in item['songs']:
+                            if index == trackid:
+                                self.play_music_shownamed(song['name'], client.char_id, 'Random Shuffle', -1)
+                                self.music_looper = asyncio.get_event_loop().call_later(song['length'], lambda: self.music_shuffle(arg, client))
+                                self.add_music_playing(client, song['name'])
+                                database.log_room('play', client, self, message=song['name'])
+                                return
+                            else:
+                                index += 1
+
         def can_send_message(self, client):
             """
             Check if a client can send an IC message in this area.
@@ -385,6 +443,15 @@ class AreaManager:
                 raise AreaError('Invalid background name.')
             self.background = bg
             self.send_command('BN', self.background)
+        
+        def change_cbackground(self, bg):
+            """
+            Set the background.
+            :param bg: background name
+            :raises: AreaError if `bg` is not in background list
+            """
+            self.background = bg
+            self.send_command('BN', self.background)
 
         def change_status(self, value):
             """
@@ -399,6 +466,14 @@ class AreaManager:
                 )
             if value.lower() == 'lfp':
                 value = 'looking-for-players'
+            self.status = value.upper()
+            self.server.area_manager.send_arup_status()
+
+        def custom_status(self, value):
+            """
+            Set the status of the room.
+            :param value: status code
+            """
             self.status = value.upper()
             self.server.area_manager.send_arup_status()
 
@@ -563,7 +638,14 @@ class AreaManager:
         """Broadcast ARUP packet containing player counts."""
         players_list = [0]
         for area in self.areas:
-            players_list.append(len(area.clients))
+            if area.hidden == True:
+	            players_list.append(-1)
+            else:
+                index = 0
+                for client in area.clients:
+                    if not client.ghost and not client.hidden:
+                        index += 1
+                players_list.append(index)
         self.server.send_arup(players_list)
 
     def send_arup_status(self):

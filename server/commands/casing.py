@@ -12,13 +12,15 @@ __all__ = [
     'ooc_cmd_evidence_mod',
     'ooc_cmd_evi_swap',
     'ooc_cmd_cm',
+    'ooc_cmd_modcm',
     'ooc_cmd_uncm',
+    'ooc_cmd_moduncm',
     'ooc_cmd_setcase',
     'ooc_cmd_anncase',
     'ooc_cmd_blockwtce',
     'ooc_cmd_unblockwtce',
     'ooc_cmd_judgelog',
-    'ooc_cmd_afk'
+    'ooc_cmd_cleartestimony'
 ]
 
 
@@ -36,6 +38,11 @@ def ooc_cmd_doc(client, arg):
             client.char_name))
         database.log_room('doc.change', client, client.area, message=arg)
 
+def ooc_cmd_cleartestimony(client, arg):
+    if client in client.area.owners:
+        client.area.recorded_messages.clear()
+        client.area.statement = 0
+        client.send_ooc('Testimony cleared.')
 
 def ooc_cmd_cleardoc(client, arg):
     """
@@ -138,10 +145,90 @@ def ooc_cmd_cm(client, arg):
                     f'{id} does not look like a valid ID.')
     else:
         raise ClientError('You must be authorized to do that.')
+		
+
+@mod_only()
+def ooc_cmd_modcm(client, arg):
+    """
+    Allows a mod to become or add a case manager for the current room.
+    Usage: /modcm <id>
+    """
+    if len(arg) == 0:
+        client.area.owners.append(client)
+        if client.area.evidence_mod == 'HiddenCM':
+            client.area.broadcast_evidence_list()
+        client.server.area_manager.send_arup_cms()
+        client.area.broadcast_ooc('{} [{}] is CM in this area now.'.format(
+            client.char_name, client.id))
+        database.log_room('cm.add', client, client.area, target=client, message='self-added')
+    elif len(arg) > 0:
+        arg = arg.split(' ')
+        for id in arg:
+            try:
+                id = int(id)
+                c = client.server.client_manager.get_targets(
+                    client, TargetType.ID, id, False)[0]
+                if not c in client.area.clients:
+                    raise ArgumentError(
+                        'You can only \'nominate\' people to be CMs when they are in the area.'
+                    )
+                elif c in client.area.owners:
+                    client.send_ooc(
+                        '{} [{}] is already a CM here.'.format(
+                            c.char_name, c.id))
+                else:
+                    client.area.owners.append(c)
+                    if client.area.evidence_mod == 'HiddenCM':
+                        client.area.broadcast_evidence_list()
+                    client.server.area_manager.send_arup_cms()
+                    client.area.broadcast_ooc(
+                        '{} [{}] is CM in this area now.'.format(
+                            c.char_name, c.id))
+                    database.log_room('cm.add', client, client.area, target=c)
+            except:
+                client.send_ooc(
+                    f'{id} does not look like a valid ID.')
 
 
-@mod_only(area_owners=True)
 def ooc_cmd_uncm(client, arg):
+    """
+    Remove a case manager from the current area.
+    Usage: /uncm <id>
+    """
+    if client not in client.area.owners:
+	    raise ClientError(
+                'You must be a CM.')
+    elif len(arg) > 0:
+        arg = arg.split(' ')
+    else:
+        arg = [client.id]
+    for id in arg:
+        try:
+            id = int(id)
+            c = client.server.client_manager.get_targets(
+                client, TargetType.ID, id, False)[0]
+            if c in client.area.owners:
+                client.area.owners.remove(c)
+                client.server.area_manager.send_arup_cms()
+                client.area.broadcast_ooc(
+                    '{} [{}] is no longer CM in this area.'.format(
+                        c.char_name, c.id))
+                database.log_room('cm.remove', client, client.area, target=c)
+                if len(client.area.owners) == 0:
+                    if client.area.is_restricted:
+                        client.area.is_restricted = False
+                        client.area.connections.clear()
+            else:
+                client.send_ooc(
+                    'You cannot remove someone from CMing when they aren\'t a CM.'
+                )
+        except:
+            client.send_ooc(
+                f'{id} does not look like a valid ID.')
+				
+
+@mod_only()				
+def ooc_cmd_moduncm(client, arg):
     """
     Remove a case manager from the current area.
     Usage: /uncm <id>
@@ -305,5 +392,3 @@ def ooc_cmd_judgelog(client, arg):
         raise ServerError(
             'There have been no judge actions in this area since start of session.'
         )
-def ooc_cmd_afk(client, arg):
-    client.server.client_manager.toggle_afk(client)

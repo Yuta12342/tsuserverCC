@@ -20,6 +20,7 @@ import time
 from heapq import heappop, heappush
 
 from server import database
+from server.timer import Timer
 from server.constants import TargetType
 from server.exceptions import ClientError, AreaError
 
@@ -40,6 +41,7 @@ class ClientManager:
             self.area = server.area_manager.default_area()
             self.server = server
             self.name = ''
+            self.showname = ''
             self.fake_name = ''
             self.is_mod = False
             self.mod_profile_name = None
@@ -57,6 +59,23 @@ class ClientManager:
             self.pm_mute = False
             self.mod_call_time = 0
             self.ipid = ipid
+            self.notepad = ''
+            self.autopass = False
+            self.followers = []
+            self.following = []
+            self.is_following = False
+            self.followable = True
+            self.is_hostage = False
+            self.timer = Timer()
+            self.old_char_name = ''
+            self.permission = False
+            self.ghost = False
+            self.hidden = False
+            self.in_party = False
+            self.party = None
+            self.partyrole = ''
+            self.votepower = 0
+            self.voted = False
 
             # Pairing stuff
             self.charid_pair = -1
@@ -91,8 +110,16 @@ class ClientManager:
                 for x in range(self.server.config['wtce_floodguard']
                                ['times_per_interval'])
             ]
-            #security stuff
-            self.clientscon = 0
+
+        def ann_alarm(self):
+            if alarmtype == 'seconds':
+                self.send_ooc(f'Alarm: {alarmtime:0.0f} seconds have passed.')
+            if alarmtype == 'hours':
+                self.send_ooc(f'Alarm: {alarmtime:0.0f} hours have passed.')
+            if alarmtype == 'minutes':
+                self.send_ooc(f'Alarm: {alarmtime:0.0f} minutes have passed.')
+            self.timer.alarmset = False
+
         def send_raw_message(self, msg):
             """
             Send a raw packet over TCP.
@@ -126,6 +153,31 @@ class ClientManager:
             :param msg: message to send
             """
             self.send_command('CT', self.server.config['hostname'], msg, '1')
+
+        def send_poll(self):
+            poll = 'There is currently no server poll running.'
+            if self.server.poll != '':
+                poll = self.server.poll
+                yay = self.server.pollyay
+                nay = self.server.pollnay
+                if len(yay) == 0:
+                    if len(nay) != 0:
+                        poll += f'\n===================\nThere are currently no yays and {len(nay)} nays.\nThe nays have a majority of {len(nay)} vote(s).'
+                elif len(nay) == 0:
+                    if len(yay) != 0:
+                        poll += f'\n===================\nThere are currently {len(yay)} yays and no nays.\nThe yays have a majority of {len(yay)} vote(s).'
+                else:
+                    if len(nay) > len(yay):
+                        majority = len(nay) - len(yay)
+                        poll += f'\n===================\nThere are currently {len(yay)} yays and {len(nay)} nays.\nThe nays have a majority of {majority} vote(s).'
+                    if len(nay) < len(yay):
+                        majority = len(yay) - len(nay)
+                        poll += f'\n===================\nThere are currently {len(yay)} yays and {len(nay)} nays.\nThe yays have a majority of {majority} vote(s).'
+                    else:
+                        poll += f'\n===================\nThere are currently {len(yay)} yays and {len(nay)} nays.\nThe yays and the nays are tied.'
+                self.send_ooc(poll)
+            else:
+                self.send_ooc(poll)
 
         def send_motd(self):
             """Send the message of the day to the client."""
@@ -261,15 +313,35 @@ class ClientManager:
             """
             if self.area == area:
                 raise ClientError('User already in specified area.')
+            if self.is_hostage == True:
+                for c in self.following:
+                    if not c in area.clients:
+                        raise ClientError('You cannot leave as long as you are a hostage!')
+                    elif area.is_locked == area.Locked.LOCKED and not self.id in area.invite_list:
+                        area.invite_list[self.id] = None
             if area.is_locked == area.Locked.LOCKED and not self.is_mod and not self.id in area.invite_list:
-                raise ClientError('That area is locked!')
+                if area.password != '':
+                    raise ClientError('That area is locked with a password! Use /area <id> <password> to enter.')
+                else:
+                    raise ClientError('That area is locked!')
             if area.is_locked == area.Locked.SPECTATABLE and not self.is_mod and not self.id in area.invite_list:
-                self.send_ooc(
-                    'This area is spectatable, but not free - you cannot talk in-character unless invited.'
-                )
+                self.send_ooc('This area is spectatable, but not free - you cannot talk in-character unless invited.')
+            if self.is_following == True:
+                for c in self.following:
+                    if not c in area.clients:
+                        self.is_following = False
+                        c.followers.remove(self)
+                        c.send_ooc(f'{self.char_name} left the area and is no longer following you.')
+                        self.send_ooc(f'You left the area and are no longer following {c.char_name}.')
+                        self.following.remove(c)
+            if not self.is_mod and self.area.is_restricted == True:
+                found = 'false'
+                for connection in self.area.connections:
+                    if connection == area or self in self.area.owners:
+                        found = 'true'
+                if found != 'true':
+                    raise ClientError('That area is not connected to your current area!')
 
-            if self in self.area.afkers:
-                self.server.client_manager.toggle_afk(self)
             if self.area.jukebox:
                 self.area.remove_jukebox_vote(self, True)
 
@@ -278,8 +350,52 @@ class ClientManager:
                 try:
                     new_char_id = area.get_rand_avail_char_id()
                 except AreaError:
-                    raise ClientError('No available characters in that area.')
-
+                    if self.is_following == True:
+                        self.is_following = False
+                        for c in self.following:
+                            c.send_ooc(f'No available characters in {area.name} for {self.char_name} so they cannot follow you any longer.')
+                            c.followers.remove(self)
+                            self.following.remove(c)
+                        raise ClientError(f'No available characters in {area.name}, cannot follow {self.char_name}. Unfollowing.')
+                    else:
+                        raise ClientError('No available characters in that area.')
+            if self.autopass == True:
+                if self.is_following:
+                    for c in self.following:
+                        if self.char_name.startswith('custom') and self.showname != 0:
+                            if c.char_name.startswith('custom') and c.showname != 0:
+                                self.area.broadcast_ooc(f'{self.showname} has followed {c.showname} to {area.name}.')
+                            else:
+                                self.area.broadcast_ooc(f'{self.showname} has followed {c.char_name} to {area.name}.')
+                        else:
+                            if c.char_name.startswith('custom') and c.showname != 0:
+                                self.area.broadcast_ooc(f'{self.char_name} has followed {c.showname} to {area.name}.')
+                            else:
+                                self.area.broadcast_ooc(f'{self.char_name} has followed {c.char_name} to {area.name}.')
+                else:
+                    if self.char_name.startswith('custom') and self.showname != 0:
+                        self.area.broadcast_ooc(f'{self.showname} has left to {area.name}.')
+                    else:
+                        self.area.broadcast_ooc(f'{self.char_name} has left to {area.name}.')
+            if len(self.followers) > 0:
+                for c in self.followers:
+                    if area.is_locked == area.Locked.LOCKED and not c.is_mod and not c.is_hostage and not c.id in area.invite_list:
+                        c.send_ooc(f'Cannot follow {self.char_name} to {area.name}. Unfollowing.')
+                        self.send_ooc(f'{c.char_name} cannot enter that area and is no longer following you.')
+                        c.is_following = False
+                        c.following.remove(self)
+                        self.followers.remove(c)
+                    elif not area.is_char_available(c.char_id):
+                        try:
+                            follow_char_id = area.get_rand_avail_char_id()
+                        except AreaError:
+                            c.send_ooc(f'No available characters in {area.name}, cannot follow {self.char_name}. Unfollowing.')
+                            c.is_following = False
+                            c.following.remove(self)
+                            self.followers.remove(c)
+                            self.send_ooc(f'No available characters in {area.name} for {c.char_name} so they cannot follow you any longer.')
+            self.old_char_name = self.char_name
+            if not area.is_char_available(self.char_id):
                 self.change_character(new_char_id)
                 self.send_ooc(
                     f'Character taken, switched to {self.char_name}.')
@@ -288,10 +404,28 @@ class ClientManager:
             self.area = area
             area.new_client(self)
 
-            self.send_ooc(
-                f'Changed area to {area.name} [{self.area.status}].')
-            self.area.send_command('CharsCheck',
-                                   *self.get_available_char_list())
+            self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')
+            if self.autopass == True:
+                if self.is_following:
+                    for c in self.following:
+                        if self.char_name.startswith('custom') and self.showname != 0:
+                            if c.char_name.startswith('custom') and c.showname != 0:
+                                self.area.broadcast_ooc(f'{self.showname} has followed {c.showname} from {old_area.name}.')
+                            else:
+                                self.area.broadcast_ooc(f'{self.showname} has followed {c.char_name} from {old_area.name}.')
+                        else:
+                            if c.char_name.startswith('custom') and c.showname != 0:
+                                self.area.broadcast_ooc(f'{self.char_name} has followed {c.showname} from {old_area.name}.')
+                            else:
+                                self.area.broadcast_ooc(f'{self.char_name} has followed {c.char_name} from {old_area.name}.')
+                else:
+                    if self.char_name.startswith('custom') and self.showname != 0:
+                        self.area.broadcast_ooc(f'{self.showname} has entered from {old_area.name}.')
+                    else:
+                        self.area.broadcast_ooc(f'{self.char_name} has entered from {old_area.name}.')
+                for c in self.followers:
+                    c.change_area(area)
+            self.area.send_command('CharsCheck', *self.get_available_char_list())
             self.send_command('HP', 1, self.area.hp_def)
             self.send_command('HP', 2, self.area.hp_pro)
             self.send_command('BN', self.area.background)
@@ -314,12 +448,11 @@ class ClientManager:
                     msg += ' [*]'
             self.send_ooc(msg)
 
-        def get_area_info(self, area_id, mods, afk_check):
+        def get_area_info(self, area_id, mods):
             """
             Get information about a specific area.
             :param area_id: area ID
             :param mods: limit player list to mods
-            :param afk_check: Limit player list to afks
             :returns: information as a string
             """
             info = '\r\n'
@@ -335,43 +468,65 @@ class ClientManager:
                 area.Locked.SPECTATABLE: '[SPECTATABLE]',
                 area.Locked.LOCKED: '[LOCKED]'
             }
-            if afk_check:
-                player_list = area.afkers
-            else:
-                player_list = area.clients
-            info += f'[{area.abbreviation}]: [{len(player_list)} users][{area.status}]{lock[area.is_locked]}'
-            
-            sorted_clients = []
-            for client in player_list:
-                if (not mods) or client.is_mod:
-                    sorted_clients.append(client)
-            for owner in area.owners:
-                if not (mods or owner in player_list):
-                    sorted_clients.append(owner)
-            if not sorted_clients:
-                return ''
-            sorted_clients = sorted(sorted_clients,
-                                    key=lambda x: x.char_name or '')
-            for c in sorted_clients:
+
+            if self not in area.owners and self not in area.clients and not self.is_mod and area.hidden == True:
+                info += f'[{area.abbreviation}]: [Hidden][{area.status}]{lock[area.is_locked]}'
                 info += '\r\n'
-                if c in area.owners:
-                    if not c in player_list:
-                        info += '[RCM]'
-                    else:
-                        info += '[CM]'
-                if c in area.afkers:
-                    info += '[AFK]'
-                info += f' [{c.id}] {c.char_name}'
-                if self.is_mod:
-                    info += f' ({c.ipid}): {c.name}'
+                info += 'This area\'s playercount is hidden.'
+            else:
+                index = 0
+                for client in area.clients:
+                    if not client.ghost and not client.hidden:
+                        index += 1
+                info += f'[{area.abbreviation}]: [{index} Users][{area.status}]{lock[area.is_locked]}'
+                sorted_clients = []
+                for client in area.clients:
+                    if self.is_mod:
+                        if (not mods) or client.is_mod:
+                            sorted_clients.append(client)
+                    elif self in area.owners and not client.ghost and client.hidden:
+                        if (not mods) or client.is_mod:
+                            sorted_clients.append(client)
+                    elif self == client and client.hidden:
+                        if (not mods) or client.is_mod:
+                            sorted_clients.append(client)
+                    elif not self.is_mod and not client.ghost and not client.hidden:
+                        if (not mods) or client.is_mod:
+                            sorted_clients.append(client)
+                for owner in area.owners:
+                    if not (mods or owner in area.clients):
+                        sorted_clients.append(owner)
+                if not sorted_clients:
+                    return ''
+                sorted_clients = sorted(sorted_clients,
+                                    key=lambda x: x.char_name or '')
+                for c in sorted_clients:
+                    info += '\r\n'
+                    if c.hidden and self in area.owners:
+                        info += '[Hidden]'
+                    elif c.hidden and self == c:
+                        info += '[Hidden]'
+                    elif c.hidden and self.is_mod:
+                        info += '[Hidden]'
+                    if c in area.owners:
+                        if not c in area.clients:
+                            info += '[RCM]'
+                        else:
+                            info += '[CM]'
+                    info += f'[{c.id}] {c.char_name}'
+                    if self.is_mod:
+                        info += f' ({c.ipid}): {c.name}'
+                    if c.showname != '':
+                        info += f' ({c.showname})'
+                    
+
             return info
 
-        def send_area_info(self, area_id, mods, afk_check=False):
+        def send_area_info(self, area_id, mods):
             """
             Send information over OOC about a specific area.
             :param area_id: area ID
             :param mods: limit player list to mods
-            :param afk_check: Limit player list to afks
             """
             # if area_id is -1 then return all areas. If mods is True then return only mods
             info = ''
@@ -380,34 +535,32 @@ class ClientManager:
                 cnt = 0
                 info = '\n== Area List =='
                 for i in range(len(self.server.area_manager.areas)):
-                    client_list = self.server.area_manager.areas[i]
-                    if afk_check:
-                        client_list = client_list.afkers
-                    else:
-                        client_list = client_list.clients
-                    area_info = self.get_area_info(i, mods, afk_check)
-                    if len(client_list) > 0 or len(
-                               self.server.area_manager.areas[i].owners) > 0:
-                        cnt += len(client_list)
-                        info += f'{area_info}'
-                if afk_check:
-                    info = f'Current AFK-ers: {cnt}{info}'
-                else:
-                    info = f'Current online: {cnt}{info}'
+                    if len(self.server.area_manager.areas[i].clients) > 0 or len(self.server.area_manager.areas[i].owners) > 0:
+                        for client in self.server.area_manager.areas[i].clients:
+                            if self.is_mod:
+                                cnt += 1
+                            elif self in self.server.area_manager.areas[i].owners and not client.ghost:
+                                cnt += 1
+                            elif self == client and client.hidden:
+                                cnt += 1
+                            elif not client.ghost and not client.hidden:
+                                cnt += 1
+                        info += f'{self.get_area_info(i, mods)}'
+                info = f'Current online: {cnt}{info}'
             else:
                 try:
-                    client_list = self.server.area_manager.areas[area_id]
-                    if afk_check:
-                        client_list = client_list.afkers
-                    else:
-                        client_list = client_list.clients
-                    area_info = self.get_area_info(area_id, mods, afk_check)
-                    area_client_cnt = len(client_list)
-                    if afk_check:
-                        info = f'People AFK-ing in this area: {area_client_cnt}'
-                    else:
-                        info = f'People in this area: {area_client_cnt}'
-                    info += area_info
+                    area_client_cnt = 0
+                    for client in self.server.area_manager.areas[area_id].clients:
+                        if self.is_mod:
+                            area_client_cnt += 1
+                        elif self in self.server.area_manager.areas[area_id].owners and not client.ghost:
+                            area_client_cnt += 1
+                        elif self == client and client.hidden:
+                            area_client_cnt += 1
+                        elif not client.ghost and not client.hidden:
+                            area_client_cnt += 1
+                    info = f'People in this area: {area_client_cnt}'
+                    info += self.get_area_info(area_id, mods)
 
                 except AreaError:
                     raise
@@ -536,34 +689,15 @@ class ClientManager:
         self.server = server
         self.cur_id = [i for i in range(self.server.config['playerlimit'])]
 
-
-    def new_client_preauth(self, client):
-        maxclients = self.server.config['multiclient_limit']
-        for c in self.server.client_manager.clients:
-            if c.ipid == client.ipid:
-                if c.clientscon > maxclients:
-                    return False
-        return True
-
     def new_client(self, transport):
         """
         Create a new client, add it to the list, and assign it a player ID.
         :param transport: asyncio transport
         """
-        try:
-            user_id = heappop(self.cur_id)
-        except IndexError:
-            transport.write(b'BD#This server is full.#%')
-            raise ClientError
-
         c = self.Client(
-            self.server, transport, user_id,
+            self.server, transport, heappop(self.cur_id),
             database.ipid(transport.get_extra_info('peername')[0]))
         self.clients.add(c)
-        temp_ipid = c.ipid
-        for client in self.server.client_manager.clients:
-            if client.ipid == temp_ipid:
-                client.clientscon += 1
         return c
 
     def remove_client(self, client):
@@ -580,12 +714,38 @@ class ClientManager:
                 if len(a.owners) == 0:
                     if a.is_locked != a.Locked.FREE:
                         a.unlock()
+                    if self.area.is_restricted:
+                        self.area.is_restricted = False
+                        self.area.connections.clear()
+			if len(client.area.clients) <= 1:
+                 if client.area.is_locked != client.area.Locked.FREE:
+                        client.area.unlock()
+        for c in client.following:
+            c.followers.remove(client)
+            c.send_ooc(f'{client.char_name} disconnected and is no longer following you.')
+        for b in client.followers:
+            b.following.remove(self)
+            b.is_following = False
+            b.send_ooc(f'{client.char_name} disconnected. Unfollowing.')
+        if client.in_party:
+            party = client.party
+            party.users.remove(client)
+            if len(party.users) != 0:
+                if party.leader == client:
+                    for member in party.users:
+                        member.send_ooc(f'{client.name} disconnected and left the party.')
+                        if party.leader not in party.users:
+                            party.leader = member
+                            member.send_ooc('Party Leader left, you are now the new Party Leader.')
+                        else:
+                            break
+                else:
+                    member.send_ooc(f'Party Leader left, {party.leader.name} is the new Party Leader.')
+            else:
+                client.server.parties.remove(party)
         heappush(self.cur_id, client.id)
-        temp_ipid = client.ipid
-        for c in self.server.client_manager.clients:
-            if c.ipid == temp_ipid:
-                c.clientscon -= 1
         self.clients.remove(client)
+
     def get_targets(self, client, key, value, local=False, single=False):
         """
         Find players by a combination of identifying data.
@@ -626,9 +786,6 @@ class ClientManager:
                 elif key == TargetType.IPID:
                     if client.ipid == value:
                         targets.append(client)
-                elif key == TargetType.AFK:
-                     if client in area.afkers:
-                        targets.append(client)
         return targets
 
     def get_muted_clients(self):
@@ -646,13 +803,3 @@ class ClientManager:
             if client.is_ooc_muted:
                 clients.append(client)
         return clients
-        
-    def toggle_afk(self, client):
-            if client in client.area.afkers:
-                    client.area.broadcast_ooc('{} is no longer AFK.'.format(client.char_name))
-                    client.send_ooc('You are no longer AFK. Welcome back!') #Making the server a bit friendly wouldn't hurt, right?
-                    client.area.afkers.remove(client)
-            else:
-                    client.area.broadcast_ooc('{} is now AFK.'.format(client.char_name))
-                    client.send_ooc('You are now AFK. Have a good day!')
-                    client.area.afkers.append(client)

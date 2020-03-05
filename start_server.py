@@ -19,21 +19,13 @@
 
 
 # Install dependencies in case one is missing
-
-import sys, subprocess
-
 def check_deps():
-    py_version = sys.version_info
-    if py_version.major < 3 or (py_version.major == 3 and py_version.minor < 7):
-        print("tsuserver3 requires at least Python 3.7! Your version: {}.{}"
-            .format(py_version.major, py_version.minor))
-        sys.exit(1)
-
     try:
         import arrow
     except ModuleNotFoundError:
         print('Installing dependencies for you...')
         try:
+            import sys, subprocess
             subprocess.check_call([
                 sys.executable, '-m', 'pip', 'install', '--user', '-r',
                 'requirements.txt'
