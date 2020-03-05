@@ -717,9 +717,9 @@ class ClientManager:
                     if self.area.is_restricted:
                         self.area.is_restricted = False
                         self.area.connections.clear()
-			if len(client.area.clients) <= 1:
-                 if client.area.is_locked != client.area.Locked.FREE:
-                        client.area.unlock()
+            if len(client.area.clients) <= 1:
+                if client.area.is_locked != client.area.Locked.FREE:
+                    client.area.unlock()
         for c in client.following:
             c.followers.remove(client)
             c.send_ooc(f'{client.char_name} disconnected and is no longer following you.')

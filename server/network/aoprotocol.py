@@ -638,7 +638,7 @@ class AOProtocol(asyncio.Protocol):
                 self.client.area.statement += -1
                 if self.client.area.statement < 1:
                     self.client.area.statement = 1
-					self.client.send_ooc('At first statement, can\'t no previous statement available.')
+                    self.client.send_ooc('At first statement, can\'t no previous statement available.')
                     statement = self.client.area.recorded_messages[self.client.area.statement]
                     self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
                                       statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
