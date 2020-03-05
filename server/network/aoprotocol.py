@@ -584,7 +584,7 @@ class AOProtocol(asyncio.Protocol):
                 self.client.send_ooc('Statement added!')
 
         if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
-            if not msg == '>' or not msg == '<' or len(self.client.area.recorded_messages) == 0:
+            if not msg == '>' and not msg == '<' :
                 self.client.area.send_command('MS', msg_type, pre, folder, anim, msg,
                                       pos, sfx, anim_type, cid, sfx_delay,
                                       button, self.client.evi_list[evidence],
@@ -612,9 +612,9 @@ class AOProtocol(asyncio.Protocol):
                 self.client.area.statement += 1
                 if self.client.area.statement >= len(self.client.area.recorded_messages):
                     self.client.area.statement = 1
-                    self.client.area.broadcast_ooc('End reached, looping back to first statement.')
+                    self.client.area.broadcast_ooc(f'{c.char_name} reached end, looping back to first statement.')
                 else:
-                    self.client.area.broadcast_ooc('Testimony advanced.')
+                    self.client.area.broadcast_ooc(f'Testimony advanced by {c.char_name}.')
                 statement = self.client.area.recorded_messages[self.client.area.statement]
                 self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
                                       statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
@@ -628,7 +628,9 @@ class AOProtocol(asyncio.Protocol):
                 if self.client.area.statement < 1:
                     self.client.area.statement = 1
                     self.client.send_ooc('At first statement, can\'t no previous statement available.')
+                else:
                     statement = self.client.area.recorded_messages[self.client.area.statement]
+                    self.client.send_ooc(f'{c.char_name} went back a statement.')
                     self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
                                       statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
                                       statement.button, self.client.evi_list[statement.evidence],
