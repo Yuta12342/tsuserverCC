@@ -714,9 +714,9 @@ class ClientManager:
                 if len(a.owners) == 0:
                     if a.is_locked != a.Locked.FREE:
                         a.unlock()
-                    if self.area.is_restricted:
-                        self.area.is_restricted = False
-                        self.area.connections.clear()
+                    if client.area.is_restricted:
+                        client.area.is_restricted = False
+                        client.area.connections.clear()
             if len(client.area.clients) <= 1:
                 if client.area.is_locked != client.area.Locked.FREE:
                     client.area.unlock()
