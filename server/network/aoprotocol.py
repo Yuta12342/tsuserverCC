@@ -793,9 +793,10 @@ class AOProtocol(asyncio.Protocol):
                     'You were blockdj\'d by a moderator.')
                 return
             if self.client.area.cannot_ic_interact(self.client):
-                self.client.send_ooc(
-                    "You are not on the area's invite list, and thus, you cannot change music!"
-                )
+                self.client.send_ooc("You are not on the area's invite list, and thus, you cannot change music!")
+                return
+            if not self.client.area.allowmusic and self.client not in self.client.area.owners:
+                self.client.send_ooc('The CM has disallowed music changes, ask them to change the music.')
                 return
             if not self.validate_net_cmd(
                     args, self.ArgType.STR,

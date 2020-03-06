@@ -82,6 +82,7 @@ class AreaManager:
             self.cmusic_list = dict()
             self.hidden = False
             self.password = ''
+            self.allowmusic = True
 
             self.is_locked = self.Locked.FREE
             self.blankposting_allowed = True
