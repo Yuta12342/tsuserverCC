@@ -14,8 +14,16 @@ __all__ = [
     'ooc_cmd_digitalroot',
     'ooc_cmd_knock',
     'ooc_cmd_tutturu',
+	'ooc_cmd_addfriend',
     'ooc_cmd_unshake'
 ]
+
+def ooc_cmd_add(client, arg):
+    try:
+        targets = client.server.client_manager.get_targets(
+            client, TargetType.ID, int(arg), False)
+    except:
+        raise ArgumentError('You must specify a target. Use /addfriend <id>.')
 
 def ooc_cmd_tutturu(client, arg):
     client.area.send_command('MS', 1, '-', 'Mayuri', '/hat/happy', 'Tutturu♪',

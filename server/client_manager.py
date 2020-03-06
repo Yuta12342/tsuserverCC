@@ -82,6 +82,8 @@ class ClientManager:
             self.visible = True
             self.narrator = False
             self.offset = 0
+            self.friendrequest = ''
+            self.friends = []
 
             # Pairing stuff
             self.charid_pair = -1
