@@ -82,6 +82,7 @@ class ClientManager:
             self.visible = True
             self.narrator = False
             self.offset = 0
+            self.clientscon = 0
 
             # Pairing stuff
             self.charid_pair = -1
@@ -695,15 +696,32 @@ class ClientManager:
         self.server = server
         self.cur_id = [i for i in range(self.server.config['playerlimit'])]
 
+    def new_client_preauth(self, client):
+        maxclients = self.server.config['multiclient_limit']
+        for c in self.server.client_manager.clients:
+            if c.ipid == client.ipid:
+                if c.clientscon > maxclients:
+                    return False
+        return True
+
     def new_client(self, transport):
         """
         Create a new client, add it to the list, and assign it a player ID.
         :param transport: asyncio transport
         """
+        try:
+            user_id = heappop(self.cur_id)
+        except IndexError:
+            transport.write(b'BD#This server is full.#%')
+            raise ClientError
         c = self.Client(
-            self.server, transport, heappop(self.cur_id),
+            self.server, transport, user_id,
             database.ipid(transport.get_extra_info('peername')[0]))
         self.clients.add(c)
+        temp_ipid = c.ipid
+        for client in self.server.client_manager.clients:
+            if client.ipid == temp_ipid:
+                client.clientscon += 1
         return c
 
     def remove_client(self, client):

@@ -112,7 +112,15 @@ class AOProtocol(asyncio.Protocol):
         :param transport: the transport object
 
         """
-        self.client = self.server.new_client(transport)
+        try:
+            self.client = self.server.new_client(transport)
+        except ClientError:
+            transport.close()
+            return
+        if not self.server.client_manager.new_client_preauth(self.client):
+            self.client.send_command('BD', 'Maximum clients reached.\nDisconnect one of your clients to continue.')
+            self.client.disconnect()
+            return
         # Client needs to send CHECK#% within the timeout - otherwise,
         # it will be automatically dropped.
         self.ping_timeout = asyncio.get_event_loop().call_later(
@@ -120,6 +128,7 @@ class AOProtocol(asyncio.Protocol):
         asyncio.get_event_loop().call_later(0.25, self.client.send_command,
                                             'decryptor',
                                             34)  # just fantacrypt things)
+        
 
     def connection_lost(self, exc):
         """User disconnected
@@ -127,8 +136,11 @@ class AOProtocol(asyncio.Protocol):
         :param exc: reason
 
         """
-        self.server.remove_client(self.client)
-        self.ping_timeout.cancel()
+        if self.client is not None:
+            logger.debug(f'{self.client.ipid} disconnected.')
+            self.server.remove_client(self.client)
+        if self.ping_timeout is not None:
+            self.ping_timeout.cancel()
 
     def get_messages(self):
         """Parses out full messages from the buffer.
@@ -374,6 +386,17 @@ class AOProtocol(asyncio.Protocol):
                    ) > 0 and not self.client.area.showname_changes_allowed:
                 self.client.send_ooc(
                     "Showname changes are forbidden in this area!")
+                return
+        elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
+                                   self.ArgType.STR,
+                                   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.STR_OR_EMPTY, self.ArgType.STR_OR_EMPTY):
+            # 2.7.0 validation monstrosity
+            msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx = args
+            if len(showname) > 0 and not self.client.area.showname_changes_allowed:
+                self.client.send_host_message("Showname changes are forbidden in this area!")
                 return
         else:
             return
