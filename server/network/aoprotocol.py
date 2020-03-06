@@ -560,7 +560,7 @@ class AOProtocol(asyncio.Protocol):
                 self.client.send_ooc('Recording testimony!')
                 if self.client.can_wtce:
                     self.client.area.send_command('RT', 'testimony1')
-        if msg.startswith('/end'):
+        if msg == '/end':
             if self.client in self.client.area.owners and self.client.area.is_recording:
                 self.client.area.is_recording = False
                 self.client.area.statement += 1
@@ -610,8 +610,7 @@ class AOProtocol(asyncio.Protocol):
                         color = 1
                         msg = msg[5:]
                         s.msg = msg
-                        self.client.send_ooc(f'Statement {s.id} amended.')
-                    
+                        self.client.send_ooc(f'Statement {s.id} amended.')              
 
         if msg == ' ':
             msg = msg[1:]
@@ -619,7 +618,7 @@ class AOProtocol(asyncio.Protocol):
             msg = msg[1:]
 
         if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
-            if not msg == '>' and not msg == '<' or len(self.client.area.recorded_messages) == 0:
+            if not msg == '>' and not msg == '<' and not msg == '=' or len(self.client.area.recorded_messages) == 0:
                 if self.client.visible and not self.client.narrator:
                     self.client.area.send_command('MS', msg_type, pre, folder, anim, msg,
                                       pos, sfx, anim_type, cid, sfx_delay,
@@ -721,6 +720,21 @@ class AOProtocol(asyncio.Protocol):
                             break
                     self.client.area.broadcast_ooc(f'{self.client.char_name} went to the previous statement of the testimony.')
                     self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
+                                      statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
+                                      statement.button, self.client.evi_list[statement.evidence],
+                                      statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
+                                      statement.other_folder, statement.other_emote, statement.offset_pair,
+                                      statement.other_offset, statement.other_flip, statement.nonint_pre)
+        elif msg == '=':
+            if len(self.client.area.recorded_messages) != 0:
+                if self.client.area.statement < 1:
+                    self.client.area.statement = 1
+                for s in self.client.area.recorded_messages:
+                    if s.id == self.client.area.statement:
+                        statement = s
+                        break
+                self.client.area.broadcast_ooc(f'{self.client.char_name} repeated the current statement.')
+                self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
                                       statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
                                       statement.button, self.client.evi_list[statement.evidence],
                                       statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,

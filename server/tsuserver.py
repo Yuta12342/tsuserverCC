@@ -45,7 +45,7 @@ class TsuServerCC:
     def __init__(self):
         self.software = 'tsuservercc'
         self.release = 1
-        self.major_version = 0
+        self.major_version = 1
         self.minor_version = 0
 
         self.config = None
