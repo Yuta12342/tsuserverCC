@@ -604,6 +604,11 @@ class AOProtocol(asyncio.Protocol):
                 self.client.area.recorded_messages.append(statement)
                 self.client.send_ooc(f'Substatement added after statement {oldstatement}!')
 
+        if msg == ' ':
+            msg = msg[1:]
+        if msg == '  ':
+            msg = msg[1:]
+
         if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
             if not msg == '>' and not msg == '<' or len(self.client.area.recorded_messages) == 0:
                 if self.client.visible:
@@ -627,7 +632,8 @@ class AOProtocol(asyncio.Protocol):
                         flip, ding, color, showname, charid_pair, other_folder,
                         other_emote, offset_pair, other_offset, other_flip, nonint_pre)
 
-                    database.log_ic(self.client, self.client.area, showname, msg)
+                    if msg != '' and msg != ' ':
+                        database.log_ic(self.client, self.client.area, showname, msg)
                 else:
                     self.client.area.send_command('MS', msg_type, pre, folder, '../../background/AADetentionCenter/defensedesk', msg,
                                       pos, sfx, anim_type, cid, sfx_delay,
@@ -649,7 +655,8 @@ class AOProtocol(asyncio.Protocol):
                         flip, ding, color, showname, charid_pair, other_folder,
                         other_emote, offset_pair, other_offset, other_flip, nonint_pre)
 
-                    database.log_ic(self.client, self.client.area, showname, msg)
+                    if msg != '' and msg != ' ':
+                        database.log_ic(self.client, self.client.area, showname, msg)
 
         if msg == '>':
             if len(self.client.area.recorded_messages) != 0:
@@ -680,7 +687,7 @@ class AOProtocol(asyncio.Protocol):
                         if s.id == self.client.area.statement:
                             statement = s
                             break
-                    self.client.area.broadcast_ooc(f'Testimony advanced by {self.client.char_name}.')
+                    self.client.area.broadcast_ooc(f'{self.client.char_name} went to the previous statement of the testimony.')
                     self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
                                       statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
                                       statement.button, self.client.evi_list[statement.evidence],
