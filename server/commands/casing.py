@@ -27,7 +27,7 @@ __all__ = [
 
 def ooc_cmd_testimony(client, arg):
     if len(client.area.recorded_messages) == 0:
-        raise AreaError('No recorded testimony in this area.')
+        raise ArgumentError('No recorded testimony in this area.')
     testimony = 'Testimony:'
     testimonylength = len(client.area.recorded_messages) - 1
     index = 0
