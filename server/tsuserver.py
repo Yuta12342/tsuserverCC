@@ -63,7 +63,6 @@ class TsuServerCC:
         self.pollyay = []
         self.pollnay = []
         self.parties = []
-        self.friendlists = []
 
         self.ms_client = None
 

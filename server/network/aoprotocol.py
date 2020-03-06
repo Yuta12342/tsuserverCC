@@ -612,10 +612,10 @@ class AOProtocol(asyncio.Protocol):
                         s.msg = msg
                         self.client.send_ooc(f'Statement {s.id} amended.')              
 
-        if msg == ' ':
-            msg = msg[1:]
+    #    if msg == ' ':
+    #       msg = msg[1:]
         if msg == '  ':
-            msg = msg[1:]
+            msg = msg[2:]
         if self.client.offset != 0 and not confirmed:
             offset_pair = self.client.offset
             other_offset = 0
