@@ -16,9 +16,19 @@ __all__ = [
     'ooc_cmd_uncharcurse',
     'ooc_cmd_charids',
     'ooc_cmd_reload',
+    'ooc_cmd_visible',
 	'ooc_cmd_kickother'
 ]
 
+def ooc_cmd_visible(client, arg):
+    if len(arg) > 0:
+        raise ArgumentError('This command takes no arguments.')
+    if client.visible:
+        client.visible = False
+        client.send_ooc('You are no longer visible, your emotes won\'t be shown.')
+    else:
+        client.visible = True
+        client.send_ooc('You are now visible, your emotes will be shown.')
 
 def ooc_cmd_switch(client, arg):
     """

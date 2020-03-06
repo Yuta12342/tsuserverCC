@@ -79,6 +79,7 @@ class ClientManager:
             self.partyrole = ''
             self.votepower = 0
             self.voted = False
+            self.visible = True
 
             # Pairing stuff
             self.charid_pair = -1

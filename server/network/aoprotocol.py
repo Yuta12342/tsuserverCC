@@ -606,28 +606,50 @@ class AOProtocol(asyncio.Protocol):
 
         if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
             if not msg == '>' and not msg == '<' or len(self.client.area.recorded_messages) == 0:
-                
-                self.client.area.send_command('MS', msg_type, pre, folder, anim, msg,
+                if self.client.visible:
+                    self.client.area.send_command('MS', msg_type, pre, folder, anim, msg,
                                       pos, sfx, anim_type, cid, sfx_delay,
                                       button, self.client.evi_list[evidence],
                                       flip, ding, color, showname, charid_pair,
                                       other_folder, other_emote, offset_pair,
                                       other_offset, other_flip, nonint_pre)
 
-                self.client.area.send_owner_command(
-                    'MS', msg_type, pre, folder, anim,
-                    '[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
-                    anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-                    flip, ding, color, showname, charid_pair, other_folder,
-                    other_emote, offset_pair, other_offset, other_flip, nonint_pre)
+                    self.client.area.send_owner_command(
+                        'MS', msg_type, pre, folder, anim,
+                        '[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
+                        anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
+                        flip, ding, color, showname, charid_pair, other_folder,
+                        other_emote, offset_pair, other_offset, other_flip, nonint_pre)
 
-                self.server.area_manager.send_remote_command(
-                    target_area, 'MS', msg_type, pre, folder, anim, msg, pos, sfx,
-                    anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-                    flip, ding, color, showname, charid_pair, other_folder,
-                    other_emote, offset_pair, other_offset, other_flip, nonint_pre)
+                    self.server.area_manager.send_remote_command(
+                        target_area, 'MS', msg_type, pre, folder, anim, msg, pos, sfx,
+                        anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
+                        flip, ding, color, showname, charid_pair, other_folder,
+                        other_emote, offset_pair, other_offset, other_flip, nonint_pre)
 
-                database.log_ic(self.client, self.client.area, showname, msg)
+                    database.log_ic(self.client, self.client.area, showname, msg)
+                else:
+                    self.client.area.send_command('MS', msg_type, pre, folder, '../../background/AADetentionCenter/defensedesk', msg,
+                                      pos, sfx, anim_type, cid, sfx_delay,
+                                      button, self.client.evi_list[evidence],
+                                      flip, ding, color, showname, charid_pair,
+                                      other_folder, other_emote, offset_pair,
+                                      other_offset, other_flip, nonint_pre)
+
+                    self.client.area.send_owner_command(
+                        'MS', msg_type, pre, folder, '../../background/AADetentionCenter/defensedesk',
+                        '[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
+                        anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
+                        flip, ding, color, showname, charid_pair, other_folder,
+                        other_emote, offset_pair, other_offset, other_flip, nonint_pre)
+
+                    self.server.area_manager.send_remote_command(
+                        target_area, 'MS', msg_type, pre, folder, '../../background/AADetentionCenter/defensedesk', msg, pos, sfx,
+                        anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
+                        flip, ding, color, showname, charid_pair, other_folder,
+                        other_emote, offset_pair, other_offset, other_flip, nonint_pre)
+
+                    database.log_ic(self.client, self.client.area, showname, msg)
 
         if msg == '>':
             if len(self.client.area.recorded_messages) != 0:
