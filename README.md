@@ -85,7 +85,7 @@ Requires Python 3.6+ and PyYAML.
     - Randomly chooses a character
 * **pos** "position" 
     - Changes your position in the court
-    - Positions: 'def', 'pro', 'hld', 'hlp', 'jud', 'wit'
+    - Positions: 'def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur' 'sea'
 * **bg** "background" 
     - Changes the current background
 * **custombg** "background"
