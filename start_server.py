@@ -40,12 +40,12 @@ def check_deps():
 
 
 def main():
-    from server.tsuserver import TsuServer3
-    server = TsuServer3()
+    from server.tsuserver import TsuServerCC
+    server = TsuServerCC()
     server.start()
 
 
 if __name__ == '__main__':
-    print('tsuserver3 - an Attorney Online server')
+    print('tsuserverCC - an Attorney Online server')
     check_deps()
     main()

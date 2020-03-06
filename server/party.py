@@ -40,7 +40,7 @@ class Party:
 		self.votes = set()
 		self.voters = []
 		self.playerid = []
-        self.rolesvisible = False
+		self.rolesvisible = False
 		
 	def add_user(self, client):
 		self.users.add(client)

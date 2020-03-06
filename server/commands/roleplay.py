@@ -48,8 +48,51 @@ __all__ = [
     'ooc_cmd_clearroles',
     'ooc_cmd_hide',
     'ooc_cmd_unhide',
+    'ooc_cmd_rolesvisible',
+    'ooc_cmd_addrole',
     'ooc_cmd_broadcast'
 ]
+
+def ooc_cmd_addrole(client, arg):
+    if not client.in_party:
+        raise ClientError('You aren\'t in a party.')
+    if not client.is_mod and client.party.leader != client:
+        raise ClientError('You are not the party leader.')
+    if len(arg) == 0:
+        raise ArgumentError('Too many arguments! Use /addrole [id] [role].')
+    else:
+        arg = arg.split()
+        try:
+            id = int(arg[0])
+        except:
+            raise ArgumentError(f'{id} does not look like a valid ID.')
+    if len(arg) < 2:
+        raise ArgumentError('Not enough arguments! Use /addrole [id] [role].')
+    party = client.party
+    for member in party.users:
+        if member.id == id:
+            member.partyrole = arg[1]
+            member.votepower = 0
+            member.send_ooc(f'Your role is now {member.partyrole}')
+            client.send_ooc(f'Assigned {arg[1]} to {member.name}.')
+            return
+    raise ArgumentError(f'{id} does not look like a valid ID.')
+
+def ooc_cmd_rolesvisible(client, arg):
+    if not client.in_party:
+        raise ClientError('You aren\'t in a party.')
+    if client.party.leader != client:
+        raise ClientError('You are not the party leader.')
+    if len(arg) > 0:
+        raise ArgumentError('Too many arguments.')
+    if client.party.rolesvisible:
+        client.party.rolesvisible = False
+        for member in client.party.users:
+            member.send_ooc('Party roles are no longer visible.')
+    else:
+        client.party.rolesvisible = True
+        for member in client.party.users:
+            member.send_ooc('Party roles are now visible.')
 
 def ooc_cmd_hide(client, arg):
     if client not in client.area.owners and not client.is_mod:
@@ -428,6 +471,8 @@ def ooc_cmd_leaveparty(client, arg):
 def ooc_cmd_partykick(client, arg):
     if not client.in_party:
         raise ClientError('You aren\'t in a party.')
+    if not client.is_mod and client.party.leader != client:
+        raise ClientError('You are not the party leader.')
     else:
         try:
             id = int(arg)
