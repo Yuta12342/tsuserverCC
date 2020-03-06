@@ -375,6 +375,22 @@ class AOProtocol(asyncio.Protocol):
                 self.client.send_ooc(
                     "Showname changes are forbidden in this area!")
                 return
+        elif self.validate_net_cmd(
+            args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, # msg_type, pre
+            self.ArgType.STR, self.ArgType.STR, # folder, anim
+            self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT, # text, pos, sfx, anim_type
+            self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, # cid, sfx_delay, button, evidence
+            self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, # flip, ding, color, showname
+            self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR, #charid_pair, offset_pair, nonint_pre, sfx_looping
+            self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR): # screenshake, frames_shake, frames_realization, frames_sfx
+            # Validate additional 2.8 features
+            msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, sfx_looping, screenshake, frames_shake, frames_realization, frames_sfx = args
+            self.client.showname = showname
+            if len(showname
+                   ) > 0 and not self.client.area.showname_changes_allowed:
+                self.client.send_ooc(
+                    "Showname changes are forbidden in this area!")
+                return
         else:
             return
         if self.client.area.is_iniswap(self.client, pre, anim,
