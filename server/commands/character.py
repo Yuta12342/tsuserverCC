@@ -18,8 +18,21 @@ __all__ = [
     'ooc_cmd_reload',
     'ooc_cmd_visible',
     'ooc_cmd_narrator',
+    'ooc_cmd_nopairoffset',
 	'ooc_cmd_kickother'
 ]
+
+def ooc_cmd_nopairoffset(client, arg):
+    try:
+        arg = int(arg)
+    except:
+        raise ValueError('That doesn\'t look like a valid number.')
+    if arg > 100:
+        raise ArgumentError('Can\'t set your offset higher than 100!')
+    if arg < -100:
+        raise ArgumentError('Can\'t set your offset lower than -100!')
+    client.offset = arg
+    client.send_ooc(f'Your offset was set to {client.offset}.') 
 
 def ooc_cmd_narrator(client, arg):
     if len(arg) > 0:

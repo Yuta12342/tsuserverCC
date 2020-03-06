@@ -81,6 +81,7 @@ class ClientManager:
             self.voted = False
             self.visible = True
             self.narrator = False
+            self.offset = 0
 
             # Pairing stuff
             self.charid_pair = -1

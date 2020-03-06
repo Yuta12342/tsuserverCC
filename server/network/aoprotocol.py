@@ -587,7 +587,7 @@ class AOProtocol(asyncio.Protocol):
                 statement.id = self.client.area.statement
                 self.client.area.recorded_messages.append(statement)
                 self.client.send_ooc('Statement added!')
-            elif self.client in self.client.area.owners and not self.client.area.is_recording:
+            elif self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
                 oldstatement = self.client.area.statement
                 self.client.area.statement += 1
                 msg = msg[1:]
@@ -616,6 +616,13 @@ class AOProtocol(asyncio.Protocol):
             msg = msg[1:]
         if msg == '  ':
             msg = msg[1:]
+        if self.client.offset != 0 and not confirmed:
+            offset_pair = self.client.offset
+            other_offset = 0
+            other_emote = '../../background/AADetentionCenter/defensedesk'
+            other_flip = flip
+            other_folder = folder
+            charid_pair = cid
 
         if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
             if not msg == '>' and not msg == '<' and not msg == '=' or len(self.client.area.recorded_messages) == 0:
