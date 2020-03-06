@@ -208,6 +208,10 @@ Requires Python 3.6+ and PyYAML.
     - Check a party member's 'voting power' or increase/decrease it.
     - Default voting power is 0 (one vote) except for the Sacrifice role, which is 1 (two votes).
 ### CM Commands
+* **hide** "ID/*"
+    - Hides the target from /getarea and playercount.
+* **unhide** "ID/*"
+    - Unhides the target from /getarea and playercount, can be used by non-CM if no arguments are given.
 * **allowmusic**
     - Toggles whether non-CMs are allowed to play music.
 * **narrator**
@@ -345,6 +349,8 @@ Requires Python 3.6+ and PyYAML.
 * **allowiniswap**
     - Toggle allow_iniswap var in this area. 
     - Even if iniswap at all is forbidden you can configure all-time allowed iniswaps in *iniswaps.yaml*
+* **ghost**
+    - Toggles whether the moderator is visible in /getarea and playercount.
 * **unmod**
     - Revokes moderator credentials from the user.
 
