@@ -154,6 +154,8 @@ Requires Python 3.6+ and PyYAML.
     - Broadcast a message in the selected area that the user is knocking on their door.
 * **cm**
     - Makes you a CM of the current area.
+* **visible**
+    - Toggles whether you will speak with a 'blank' emote.
 ### Party Commands
 * **party**
     - Shows the user's current party.
@@ -179,6 +181,10 @@ Requires Python 3.6+ and PyYAML.
     - Vote on a subject. If user has extra 'voting power,' they may vote more than once.
     - If used by party leader, show current vote tally.
 #### Party Leader-only Commands
+* **addrole "id" "role"**
+    - Adds a role a party member.
+* **rolesvisible**
+    - Toggles whether the roles are visible for everyone in the party.
 * **unlockparty**
     - Makes current party public.
 * **lockparty**
@@ -202,6 +208,10 @@ Requires Python 3.6+ and PyYAML.
     - Check a party member's 'voting power' or increase/decrease it.
     - Default voting power is 0 (one vote) except for the Sacrifice role, which is 1 (two votes).
 ### CM Commands
+* **allowmusic**
+    - Toggles whether non-CMs are allowed to play music.
+* **narrator**
+    - Toggles whether you appear as if you are the Narrator character.
 * **lock** "password"
     - Locks your area, preventing anyone outside of the invite list from joining.
     - Optionally, specify a password to be used with **area**.
@@ -261,7 +271,9 @@ Requires Python 3.6+ and PyYAML.
     - If you're paired and want your partner to have a statement, have the pair add the statement instead. (Make sure they are also a CM.)
 * Once you're done recording your testimony, just do `/end`. After this, you can do `///` in IC to make the title appear again, this time with a CE woosh.
 * After all that, anyone in the area can say `>` in IC to move to the next statement or `<` for the previous statement. All the statements will be automatically displayed in green.
-* If you want to clear the testimony, use /cleartestimony in OOC.
+* The CM can at this point also add 'substatements' by using +again, and then can also amend the current statement by using &[amended statement] in OOC.
+* If you want to clear the testimony, use /cleartestimony in OOC. For viewing the current testimony, simply do /testimony in OOC.
+
 ### Mod Commands
 * **login** "Password"
     - Grants the Guard checkbox, then checks if password is correct. If so, logs user in as a moderator.
