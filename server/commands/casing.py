@@ -29,10 +29,11 @@ def ooc_cmd_testimony(client, arg):
     if len(client.area.recorded_messages) == 0:
         raise AreaError('No recorded testimony in this area.')
     testimony = 'Testimony:'
+    testimonylength = len(client.area.recorded_messages) - 1
     for statement in client.area.recorded_messages:
         if statement.id == 0:
             testimony += f'\n{statement.msg}'
-        elif len(client.area.recorded_messages) == statement.id:
+        elif testimonylength == statement.id:
             testimony += f'\n{statement.msg}'
         else:
             testimony += f'\n{statement.id}: {statement.msg}'

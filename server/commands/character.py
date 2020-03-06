@@ -17,8 +17,21 @@ __all__ = [
     'ooc_cmd_charids',
     'ooc_cmd_reload',
     'ooc_cmd_visible',
+    'ooc_cmd_narrator',
 	'ooc_cmd_kickother'
 ]
+
+def ooc_cmd_narrator(client, arg):
+    if len(arg) > 0:
+        raise ArgumentError('This command takes no arguments.')
+    if client not in client.area.owners and not client.is_mod:
+        raise ClientError('You must be a CM.')
+    if client.narrator:
+        client.narrator = False
+        client.send_ooc('You are no longer speaking as Narrator.')
+    else:
+        client.narrator = True
+        client.send_ooc('You are now speaking as Narrator.')
 
 def ooc_cmd_visible(client, arg):
     if len(arg) > 0:
