@@ -345,6 +345,15 @@ class AOProtocol(asyncio.Protocol):
             return
 
         target_area = []
+        showname = ""
+        charid_pair = -1
+        offset_pair = 0
+        nonint_pre = 0
+        sfx_looping = "0"
+        screenshake = 0
+        frames_shake = ""
+        frames_realization = ""
+        frames_sfx = ""
         if self.validate_net_cmd(args, self.ArgType.STR, # msg_type
                                  self.ArgType.STR_OR_EMPTY, self.ArgType.STR, # pre, folder
                                  self.ArgType.STR, self.ArgType.STR, # anim, text
