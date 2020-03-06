@@ -20,9 +20,49 @@ __all__ = [
     'ooc_cmd_blockwtce',
     'ooc_cmd_unblockwtce',
     'ooc_cmd_judgelog',
+    'ooc_cmd_woosh',
+    'ooc_cmd_testimony',
     'ooc_cmd_cleartestimony'
 ]
 
+def ooc_cmd_testimony(client, arg):
+    if len(client.area.recorded_messages) == 0:
+        raise AreaError('No recorded testimony in this area.')
+    testimony = 'Testimony:'
+    testimonylength = len(client.area.recorded_messages) - 1
+    index = 0
+    statements = []
+    for statement in client.area.recorded_messages:
+        statements.append(index)
+        index += 1
+    for statement in client.area.recorded_messages:
+        statements[statement.id] = statement
+    index = 0
+    for n in statements:
+        statement = statements[index]
+        index += 1
+        if statement.id == 0:
+            testimony += f'\n{statement.msg}'
+        elif statement.id == testimonylength:
+            testimony += f'\n{statement.msg}'
+        else:
+            testimony += f'\n{statement.id}: {statement.msg}'
+    client.send_ooc(testimony)
+
+def ooc_cmd_woosh(client, arg):
+    """
+    Prevent a user from using Witness Testimony/Cross Examination buttons
+    as a judge.
+    Usage: /woosh
+    """
+    if len(arg) != 0:
+        raise ArgumentError('This command takes no arguments.')
+    if client.can_wtce:
+        client.can_wtce = False
+        client.send_ooc('You will no longer use judge signs.')
+    else:
+        client.can_wtce = True
+        client.send_ooc('You will now use judge signs again.')
 
 def ooc_cmd_doc(client, arg):
     """

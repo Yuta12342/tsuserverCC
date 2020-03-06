@@ -16,9 +16,45 @@ __all__ = [
     'ooc_cmd_uncharcurse',
     'ooc_cmd_charids',
     'ooc_cmd_reload',
+    'ooc_cmd_visible',
+    'ooc_cmd_narrator',
+    'ooc_cmd_nopairoffset',
 	'ooc_cmd_kickother'
 ]
 
+def ooc_cmd_nopairoffset(client, arg):
+    try:
+        arg = int(arg)
+    except:
+        raise ValueError('That doesn\'t look like a valid number.')
+    if arg > 100:
+        raise ArgumentError('Can\'t set your offset higher than 100!')
+    if arg < -100:
+        raise ArgumentError('Can\'t set your offset lower than -100!')
+    client.offset = arg
+    client.send_ooc(f'Your offset was set to {client.offset}.') 
+
+def ooc_cmd_narrator(client, arg):
+    if len(arg) > 0:
+        raise ArgumentError('This command takes no arguments.')
+    if client not in client.area.owners and not client.is_mod:
+        raise ClientError('You must be a CM.')
+    if client.narrator:
+        client.narrator = False
+        client.send_ooc('You are no longer speaking as Narrator.')
+    else:
+        client.narrator = True
+        client.send_ooc('You are now speaking as Narrator.')
+
+def ooc_cmd_visible(client, arg):
+    if len(arg) > 0:
+        raise ArgumentError('This command takes no arguments.')
+    if client.visible:
+        client.visible = False
+        client.send_ooc('You are no longer visible, your emotes won\'t be shown.')
+    else:
+        client.visible = True
+        client.send_ooc('You are now visible, your emotes will be shown.')
 
 def ooc_cmd_switch(client, arg):
     """

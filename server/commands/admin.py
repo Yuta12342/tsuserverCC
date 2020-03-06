@@ -31,9 +31,20 @@ __all__ = [
     'ooc_cmd_setserverpoll',
     'ooc_cmd_serverpoll',
     'ooc_cmd_clearserverpoll',
+    'ooc_cmd_allowmusic',
     'ooc_cmd_ghost'
 ]
- 
+
+def ooc_cmd_allowmusic(client, arg):
+    if client not in client.area.owners and not client.is_mod:
+        raise ClientError('You are not a CM!')
+    if client.area.allowmusic:
+        client.area.allowmusic = False
+        client.area.broadcast_ooc('Music changes have been disallowed in this area!')
+    else:
+        client.area.allowmusic = True
+        client.area.broadcast_ooc('Music changes have been allowed in this area.')
+
 def ooc_cmd_setserverpoll(client, arg):
     if not client.is_mod:
         raise ClientError('You are not authorized.')
@@ -152,7 +163,7 @@ def ooc_cmd_help(client, arg):
     """
     if len(arg) != 0:
         raise ArgumentError('This command has no arguments.')
-    help_url = 'https://github.com/AttorneyOnline/tsuserver3'
+    help_url = 'https://github.com/RealKaiser/tsuserverCC'
     help_msg = f'The commands available on this server can be found here: {help_url}'
     client.send_ooc(help_msg)
 
