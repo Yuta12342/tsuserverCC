@@ -25,10 +25,10 @@ event_logger = logging.getLogger('events')
 
 class MusicListManager:
     """
-    A music list stored on the server that can be loaded into an area.
+    Handles storing and loading custom music lists for areas.
     """
-    def __init__(self):
-        self.exist = True
+    def __init__(self, server):
+        self.server = server
 
     def loadlist(self, client, arg):
         listname = f'storage/musiclist/{arg}.yaml'

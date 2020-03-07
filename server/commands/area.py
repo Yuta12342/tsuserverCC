@@ -552,7 +552,7 @@ def ooc_cmd_invite(client, arg):
         raise ClientError('You must specify a target. Use /invite <id>')
     elif client.area.is_locked == client.area.Locked.FREE:
         raise ClientError('Area isn\'t locked.')
-    elif client not in client.area.owners or not client.is_mod:
+    elif client not in client.area.owners and not client.is_mod:
         raise ClientError ('You are not a CM.')
     try:
         c = client.server.client_manager.get_targets(client, TargetType.ID,
@@ -575,7 +575,7 @@ def ooc_cmd_uninvite(client, arg):
         raise ClientError('Area isn\'t locked.')
     elif not arg:
         raise ClientError('You must specify a target. Use /uninvite <id>')
-    elif client not in client.area.owners:
+    elif client not in client.area.owners and not client.is_mod:
         raise ClientError ('You are not a CM.')
     arg = arg.split(' ')
     targets = client.server.client_manager.get_targets(client, TargetType.ID,

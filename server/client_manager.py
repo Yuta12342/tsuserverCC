@@ -85,6 +85,8 @@ class ClientManager:
             self.narrator = False
             self.offset = 0
             self.clientscon = 0
+            self.friendlist = None
+            self.friendrequests = set()
 
             # Pairing stuff
             self.charid_pair = -1
@@ -729,7 +731,9 @@ class ClientManager:
         for client in self.server.client_manager.clients:
             if client.ipid == temp_ipid:
                 client.clientscon += 1
+        self.server.friend_manager.new_friendlist(c)
         return c
+
     def remove_client(self, client):
         """
         Remove a disconnected client from the client list.
@@ -773,6 +777,8 @@ class ClientManager:
                     member.send_ooc(f'Party Leader left, {party.leader.name} is the new Party Leader.')
             else:
                 client.server.parties.remove(party)
+        if client.friendlist != None:
+            self.server.friend_manager.friendlists.remove(client.friendlist)
         heappush(self.cur_id, client.id)
         self.clients.remove(client)
 
