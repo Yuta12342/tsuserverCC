@@ -277,7 +277,10 @@ def ooc_cmd_shuffle(client, arg):
     Play a track.
     Usage: /play <name>
     """
-    client.area.music_shuffle(arg, client)
+    if arg == 'musiclist':
+        client.area.musiclist_shuffle(client)
+    else:
+        client.area.music_shuffle(arg, client)
 
 @mod_only()
 def ooc_cmd_blockdj(client, arg):
