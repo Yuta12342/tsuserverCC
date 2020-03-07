@@ -14,6 +14,7 @@ __all__ = [
     'ooc_cmd_digitalroot',
     'ooc_cmd_knock',
     'ooc_cmd_tutturu',
+    'ooc_cmd_gimp',
     'ooc_cmd_unshake'
 ]
 
@@ -67,6 +68,31 @@ def ooc_cmd_disemvowel(client, arg):
     else:
         client.send_ooc('No targets found.')
 
+@mod_only()
+def ooc_cmd_gimp(client, arg):
+    """
+    Remove all vowels from a user's IC chat.
+    Usage: /disemvowel <id>
+    """
+    if len(arg) == 0:
+        raise ArgumentError('You must specify a target.')
+    try:
+        targets = client.server.client_manager.get_targets(
+            client, TargetType.ID, int(arg), False)
+    except:
+        raise ArgumentError('You must specify a target. Use /gimp <id>.')
+    if targets:
+        for c in targets:
+            if c.gimp:
+                database.log_room('ungimp', client, client.area, target=c)
+                c.gimp = False
+                client.send_ooc(f'Ungimped {c.char_name}.')
+            else:
+                database.log_room('gimp', client, client.area, target=c)
+                c.gimp = True
+                client.send_ooc(f'Gimped {c.char_name}.')
+    else:
+        client.send_ooc('No targets found.')
 
 def ooc_cmd_notepad(client, arg):
     """

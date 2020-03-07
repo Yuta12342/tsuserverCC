@@ -23,10 +23,12 @@ __all__ = [
 ]
 
 def ooc_cmd_nopairoffset(client, arg):
+    if len(arg) == 0:
+        raise ArgumentError('Requires an offset as argument.')
     try:
         arg = int(arg)
     except:
-        raise ValueError('That doesn\'t look like a valid number.')
+        raise ArgumentError('That doesn\'t look like a valid number.')
     if arg > 100:
         raise ArgumentError('Can\'t set your offset higher than 100!')
     if arg < -100:

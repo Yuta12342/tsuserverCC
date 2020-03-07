@@ -31,7 +31,7 @@ class MusicListManager:
         self.exist = True
 
     def loadlist(self, client, arg):
-        listname = f'storage/{arg}.yaml'
+        listname = f'storage/musiclist/{arg}.yaml'
         new = not os.path.exists(listname)
         if new:
             client.send_ooc('No music list with that name found.')
@@ -39,13 +39,13 @@ class MusicListManager:
         else:
             client.area.cmusic_list = dict()
             with open(listname, 'r', encoding='utf-8') as file:
-                list = yaml.full_load(file)
+                list = yaml.safe_load(file)
                 for name, length in list.items():
                     client.area.cmusic_list[name] = length
             client.area.broadcast_ooc(f'Music list {arg} loaded!')
 
     def storelist(self, client, arg):
-        listname = f'storage/{arg}.yaml'
+        listname = f'storage/musiclist/{arg}.yaml'
         new = not os.path.exists(listname)
         if not new:
             os.remove(listname)

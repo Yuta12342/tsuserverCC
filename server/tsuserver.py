@@ -85,7 +85,6 @@ class TsuServerCC:
             self.load_music()
             self.load_backgrounds()
             self.load_gimps()
-            self.load_data()
         except yaml.YAMLError as exc:
             print('There was a syntax error parsing a configuration file:')
             print(exc)
@@ -224,7 +223,7 @@ class TsuServerCC:
         
     def load_gimps(self):
         with open('config/gimp.yaml', 'r', encoding='utf-8') as cfg:
-            self.gimp_list = yaml.load(cfg)
+            self.gimp_list = yaml.safe_load(cfg)
 
     def load_backgrounds(self):
         """Load the backgrounds list from a YAML file."""
