@@ -82,6 +82,7 @@ def ooc_cmd_cleartestimony(client, arg):
     if client in client.area.owners:
         client.area.recorded_messages.clear()
         client.area.statement = 0
+        client.area.is_recording = False
         client.send_ooc('Testimony cleared.')
 
 def ooc_cmd_cleardoc(client, arg):

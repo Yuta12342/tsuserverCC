@@ -720,7 +720,7 @@ class AOProtocol(asyncio.Protocol):
                         database.log_ic(self.client, self.client.area, showname, msg)
 
         if msg == '>':
-            if len(self.client.area.recorded_messages) != 0:
+            if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
                 self.client.area.statement += 1
                 if self.client.area.statement >= len(self.client.area.recorded_messages):
                     self.client.area.statement = 1
@@ -738,7 +738,7 @@ class AOProtocol(asyncio.Protocol):
                                       statement.other_folder, statement.other_emote, statement.offset_pair,
                                       statement.other_offset, statement.other_flip, statement.nonint_pre)
         elif msg == '<':
-            if len(self.client.area.recorded_messages) != 0:
+            if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
                 self.client.area.statement += -1
                 if self.client.area.statement < 1:
                     self.client.area.statement = 1
@@ -756,8 +756,8 @@ class AOProtocol(asyncio.Protocol):
                                       statement.other_folder, statement.other_emote, statement.offset_pair,
                                       statement.other_offset, statement.other_flip, statement.nonint_pre)
         elif msg == '=':
-            if len(self.client.area.recorded_messages) != 0:
-                if self.client.area.statement < 1:
+            if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
+                if self.client.area.statement <= 0:
                     self.client.area.statement = 1
                 for s in self.client.area.recorded_messages:
                     if s.id == self.client.area.statement:
