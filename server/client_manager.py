@@ -87,6 +87,7 @@ class ClientManager:
             self.clientscon = 0
             self.friendlist = None
             self.friendrequests = set()
+            self.areapair = 'middle'
 
             # Pairing stuff
             self.charid_pair = -1
@@ -246,7 +247,6 @@ class ClientManager:
             old_char = self.char_name
             self.char_id = char_id
             self.pos = ''
-            self.area.shadow_status[self.char_id] = [self.ipid, self.hdid]
             self.send_command('PV', self.id, 'CID', self.char_id, switch)
             self.area.send_command('CharsCheck', *self.get_available_char_list())
             new_char = self.char_name

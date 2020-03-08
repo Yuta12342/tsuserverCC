@@ -50,3 +50,13 @@ class Statement:
 		self.frame_sfx = frame_sfx
 
 		self.id = 0
+
+class AreaPairMessage:
+
+    def __init__(self, client, folder, anim, msg, cid, flip):
+        self.client = client
+        self.anim = anim
+        self.folder = folder
+        self.cid = cid
+        self.msg = msg
+        self.flip = flip

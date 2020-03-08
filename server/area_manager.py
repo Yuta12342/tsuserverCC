@@ -82,8 +82,21 @@ class AreaManager:
             self.hidden = False
             self.password = ''
             self.allowmusic = True
-            self.shadow_status = {}
-
+            self.leftwit = None
+            self.rightwit = None
+            self.leftdef = None
+            self.rightdef = None
+            self.leftpro = None
+            self.rightpro = None
+            self.leftjud = None
+            self.rightjud = None
+            self.leftjur = None
+            self.rightjur = None
+            self.lefthld = None
+            self.righthld = None
+            self.lefthlp = None
+            self.righthlp = None
+            
             """
             #debug
             self.evidence_list.append(Evidence("WOW", "desc", "1.png"))

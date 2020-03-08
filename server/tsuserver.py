@@ -287,7 +287,7 @@ class TsuServerCC:
         for area in self.area_manager.areas:
             self.music_list_ao2.append(area.name)
             # then add music
-        self.music_list_ao2.append("===MUSIC START===.mp3") #>lol lets just have the music and area lists be the same fucking thing, the mp3 is there for older clients who aren't looking for this to determine the start of the music list
+        #self.music_list_ao2.append("===MUSIC START===.mp3") #>lol lets just have the music and area lists be the same fucking thing, the mp3 is there for older clients who aren't looking for this to determine the start of the music list
         for item in self.music_list:
             self.music_list_ao2.append(item['category'])
             try:

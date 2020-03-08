@@ -398,11 +398,11 @@ def ooc_cmd_refresh(client, arg):
     else:
         try:
             client.server.refresh()
+
             database.log_misc('refresh', client)
             client.send_ooc('You have reloaded the server.')
         except ServerError:
             raise
-
 
 def ooc_cmd_online(client, _):
     """
