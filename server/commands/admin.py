@@ -71,7 +71,7 @@ def ooc_cmd_serverpoll(client, arg):
         if len(nay) > len(yay):
             majority = len(nay) - len(yay)
             poll += f'\n===================\nThere are currently {len(yay)} yays and {len(nay)} nays.\nThe nays have a majority of {majority} vote(s).'
-        if len(nay) < len(yay):
+        elif len(nay) < len(yay):
             majority = len(yay) - len(nay)
             poll += f'\n===================\nThere are currently {len(yay)} yays and {len(nay)} nays.\nThe yays have a majority of {majority} vote(s).'
         else:
