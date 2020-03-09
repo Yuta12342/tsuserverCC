@@ -30,6 +30,9 @@ __all__ = [
     'ooc_cmd_hostage',
     'ooc_cmd_time',
     'ooc_cmd_timer',
+    'ooc_cmd_setalarm',
+    'ooc_cmd_setalarmsecs',
+    'ooc_cmd_setalarmhours',
     'ooc_cmd_party',
     'ooc_cmd_parties',
     'ooc_cmd_partyinvite',
@@ -538,7 +541,9 @@ def ooc_cmd_time(client, arg):
 def ooc_cmd_timer(client, arg):
     if len(arg) == 0:
         if client.timer.started == False:
-            raise ArgumentError('Timer was not used yet, use /timer <start>.')
+            if client.timer.alarmtime is not None:
+                time = client.timer.alarmtime / 60
+                msg = f'Alarm in {time} minutes.'
         else:
             time = client.timer.check()
             msg = 'Timer:\n'
@@ -547,6 +552,8 @@ def ooc_cmd_timer(client, arg):
             msg += f'{time:0.1f} minutes.\n'
             time = time / 60
             msg += f'{time:0.2f} hours.'
+            time = client.timer.alarmtime / 60
+            msg += '\nAlarm:\n{time} minutes remaining.'
             client.send_ooc(msg)
     else:
         if arg == 'start':
@@ -567,28 +574,26 @@ def ooc_cmd_timer(client, arg):
         else:
             raise ArgumentError('Invalid argument, please use <start>, <stop>, continue or no argument.')
 
-"""
+
 def ooc_cmd_setalarm(client, arg):
     if len(arg) == 0:
         raise ArgumentError('Not enough arguments. Use /settimer <minutes>')
     time = int(arg)
     send = time
     time = time * 60
-    client.timer.setalarm(time)
+    if time > 43200:
+        raise ArgumentError('Can\'t set a time longer than 12 hours.')
+    client.timer.setalarm(time, 'minutes', client)
     client.send_ooc(f'Alarm set for {arg} minutes from now.')
-    client.self.alarmtime = time
-    client.self.alarmtype = 'minutes'
-    threading.Timer(time, client.ann_alarm)
 
 def ooc_cmd_setalarmsecs(client, arg):
     if len(arg) == 0:
         raise ArgumentError('Not enough arguments. Use /settimer <minutes>')
     time = int(arg)
-    client.timer.setalarm(time)
+    if time > 43200:
+        raise ArgumentError('Can\'t set a time longer than 12 hours.')
+    client.timer.setalarm(time, 'seconds', client)
     client.send_ooc(f'Alarm set for {arg} seconds from now.')
-    client.self.alarmtime = time
-    client.self.alarmtype = 'seconds'
-    threading.Timer(time, client.ann_alarm)
 
 def ooc_cmd_setalarmhours(client, arg):
     if len(arg) == 0:
@@ -596,12 +601,10 @@ def ooc_cmd_setalarmhours(client, arg):
     time = int(arg)
     send = time
     time = time * 3600
-    client.timer.setalarm(time)
+    if time > 43200:
+        raise ArgumentError('Can\'t set a time longer than 12 hours.')
+    client.timer.setalarm(time, 'hours', client)
     client.send_ooc(f'Alarm set for {arg} hours from now.')
-    client.self.alarmtime = time
-    client.self.alarmtype = 'hours'
-    threading.Timer(time, client.ann_alarm)
-"""
 
 def ooc_cmd_follow(client, arg):
     if len(arg) == 0:

@@ -25,6 +25,8 @@ class Timer:
         self._start_time = None
         self.elapsed_time = None
         self.started = False
+        self.alarmtime = None
+        self.alarmtype = None
 
     def start(self):
         self._start_time = time.perf_counter()
@@ -49,3 +51,13 @@ class Timer:
         else:
             self.elapsed_time = time.perf_counter() - self._start_time
             return self.elapsed_time
+    def setalarm(self, time, type, client)
+        self.alarmtime = time
+        self.alarmtype = type
+        if type is 'hours':
+            time = time / 60
+            time = time / 60
+        if type is 'minutes':
+            time = time / 60
+        asyncio.get_event_loop().call_later(self.alarmtime, lambda: client.send_ooc(f'Alarm, {time} {type} have passed!')
+        asyncio.get_event_loop().call_later(self.alarmtime, lambda: client.alarmtime = None)
