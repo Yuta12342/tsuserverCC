@@ -73,6 +73,31 @@ class FriendManager:
             with open(listname, 'w', encoding='utf-8') as list:
                 yaml.dump(self.friends, list)
 
+        def removefriend(self, friend_hdid):
+            listname = f'storage/friendlist/{self.client.hdid}.yaml'
+            flistname = f'storage/friendlist/{friend_hdid}.yaml'
+            new = not os.path.exists(listname)
+            fnew = not os.path.exists(flistname)
+            friend_friends = dict()
+            self.friends = dict()
+            with open(flistname, 'r', encoding='utf-8') as file:
+                list = yaml.safe_load(file)
+            for hdid, name in list.items():
+                friend_friends[hdid] = name
+            friend_friends.remove(self.client.hdid)
+            os.remove(flistname)
+            with open(flistname, 'w', encoding='utf-8') as list:
+                yaml.dump(friend_friends, list)
+
+            with open(listname, 'r', encoding='utf-8') as file:
+                list = yaml.safe_load(file)
+            for hdid, name in list.items():
+                self.friends[hdid] = name
+            self.friends.remove(friend_hdid)
+            os.remove(listname)
+            with open(listname, 'w', encoding='utf-8') as list:
+                yaml.dump(self.friends, list)
+
     def __init__(self, server):
         self.server = server
         self.friendlists = set()

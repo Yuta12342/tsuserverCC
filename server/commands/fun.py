@@ -16,6 +16,7 @@ __all__ = [
     'ooc_cmd_tutturu',
     'ooc_cmd_gimp',
     'ooc_cmd_friend',
+    'ooc_cmd_unfriend',
     'ooc_cmd_friendlist',
     'ooc_cmd_unshake'
 ]
@@ -55,6 +56,20 @@ def ooc_cmd_friend(client, arg):
                 client.send_ooc(f'Friend request sent to {c.char_name}.')
                 return
     client.send_ooc('No targets found.')
+
+def ooc_cmd_unfriend(client, arg):
+    if len(arg) == 0:
+        raise ArgumentError('You need to specify an ID to unfriend.')
+    try:
+        arg = int(arg)
+    except:
+        raise ArgumentError('You must specify a target. Use /unfriend <id>.')
+    for c in client.server.client_manager.clients:
+        if c.id == arg:
+            if not c.hdid in client.friends:
+                raise ArgumentError('That person is not on your friend list.')
+            client.friendlist.removefriend(c.hdid)
+            return
 
 def ooc_cmd_friendlist(client, arg):
     if len(arg) > 0:

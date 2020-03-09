@@ -51,7 +51,8 @@ class Timer:
         else:
             self.elapsed_time = time.perf_counter() - self._start_time
             return self.elapsed_time
-    def setalarm(self, time, type, client)
+
+    def setalarm(self, time, type, client):
         self.alarmtime = time
         self.alarmtype = type
         if type is 'hours':
