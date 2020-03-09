@@ -60,5 +60,7 @@ class Timer:
             time = time / 60
         if type is 'minutes':
             time = time / 60
-        asyncio.get_event_loop().call_later(self.alarmtime, lambda: client.send_ooc(f'Alarm, {time} {type} have passed!')
-        asyncio.get_event_loop().call_later(self.alarmtime, lambda: client.alarmtime = None)
+        asyncio.get_event_loop().call_later(self.alarmtime, lambda: client.send_ooc(f'Alarm, {time} {type} have passed!'))
+        asyncio.get_event_loop().call_later(self.alarmtime, lambda: self.resetalarm)
+    def resetalarm(self):
+        self.alarmtime = None
