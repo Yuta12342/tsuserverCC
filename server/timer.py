@@ -18,6 +18,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import time
+import asyncio
 
 class Timer:
 
@@ -26,6 +27,7 @@ class Timer:
         self.elapsed_time = None
         self.started = False
         self.alarmtime = None
+        self.alarmtimeset = None
         self.alarmtype = None
 
     def start(self):
@@ -52,15 +54,18 @@ class Timer:
             self.elapsed_time = time.perf_counter() - self._start_time
             return self.elapsed_time
 
-    def setalarm(self, time, type, client):
-        self.alarmtime = time
+    def setalarm(self, ttime, type, client):
+        self.alarmtime = ttime
+        self.alarmtimeset = time.perf_counter()
+        self.alarmtimeset += ttime
         self.alarmtype = type
         if type is 'hours':
-            time = time / 60
-            time = time / 60
+            ttime = ttime / 60
+            ttime = ttime / 60
         if type is 'minutes':
-            time = time / 60
-        asyncio.get_event_loop().call_later(self.alarmtime, lambda: client.send_ooc(f'Alarm, {time} {type} have passed!'))
-        asyncio.get_event_loop().call_later(self.alarmtime, lambda: self.resetalarm)
-    def resetalarm(self):
+            ttime = ttime / 60
+        asyncio.get_event_loop().call_later(self.alarmtime, lambda: self.resetalarm(client, ttime, type))
+
+    def resetalarm(self, client, ttime, type):
         self.alarmtime = None
+        client.send_ooc(f'Alarm, {ttime:0.0f} {type} have passed!')

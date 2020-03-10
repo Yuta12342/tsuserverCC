@@ -610,7 +610,7 @@ class AOProtocol(asyncio.Protocol):
 				for statements in self.client.area.recorded_messages:
 					if statements.id == 1:
 						statement = statements
-				asyncio.get_event_loop().call_later(5, lambda: self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
+				asyncio.get_event_loop().call_later(3, lambda: self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
 									  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
 									  statement.button, self.client.evi_list[statement.evidence],
 									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
@@ -701,7 +701,7 @@ class AOProtocol(asyncio.Protocol):
 			other_flip = flip
 			other_folder = folder
 			charid_pair = cid
-		elif self.client.areapair != 'middle' and not confirmed:
+		if self.client.areapair != 'middle' and not confirmed:
 			if self.client.areapair == 'left':
 				if pos == 'wit':
 					if self.client.area.rightdef != None:
@@ -1512,29 +1512,29 @@ class AOProtocol(asyncio.Protocol):
 									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
 		elif msg.startswith('>'):
 			if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
-            msg = msg[1:]
-			try:
-				statementno = int(msg)
-			except:
-				self.client.send_ooc('That is not a valid statement number.')
-				return
-            for s in self.client.area.recorded_messages:
-				if s.id == statementno:
-					statement = s
-					self.client.statement = statementno
-					playback = True
-					self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
+				msg = msg[1:]
+				try:
+					statementno = int(msg)
+				except:
+					self.client.send_ooc('That is not a valid statement number.')
+					return
+				for s in self.client.area.recorded_messages:
+					if s.id == statementno:
+						statement = s
+						self.client.area.statement = statementno
+						playback = True
+						self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
 									  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
 									  statement.button, self.client.evi_list[statement.evidence],
 									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
 									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
-					break
-			if not playback:
-				self.client.send_ooc('No statement with that number found.')
-				return
-		elif msg == '<':
+						break
+				if not playback:
+					self.client.send_ooc('No statement with that number found.')
+					return
+		if msg == '<':
 			if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 				self.client.area.statement += -1
 				if self.client.area.statement < 1:
@@ -1554,7 +1554,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
 									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
-		elif msg == '=':
+		if msg == '=':
 			if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 				if self.client.area.statement <= 0:
 					self.client.area.statement = 1
@@ -1573,7 +1573,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
 
 		if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
-			if not playback and not self.client.area.is_recording or len(self.client.area.recorded_messages) == 0:
+			if not playback:
 				if self.client.visible and not self.client.narrator:
 					self.client.area.send_command('MS', msg_type, pre, folder, anim, msg, pos, sfx, anim_type, cid,
 								sfx_delay, button, self.client.evi_list[evidence], flip, ding, color, showname,
@@ -1651,7 +1651,7 @@ class AOProtocol(asyncio.Protocol):
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
 
-		        self.client.area.set_next_msg_delay(len(msg))
+				self.client.area.set_next_msg_delay(len(msg))
 
 	def net_cmd_ct(self, args):
 		"""OOC Message

@@ -542,18 +542,22 @@ def ooc_cmd_timer(client, arg):
     if len(arg) == 0:
         if client.timer.started == False:
             if client.timer.alarmtime is not None:
-                time = client.timer.alarmtime / 60
-                msg = f'Alarm in {time} minutes.'
+                ttime = client.timer.alarmtimeset - time.perf_counter()
+                ttime = ttime / 60
+                msg = f'Alarm in {ttime:0.1f} minutes.'
+                client.send_ooc(msg)
+            else:
+                raise ArgumentError('Timer has not started.')
         else:
-            time = client.timer.check()
+            ttime = client.timer.check()
             msg = 'Timer:\n'
-            msg += f'{time:0.1f} seconds.\n'
-            time = time / 60
-            msg += f'{time:0.1f} minutes.\n'
-            time = time / 60
-            msg += f'{time:0.2f} hours.'
-            time = client.timer.alarmtime / 60
-            msg += '\nAlarm:\n{time} minutes remaining.'
+            msg += f'{ttime:0.1f} seconds.\n'
+            ttime = ttime / 60
+            msg += f'{ttime:0.1f} minutes.\n'
+            ttime = ttime / 60
+            msg += f'{ttime:0.2f} hours.'
+            ttime = client.timer.alarmtime / 60
+            msg += '\nAlarm:\n{ttime:0.1f} minutes remaining.'
             client.send_ooc(msg)
     else:
         if arg == 'start':
@@ -563,13 +567,13 @@ def ooc_cmd_timer(client, arg):
             client.timer.nostop()
             client.send_ooc('Timer continued.')
         elif arg == 'stop':
-            time = client.timer.stop()
+            ttime = client.timer.stop()
             msg = 'Timer stopped at:\n'
-            msg += f'{time:0.1f} seconds.\n'
-            time = time / 60
-            msg += f'{time:0.1f} minutes.\n'
-            time = time / 60
-            msg += f'{time:0.2f} hours.'
+            msg += f'{ttime:0.1f} seconds.\n'
+            ttime = ttime / 60
+            msg += f'{ttime:0.1f} minutes.\n'
+            ttime = ttime / 60
+            msg += f'{ttime:0.2f} hours.'
             client.send_ooc(msg)
         else:
             raise ArgumentError('Invalid argument, please use <start>, <stop>, continue or no argument.')
