@@ -56,8 +56,8 @@ class TsuServerCC:
         self.software = 'tsuservercc'
 
         self.release = 1
-        self.major_version = 1
-        self.minor_version = 2
+        self.major_version = 2
+        self.minor_version = 0
 
         self.config = None
         self.allowed_iniswaps = []
