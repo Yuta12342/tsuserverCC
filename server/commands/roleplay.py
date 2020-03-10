@@ -240,7 +240,7 @@ def ooc_cmd_revealmgvote(client, arg):
 def ooc_cmd_startmgvote(client, arg):
     if not client.in_party:
         raise ClientError('You aren\'t in a party.')
-    if client.party.leader != client:
+    if client.party.leader != client and not client.is_mod:
         raise ClientError('You are not the party leader.')
     if len(arg) == 0:
         raise ArgumentError('Not enough arguments, use /startpvote <arguments>.')
@@ -337,7 +337,7 @@ def ooc_cmd_parties(client, arg):
                 if len(client.server.parties) == 0:
                     raise ClientError('No parties currently on the server.')
             if party.leader not in party.users:
-                for member in users:
+                for member in party.users:
                     if party.leader not in party.users:
                         party.leader = member
                         member.send_ooc('Party Leader left, you are now the new Party Leader.')
