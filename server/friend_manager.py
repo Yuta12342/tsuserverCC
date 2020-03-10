@@ -62,7 +62,6 @@ class FriendManager:
                 for hdid, name in list.items():
                     friend_friends[hdid] = name
                 friend_friends[self.client.hdid] = self.client.name
-                os.remove(listname)
                 with open(flistname, 'w', encoding='utf-8') as list:
                     yaml.dump(friend_friends, list)
 
@@ -74,29 +73,43 @@ class FriendManager:
                 yaml.dump(self.friends, list)
 
         def removefriend(self, friend_hdid):
-            listname = f'storage/friendlist/{self.client.hdid}.yaml'
-            flistname = f'storage/friendlist/{friend_hdid}.yaml'
-            new = not os.path.exists(listname)
-            fnew = not os.path.exists(flistname)
-            friend_friends = dict()
-            self.friends = dict()
-            with open(flistname, 'r', encoding='utf-8') as file:
-                list = yaml.safe_load(file)
-            for hdid, name in list.items():
-                friend_friends[hdid] = name
-            friend_friends.remove(self.client.hdid)
-            os.remove(flistname)
-            with open(flistname, 'w', encoding='utf-8') as list:
-                yaml.dump(friend_friends, list)
-
-            with open(listname, 'r', encoding='utf-8') as file:
-                list = yaml.safe_load(file)
-            for hdid, name in list.items():
-                self.friends[hdid] = name
-            self.friends.remove(friend_hdid)
-            os.remove(listname)
-            with open(listname, 'w', encoding='utf-8') as list:
-                yaml.dump(self.friends, list)
+            try:
+                listname = f'storage/friendlist/{self.client.hdid}.yaml'
+                flistname = f'storage/friendlist/{friend_hdid}.yaml'
+                friend_friends = dict()
+                self.friends = dict()
+            except:
+                return self.client.send_ooc('error 1 in friend manager')
+            try:
+                with open(flistname, 'r', encoding='utf-8') as file:
+                    list = yaml.safe_load(file)
+            except:
+                return self.client.send_ooc('error 1.1 in friend manager')
+            try:
+                for hdid, name in list.items():
+                    friend_friends[hdid] = name
+            except:
+                return self.client.send_ooc('error 1.2 in friend manager')
+            try:
+                friend_friends.pop(self.client.hdid, None)
+            except:
+                return self.client.send_ooc('error 1.3 in friend manager')
+            try:
+                os.remove(flistname)
+                with open(flistname, 'w', encoding='utf-8') as list:
+                    yaml.dump(friend_friends, list)
+            except:
+                return self.client.send_ooc('error 1.4 in friend manager')
+            try:
+                with open(listname, 'r', encoding='utf-8') as file:
+                    list = yaml.safe_load(file)
+                for hdid, name in list.items():
+                    self.friends[hdid] = name
+                self.friends.pop(friend_hdid, None)
+                with open(listname, 'w', encoding='utf-8') as list:
+                    yaml.dump(self.friends, list)
+            except:
+                return self.client.send_ooc('error 2 in friend manager')
 
     def __init__(self, server):
         self.server = server

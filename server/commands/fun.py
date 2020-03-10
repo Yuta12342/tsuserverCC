@@ -66,10 +66,12 @@ def ooc_cmd_unfriend(client, arg):
         raise ArgumentError('You must specify a target. Use /unfriend <id>.')
     for c in client.server.client_manager.clients:
         if c.id == arg:
-            if not c.hdid in client.friends:
+            if c.hdid not in client.friendlist.friends:
                 raise ArgumentError('That person is not on your friend list.')
             client.friendlist.removefriend(c.hdid)
+            client.send_ooc('Friend removed.')
             return
+    raise ArgumentError('That person is not on your friend list.')
 
 def ooc_cmd_friendlist(client, arg):
     if len(arg) > 0:
