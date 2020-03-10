@@ -1600,7 +1600,7 @@ class AOProtocol(asyncio.Protocol):
 						database.log_ic(self.client, self.client.area, showname, msg)
 				elif self.client.narrator:
 					self.client.area.send_command('MS', msg_type, pre, 'Narrator', 'normal', msg,
-									  pos, sfx, anim_type, 260, sfx_delay,
+									  pos, sfx, anim_type, cid, sfx_delay,
 									  button, self.client.evi_list[evidence],
 									  flip, ding, color, showname, charid_pair,
 									  other_folder, other_emote, offset_pair,
@@ -1610,14 +1610,14 @@ class AOProtocol(asyncio.Protocol):
 					self.client.area.send_owner_command(
 						'MS', msg_type, pre, 'Narrator', 'normal',
 						'[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
-						anim_type, 260, sfx_delay, button, self.client.evi_list[evidence],
+						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
 									  screenshake, frame_screenshake, frame_realization, frame_sfx)
 
 					self.server.area_manager.send_remote_command(
 						target_area, 'MS', msg_type, pre, 'Narrator', 'normal', msg, pos, sfx,
-						anim_type, 260, sfx_delay, button, self.client.evi_list[evidence],
+						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
 									  screenshake, frame_screenshake, frame_realization, frame_sfx)
