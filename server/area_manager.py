@@ -76,6 +76,7 @@ class AreaManager:
             self.showname_changes_allowed = showname_changes_allowed
             self.shouts_allowed = shouts_allowed
             self.abbreviation = abbreviation
+            self.music_looper = None
             self.cards = dict()
             self.custom_list = dict()
             self.cmusic_list = dict()
