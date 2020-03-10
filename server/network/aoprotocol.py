@@ -1625,7 +1625,7 @@ class AOProtocol(asyncio.Protocol):
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
 				else:
-					self.client.area.send_command('MS', msg_type, pre, folder, '../../background/AADetentionCenter/defensedesk', msg,
+					self.client.area.send_command('MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk', msg,
 									  pos, sfx, anim_type, cid, sfx_delay,
 									  button, self.client.evi_list[evidence],
 									  flip, ding, color, showname, charid_pair,
@@ -1634,7 +1634,7 @@ class AOProtocol(asyncio.Protocol):
 									  screenshake, frame_screenshake, frame_realization, frame_sfx)
 
 					self.client.area.send_owner_command(
-						'MS', msg_type, pre, folder, '../../background/AADetentionCenter/defensedesk',
+						'MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk',
 						'[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
 						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
@@ -1642,7 +1642,7 @@ class AOProtocol(asyncio.Protocol):
 									  screenshake, frame_screenshake, frame_realization, frame_sfx)
 
 					self.server.area_manager.send_remote_command(
-						target_area, 'MS', msg_type, pre, folder, '../../background/AADetentionCenter/defensedesk', msg, pos, sfx,
+						target_area, 'MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk', msg, pos, sfx,
 						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
