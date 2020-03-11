@@ -48,9 +48,8 @@ def ooc_cmd_friend(client, arg):
                 return
             else:
                 for hdid, name in client.friendlist.friends.items():
-                    for c in client.server.client_manager.clients:
-                        if c.hdid == hdid:
-                            raise ArgumentError('You are already friends with that person!')
+                    if c.hdid == hdid:
+                        raise ArgumentError('You are already friends with that person!')
                 c.friendrequests.add(client)
                 c.send_ooc(f'You received a friend request from [{client.id}]{client.name}! Use /friend <id> to accept their request.')
                 client.send_ooc(f'Friend request sent to {c.char_name}.')

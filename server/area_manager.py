@@ -97,6 +97,7 @@ class AreaManager:
             self.righthld = None
             self.lefthlp = None
             self.righthlp = None
+            self.poslock = []
             
             """
             #debug
