@@ -39,7 +39,7 @@ class AreaManager:
                      server,
                      name,
                      background,
-                     bg_lock,
+                     bg_lock=False,
                      evidence_mod='FFA',
                      locking_allowed=False,
                      iniswap_allowed=True,
@@ -540,8 +540,7 @@ class AreaManager:
             if 'noninterrupting_pres' not in item:
                 item['noninterrupting_pres'] = False
             if 'abbreviation' not in item:
-                item['abbreviation'] = self.abbreviate(
-                    item['area'])
+                item['abbreviation'] = self.abbreviate(item['area'])
             self.areas.append(
                 self.Area(self.cur_id, self.server, item['area'],
                           item['background'], item['bglock'],
