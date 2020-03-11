@@ -94,6 +94,8 @@ def ooc_cmd_friendlist(client, arg):
     client.send_ooc(msg)
 
 def ooc_cmd_tutturu(client, arg):
+    if not client.is_mod:
+        raise ArgumentError('No fun allowed.')
     client.area.send_command('MS', 1, '-', 'Mayuri', '/hat/happy', 'Tutturu♪',
                                       'wit', 'tutturu', 1, 398, 0,
                                       0, 0,

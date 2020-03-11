@@ -607,17 +607,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
 				if self.client.can_wtce:
 					self.client.area.send_command('RT', 'testimony2')
-				self.client.area.statement = 1
-				for statements in self.client.area.recorded_messages:
-					if statements.id == 1:
-						statement = statements
-				asyncio.get_event_loop().call_later(3, lambda: self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
-									  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
-									  statement.button, self.client.evi_list[statement.evidence],
-									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
-									  statement.other_folder, statement.other_emote, statement.offset_pair,
-									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx))
+				self.client.area.statement = 0
 		elif msg.startswith('//'):
 			if self.client in self.client.area.owners and not self.client.area.is_recording:
 				self.client.area.is_recording = True
@@ -695,7 +685,7 @@ class AOProtocol(asyncio.Protocol):
 	#	   msg = msg[1:]
 		if msg == '  ':
 			msg = msg[2:]
-		if self.client.offset != 0 and not confirmed and self.areapair == 'middle':
+		if self.client.offset != 0 and not confirmed and self.client.areapair == 'middle':
 			offset_pair = self.client.offset
 			other_offset = 0
 			other_emote = '../../background/AADetentionCenter/defensedesk'
