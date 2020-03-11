@@ -246,10 +246,10 @@ def ooc_cmd_bglock(client, arg):
     if len(arg) != 0:
         raise ArgumentError('This command has no arguments.')
     # XXX: Okay, what?
-    if client.area.bg_lock == "true":
-        client.area.bg_lock = "false"
+    if client.area.bg_lock == True:
+        client.area.bg_lock = False
     else:
-        client.area.bg_lock = "true"
+        client.area.bg_lock = True
     client.area.broadcast_ooc(
         '{} [{}] has set the background lock to {}.'.format(
             client.char_name, client.id, client.area.bg_lock))
