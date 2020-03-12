@@ -1521,6 +1521,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
 									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
+						self.client.area.broadcast_ooc(f'{self.client.char_name} skipped to statement {self.client.area.statement}.')
 						break
 				if not playback:
 					self.client.send_ooc('No statement with that number found.')
