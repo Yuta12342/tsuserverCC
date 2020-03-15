@@ -156,6 +156,14 @@ Requires Python 3.6+ and PyYAML.
     - Makes you a CM of the current area.
 * **visible**
     - Toggles whether you will speak with a 'blank' emote.
+* **nopairoffset** "-100 to 100"
+    - Sets offset without pairing
+* **areapair** "left/right/middle"
+    - Area-pairs you. If you are to the right, you will "pair" with anyone on the left in your position.
+* **friend** "id or no argument"
+    - Sends a friend request, accepts a friend request, or shows current friend requests if no arguments are given.
+* **friendlist**
+    - Shows current friends.
 ### Party Commands
 * **party**
     - Shows the user's current party.
@@ -236,8 +244,12 @@ Requires Python 3.6+ and PyYAML.
     - Positions: 'def', 'pro', 'hld', 'hlp', 'jud', 'wit'
 * **connect** "area ID"
     - Sets an 'exit' for the current area. Clients can only leave the area through said 'exits'.
+* **biconnect** "area ID"
+    - Same as connect, but two-way.
 * **disconnect** "area ID"
     - Removes an 'exit' from the current area.
+* **bidisconnect** "area ID"
+    - Same as disconnect, but two-way.
 * **clearconnect**
     - Clears all 'exits' for the current area.
 * **play** "song file name incl. extension" "length in seconds"

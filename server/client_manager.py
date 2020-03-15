@@ -20,6 +20,7 @@
 
 import re
 import time
+import random
 from heapq import heappop, heappush
 
 from server import database
@@ -54,6 +55,7 @@ class ClientManager:
             self.evi_list = []
             self.disemvowel = False
             self.shaken = False
+            self.gimp = False
             self.charcurse = []
             self.muted_global = False
             self.muted_adverts = False
@@ -83,6 +85,9 @@ class ClientManager:
             self.narrator = False
             self.offset = 0
             self.clientscon = 0
+            self.friendlist = None
+            self.friendrequests = set()
+            self.areapair = 'middle'
 
             # Pairing stuff
             self.charid_pair = -1
@@ -217,7 +222,7 @@ class ClientManager:
             """Disconnect the client gracefully."""
             self.transport.close()
 
-        def change_character(self, char_id, force=False):
+        def change_character(self, char_id, force=False, switch=False):
             """
             Change the client's character or force the character selection
             screen to appear for the client.
@@ -242,10 +247,8 @@ class ClientManager:
             old_char = self.char_name
             self.char_id = char_id
             self.pos = ''
-            self.send_command('PV', self.id, 'CID', self.char_id)
-            self.area.send_command('CharsCheck',
-                                   *self.get_available_char_list())
-
+            self.send_command('PV', self.id, 'CID', self.char_id, switch)
+            self.area.send_command('CharsCheck', *self.get_available_char_list())
             new_char = self.char_name
             database.log_room('char.change', self, self.area,
                 message={'from': old_char, 'to': new_char})
@@ -637,6 +640,7 @@ class ClientManager:
                 self.mod_profile_name = matches[0]
                 return self.mod_profile_name
             else:
+                self.send_command("FAILEDLOGIN");
                 raise ClientError('Invalid password.')
 
         @property
@@ -691,6 +695,10 @@ class ClientManager:
             random.shuffle(parts)
             return ' '.join(parts)
 
+        def gimp_message(self, message):
+            message = self.server.gimp_list
+            return random.choice(message)
+
     def __init__(self, server):
         self.clients = set()
         self.server = server
@@ -722,6 +730,7 @@ class ClientManager:
         for client in self.server.client_manager.clients:
             if client.ipid == temp_ipid:
                 client.clientscon += 1
+        self.server.friend_manager.new_friendlist(c)
         return c
 
     def remove_client(self, client):
@@ -767,6 +776,8 @@ class ClientManager:
                     member.send_ooc(f'Party Leader left, {party.leader.name} is the new Party Leader.')
             else:
                 client.server.parties.remove(party)
+        if client.friendlist != None:
+            self.server.friend_manager.friendlists.remove(client.friendlist)
         heappush(self.cur_id, client.id)
         self.clients.remove(client)
 

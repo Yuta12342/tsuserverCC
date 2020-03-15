@@ -19,14 +19,30 @@ __all__ = [
     'ooc_cmd_visible',
     'ooc_cmd_narrator',
     'ooc_cmd_nopairoffset',
+    'ooc_cmd_areapair',
 	'ooc_cmd_kickother'
 ]
 
+def ooc_cmd_areapair(client, arg):
+    if arg == 'left':
+        client.areapair = 'left'
+        client.send_ooc('You are now area-paired to the left.')
+    elif arg == 'right':
+        client.areapair = 'right'
+        client.send_ooc('You are now area-paired to the right.')
+    elif arg == 'middle':
+        client.areapair = 'middle'
+        client.send_ooc('You are no longer area-paired.')
+    else:
+        raise ArgumentError('Invalid argument.')
+
 def ooc_cmd_nopairoffset(client, arg):
+    if len(arg) == 0:
+        raise ArgumentError('Requires an offset as argument.')
     try:
         arg = int(arg)
     except:
-        raise ValueError('That doesn\'t look like a valid number.')
+        raise ArgumentError('That doesn\'t look like a valid number.')
     if arg > 100:
         raise ArgumentError('Can\'t set your offset higher than 100!')
     if arg < -100:

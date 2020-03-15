@@ -29,8 +29,10 @@ __all__ = [
     'ooc_cmd_customlist',
     'ooc_cmd_clearcustomlist',
     'ooc_cmd_connect',
+    'ooc_cmd_biconnect',
     'ooc_cmd_connectlist',
     'ooc_cmd_disconnect',
+    'ooc_cmd_bidisconnect',
     'ooc_cmd_clearconnect',
     'ooc_cmd_hidecount',
     'ooc_cmd_rename',
@@ -148,7 +150,7 @@ def ooc_cmd_bg(client, arg):
     """
     if len(arg) == 0:
         raise ArgumentError('You must specify a name. Use /bg <background>.')
-    if not client.is_mod and client.area.bg_lock == "true":
+    if not client.is_mod and client.area.bg_lock == True:
         raise AreaError("This area's background is locked")
     try:
         client.area.change_background(arg)
@@ -244,10 +246,10 @@ def ooc_cmd_bglock(client, arg):
     if len(arg) != 0:
         raise ArgumentError('This command has no arguments.')
     # XXX: Okay, what?
-    if client.area.bg_lock == "true":
-        client.area.bg_lock = "false"
+    if client.area.bg_lock == True:
+        client.area.bg_lock = False
     else:
-        client.area.bg_lock = "true"
+        client.area.bg_lock = True
     client.area.broadcast_ooc(
         '{} [{}] has set the background lock to {}.'.format(
             client.char_name, client.id, client.area.bg_lock))
@@ -404,6 +406,49 @@ def ooc_cmd_connect(client, arg):
     else:
         raise ArgumentError('Too many arguments. Use /connect <area id>.')
 
+def ooc_cmd_biconnect(client, arg):
+    """
+    Connects areas together.
+    """
+    args = arg.split()
+    if client not in client.area.owners and not client.is_mod:
+        raise ClientError('You must be a CM.')
+    elif len(args) == 0:
+        raise ArgumentError('You must specify an area, use /connect <area id>')
+    elif len(args) == 1:
+        try:
+            connection = client.server.area_manager.get_area_by_id(int(args[0]))
+            landing = client.server.area_manager.get_area_by_id(0)
+            is_landing = False
+            is_connected = False
+            for c in client.area.connections:
+                if c == connection:
+                    raise AreaError('Area is already connected.')
+                if c == landing:
+                    is_landing = True
+            if landing != connection and not is_landing:
+                client.area.connections.append(landing)
+            client.area.connections.append(connection)
+            client.area.is_restricted = True
+            for c in connection.connections:
+                if c == landing:
+                    is_landing = True
+                if c == client.area:
+                    is_connected = True
+            if not is_landing:
+                connection.connections.append(landing)
+            if not is_connected and client in connection.owners:
+                connection.connections.append(client.area)
+            elif client not in connection.owners:
+                client.send_ooc('Only a one-way connection was established. You are not the CM of the connected area.')
+            client.send_ooc(f'Area bi-connected to [{connection.id}]{connection.name}')
+        except ValueError:
+            raise ArgumentError('Area ID must be a number.')
+        except (AreaError, ClientError):
+            raise
+    else:
+        raise ArgumentError('Too many arguments. Use /connect <area id>.')
+
 def ooc_cmd_connectlist(client, arg):
     """
     Connects areas together.
@@ -412,12 +457,12 @@ def ooc_cmd_connectlist(client, arg):
         raise ArgumentError('This command takes no arguments.')
     if len(client.area.connections) == 0:
         raise AreaError('This area has no connections.')
-    msg = f'{client.area.name} is connected to '
+    msg = f'[{client.area.id}]{client.area.name} is connected to '
     index = 0
     for connection in client.area.connections:
         if index > 0:
             msg += ', '
-        msg += f'{connection.name}'
+        msg += f'[{connection.id}]{connection.name}'
         index += 1
     msg += '.'
     client.send_ooc(msg)
@@ -448,8 +493,45 @@ def ooc_cmd_disconnect(client, arg):
             connection = client.server.area_manager.get_area_by_id(int(args[0]))
             client.area.connections.remove(connection)
             client.send_ooc(f'Area disconnected from {connection.name}')
+            for a in client.area.connections:
+                if a.id == 0:
+                    client.area.connections.remove(a)
             if len(client.area.connections) == 0:
                 client.area.is_restricted = False
+        except ValueError:
+            raise ArgumentError('Area ID must be a number.')
+        except (AreaError, ClientError):
+            raise
+    else:
+        raise ArgumentError('Too many arguments. Use /connect <area id>.')
+
+def ooc_cmd_bidisconnect(client, arg):
+    """
+    Connects areas together.
+    """
+    args = arg.split()
+    if client not in client.area.owners and not client.is_mod:
+        raise ClientError('You must be a CM.')
+    elif len(args) == 0:
+        raise ArgumentError('You must specify an area, use /disconnect <area id>')
+    elif len(args) == 1:
+        try:
+            connection = client.server.area_manager.get_area_by_id(int(args[0]))
+            client.area.connections.remove(connection)
+            client.send_ooc(f'Area disconnected from {connection.name}')
+            for a in client.area.connections:
+                if a.id == 0:
+                    client.area.connections.remove(a)
+            if len(client.area.connections) == 0:
+                client.area.is_restricted = False
+            if client in connection.owners:
+                for a in connection.connections:
+                    if a.id == 0:
+                        connection.connections.remove(a)
+                    if a == client.area:
+                        connection.connections.remove(a)
+                if len(connection.connections) == 0:
+                    connection.is_restricted = False
         except ValueError:
             raise ArgumentError('Area ID must be a number.')
         except (AreaError, ClientError):
@@ -552,7 +634,7 @@ def ooc_cmd_invite(client, arg):
         raise ClientError('You must specify a target. Use /invite <id>')
     elif client.area.is_locked == client.area.Locked.FREE:
         raise ClientError('Area isn\'t locked.')
-    elif client not in client.area.owners or not client.is_mod:
+    elif client not in client.area.owners and not client.is_mod:
         raise ClientError ('You are not a CM.')
     try:
         c = client.server.client_manager.get_targets(client, TargetType.ID,
@@ -575,7 +657,7 @@ def ooc_cmd_uninvite(client, arg):
         raise ClientError('Area isn\'t locked.')
     elif not arg:
         raise ClientError('You must specify a target. Use /uninvite <id>')
-    elif client not in client.area.owners:
+    elif client not in client.area.owners and not client.is_mod:
         raise ClientError ('You are not a CM.')
     arg = arg.split(' ')
     targets = client.server.client_manager.get_targets(client, TargetType.ID,
