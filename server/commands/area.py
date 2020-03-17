@@ -40,8 +40,48 @@ __all__ = [
     'ooc_cmd_destroy',
     'ooc_cmd_currentbg',
     'ooc_cmd_shouts',
+    'ooc_cmd_allclients',
+    'ooc_cmd_poslock'
     'ooc_cmd_password'
 ]
+
+def ooc_cmd_poslock(client, arg):
+    if len(arg) == 0:
+        if len(client.area.poslock) > 0:
+            msg = 'This area is poslocked to:'
+            for pos in client.area.poslock:
+                msg += f' {pos}'
+            msg += '.'
+            client.send_ooc(msg)
+            return
+        else:
+            raise ArgumentError('This area isn\'t poslocked.')
+    elif client not in client.area.owners and not client.is_mod:
+        raise ClientError('You must be a CM.')
+    else:
+        positions = ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur', 'sea')
+        args = arg.split()
+        for pos in args:
+            if pos in positions:
+                client.area.poslock.append(pos)
+                client.send_ooc(f'{pos} added to area\'s poslock.')
+            else:
+                client.send_ooc(f'{pos} doesn\'t seem to be a valid position.')
+
+def ooc_cmd_allclients(client, arg):
+    if not client.is_mod:
+        raise ArgumentError('You must be authorized to do that.')
+    msg = 'Connected clients:'
+    for c in client.server.client_manager.clients:
+        msg += f'\n{c.name}'
+    client.send_ooc(msg)
+
+def ooc_cmd_shouts(client, arg):
+    if client not in client.area.owners and not client.is_mod:
+        raise ClientError('You must be a CM.')
+    if len(arg) == 0:
+        client.area.poslock = []
+        client.send_ooc('Area poslock cleared.')
 
 def ooc_cmd_shouts(client, arg):
     if client not in client.area.owners and not client.is_mod:
