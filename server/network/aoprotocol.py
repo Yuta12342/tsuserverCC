@@ -682,7 +682,29 @@ class AOProtocol(asyncio.Protocol):
 					if s.id == self.client.area.statement:
 						color = 1
 						msg = msg[5:]
+						s.msg_type = msg_type
+						s.pre = pre
+						s.folder = folder
+						s.anim = anim
 						s.msg = msg
+						s.sfx = sfx
+						s.anim_type = anim_type
+						s.cid = cid
+						s.button = button
+						s.evidence = evidence
+						s.flip = flip
+						s.ding = ding
+						s.showname = showname
+						s.charid_pair = charid_pair
+						s.other_folder = other_folder
+						s.other_emote = other_emote
+						s.other_flip = other_flip
+						s.nonint_pre = nonint_pre
+						s.looping_sfx = looping_sfx
+						s.screenshake = screenshake
+						s.frame_screenshake = frame_screenshake
+						s.frame_realization = frame_realization
+						s.frame_sfx = frame_sfx
 						self.client.send_ooc(f'Statement {s.id} amended.')			  
 
 	#	if msg == ' ':
