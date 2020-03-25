@@ -439,10 +439,6 @@ class AOProtocol(asyncio.Protocol):
 				return
 		else:
 			return
-		if not len(self.client.area.poslock) == 0:
-			if pos not in self.client.area.poslock:
-				self.client.send_ooc('Your current pos is poslocked, try using a different pos.')
-				return
 		self.client.showname = showname
 		if self.client.area.is_iniswap(self.client, pre, anim,
 				folder, sfx):
@@ -553,6 +549,10 @@ class AOProtocol(asyncio.Protocol):
 		else:
 			if pos not in ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur',
 						   'sea'):
+				return
+        if not len(self.client.area.poslock) == 0:
+			if pos not in self.client.area.poslock:
+				self.client.send_ooc('Your current pos is poslocked, try using a different pos.')
 				return
 		msg = self.dezalgo(text)[:256]
 		if self.client.shaken:

@@ -41,7 +41,7 @@ __all__ = [
     'ooc_cmd_currentbg',
     'ooc_cmd_shouts',
     'ooc_cmd_allclients',
-    'ooc_cmd_poslock'
+    'ooc_cmd_poslock',
     'ooc_cmd_password'
 ]
 
@@ -58,6 +58,9 @@ def ooc_cmd_poslock(client, arg):
             raise ArgumentError('This area isn\'t poslocked.')
     elif client not in client.area.owners and not client.is_mod:
         raise ClientError('You must be a CM.')
+    if arg == 'clear':
+        client.area.poslock.clear()
+        client.send_ooc('Poslock cleared.')
     else:
         positions = ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur', 'sea')
         args = arg.split()
