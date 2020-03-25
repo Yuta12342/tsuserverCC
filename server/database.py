@@ -134,7 +134,6 @@ class Database:
                         INSERT INTO ip_bans(ipid, ban_id)
                         VALUES (?, ?)
                         '''), (ipid, ban_id))
-
             logger.debug('Migration to v1 complete')
 
     def migrate(self):

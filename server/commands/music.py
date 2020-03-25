@@ -170,7 +170,7 @@ def ooc_cmd_currentmusic(client, arg):
 def ooc_cmd_music(client, arg):
     """
     Show the current music playing.
-    Usage: /currentmusic
+    Usage: /music
     """
     ooc_cmd_currentmusic(client, arg)
 

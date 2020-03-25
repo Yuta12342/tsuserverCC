@@ -433,8 +433,8 @@ class ClientManager:
                         self.area.broadcast_ooc(f'{self.showname} has entered from {old_area.name}.')
                     else:
                         self.area.broadcast_ooc(f'{self.char_name} has entered from {old_area.name}.')
-                for c in self.followers:
-                    c.change_area(area)
+            for c in self.followers:
+                c.change_area(area)
             self.area.send_command('CharsCheck', *self.get_available_char_list())
             self.send_command('HP', 1, self.area.hp_def)
             self.send_command('HP', 2, self.area.hp_pro)
