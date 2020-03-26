@@ -57,7 +57,7 @@ class TsuServerCC:
 
         self.release = 1
         self.major_version = 2
-        self.minor_version = 0
+        self.minor_version = 1
 
         self.config = None
         self.allowed_iniswaps = []
@@ -181,8 +181,11 @@ class TsuServerCC:
     @property
     def player_count(self):
         """Get the number of non-spectating clients."""
-        return len([client for client in self.client_manager.clients
-            if client.char_id != -1])
+        cnt = 0
+        for area in self.area_manager.areas:
+            for client in area.clients:
+                cnt += 1
+        return cnt
 
     def load_config(self):
         """Load the main server configuration from a YAML file."""

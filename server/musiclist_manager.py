@@ -20,8 +20,6 @@
 import os
 import logging
 import yaml
-logger = logging.getLogger('debug')
-event_logger = logging.getLogger('events')
 
 class MusicListManager:
     """

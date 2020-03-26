@@ -433,8 +433,8 @@ class ClientManager:
                         self.area.broadcast_ooc(f'{self.showname} has entered from {old_area.name}.')
                     else:
                         self.area.broadcast_ooc(f'{self.char_name} has entered from {old_area.name}.')
-                for c in self.followers:
-                    c.change_area(area)
+            for c in self.followers:
+                c.change_area(area)
             self.area.send_command('CharsCheck', *self.get_available_char_list())
             self.send_command('HP', 1, self.area.hp_def)
             self.send_command('HP', 2, self.area.hp_pro)
@@ -762,19 +762,19 @@ class ClientManager:
             b.send_ooc(f'{client.char_name} disconnected. Unfollowing.')
         if client.in_party:
             party = client.party
-            party.users.remove(client)
-            if len(party.users) != 0:
-                if party.leader == client:
-                    for member in party.users:
-                        member.send_ooc(f'{client.name} disconnected and left the party.')
-                        if party.leader not in party.users:
-                            party.leader = member
-                            member.send_ooc('Party Leader left, you are now the new Party Leader.')
-                        else:
-                            break
-                else:
-                    member.send_ooc(f'Party Leader left, {party.leader.name} is the new Party Leader.')
-            else:
+            if len(party.users) != 0 and client in party.users:
+                party.users.remove(client)
+                for member in party.users:
+                    member.send_ooc(f'{client.name} disconnected and left the party.')
+            if party.leader == client and len(party.users) != 0:
+                for member in party.users:
+                    member.send_ooc(f'{client.name} disconnected and left the party.')
+                    if party.leader not in party.users:
+                        party.leader = member
+                        member.send_ooc('Party Leader left, you are now the new Party Leader.')
+                    else:
+                        member.send_ooc(f'Party Leader left, {party.leader.name} is the new Party Leader.')
+            if len(party.users) == 0:
                 client.server.parties.remove(party)
         if client.friendlist != None:
             self.server.friend_manager.friendlists.remove(client.friendlist)

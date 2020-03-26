@@ -170,7 +170,7 @@ def ooc_cmd_currentmusic(client, arg):
 def ooc_cmd_music(client, arg):
     """
     Show the current music playing.
-    Usage: /currentmusic
+    Usage: /music
     """
     ooc_cmd_currentmusic(client, arg)
 
@@ -327,10 +327,7 @@ def ooc_cmd_blockdj(client, arg):
         target.send_ooc(
             'A moderator muted you from changing the music.')
         database.log_room('blockdj', client, client.area, target=target)
-        target.area.remove_jukebox_vote(target, True)
-    client.send_ooc('blockdj\'d {}.'.format(
-        targets[0].char_name))
-
+        client.send_ooc('blockdj\'d {}.'.format(target.char_name))
 
 @mod_only()
 def ooc_cmd_unblockdj(client, arg):
