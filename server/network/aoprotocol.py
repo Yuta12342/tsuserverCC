@@ -550,7 +550,7 @@ class AOProtocol(asyncio.Protocol):
 			if pos not in ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur',
 						   'sea'):
 				return
-        if not len(self.client.area.poslock) == 0:
+		if not len(self.client.area.poslock) == 0:
 			if pos not in self.client.area.poslock:
 				self.client.send_ooc('Your current pos is poslocked, try using a different pos.')
 				return
