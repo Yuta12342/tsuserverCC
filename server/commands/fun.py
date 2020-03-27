@@ -79,8 +79,8 @@ def ooc_cmd_friendlist(client, arg):
     if len(client.friendlist.friends) == 0:
         raise ArgumentError('You have no friends.')
     msg = 'Friend List:'
-    online = False
     for hdid, name in client.friendlist.friends.items():
+        online = False
         msg += f'\n{name}: '
         fhdid = hdid
         for c in client.server.client_manager.clients:
