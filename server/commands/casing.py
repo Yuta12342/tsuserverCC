@@ -219,6 +219,9 @@ def ooc_cmd_uncm(client, arg):
                     if client.area.is_restricted:
                         client.area.is_restricted = False
                         client.area.connections.clear()
+                    client.area.is_recording = False
+					client.area.recorded_messages = []
+                    client.area.statement = 0
             else:
                 client.send_ooc(
                     'You cannot remove someone from CMing when they aren\'t a CM.'
