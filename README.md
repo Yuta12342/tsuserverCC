@@ -259,6 +259,10 @@ Requires Python 3.6+ and PyYAML.
     - Adds tracks to the area music list that can be played with **playl**. Tracks must be located in `music/custom`.
 * **clearmusiclist**
     - Clear the current area's music list.
+* **storemlist** "name"
+    - Store a music list on the server with the specified name.
+* **loadmlist** "name"
+    - Load a stored music list from the server with the specified name.
 * **playl** "track number"
     - Plays the specified track from the area's music list. Will loop server-side according to the length provided by **addmlist**.
 * **hidecount**
@@ -280,6 +284,10 @@ Requires Python 3.6+ and PyYAML.
     - Unhide the specified client.
     - Use `*` instead of an ID to unhide all players in the area.
     - This can be used by non-CMs with no arguments to unhide themselves.
+* **poslock** "pos/clear"
+    - Allow only the specified position(s) to be used.
+	- Use with no arguments to what positions the area is locked.
+    - Using "clear" as an argument clears the poslock.
 #### Testimony Recording
 * A new feature in tsuserverCC - you can now record testimonies and play them back with automatic formatting!
 * You can now record your testimonies by putting in IC `//[Your Testimony Title]`. Formatting works just as normal, and this will automatically do the WT woosh.
