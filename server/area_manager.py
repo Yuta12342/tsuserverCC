@@ -335,7 +335,7 @@ class AreaManager:
                             else:
                                 index += 1
 
-        def musiclist_shuffle(self, client):
+        def musiclist_shuffle(self, client, track=-1):
             client = client
             index = 0
             for name, length in client.area.cmusic_list.items():
@@ -346,11 +346,13 @@ class AreaManager:
             else:
                 music_set = set(range(index))
                 trackid = random.choice(tuple(music_set))
+                while trackid == track:
+                    trackid = random.choice(tuple(music_set))
                 index = 0
                 for name, length in client.area.cmusic_list.items():
                     if index == trackid:
                         self.play_music_shownamed(name, client.char_id, 'Custom Shuffle', -1)
-                        self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.musiclist_shuffle(client))
+                        self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.musiclist_shuffle(client, trackid))
                         self.add_music_playing(client, name)
                         database.log_room('play', client, self, message=name)
                         return
