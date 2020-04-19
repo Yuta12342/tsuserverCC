@@ -149,8 +149,10 @@ def ooc_cmd_cm(client, arg):
         client.server.area_manager.send_arup_cms()
         if not client.ghost:
             client.area.broadcast_ooc('{} [{}] is CM in this area now.'.format(client.char_name, client.id))
+        else:
+            client.send_ooc('You are now ghost CM of this area.')
         database.log_room('cm.add', client, client.area, target=client, message='self-added')
-    elif len(client.area.owners) > 0 and len(arg) == 0:
+    elif not client.is_mod and len(client.area.owners) > 0 and len(arg) == 0:
         notghost = False
         for c in client.area.owners:
             if not c.ghost:
@@ -158,10 +160,10 @@ def ooc_cmd_cm(client, arg):
         if notghost == False:
             client.area.owners.append(client)
             if client.area.evidence_mod == 'HiddenCM': 
-			    client.area.broadcast_evidence_list()
+                client.area.broadcast_evidence_list()
             client.server.area_manager.send_arup_cms()
             if not client.ghost: 
-			    client.area.broadcast_ooc('{} [{}] is CM in this area now.'.format(client.char_name, client.id))
+                client.area.broadcast_ooc('{} [{}] is CM in this area now.'.format(client.char_name, client.id))
             database.log_room('cm.add', client, client.area, target=client, message='self-added')
     elif client.is_mod and len(arg) == 0:
         client.area.owners.append(client)
@@ -170,6 +172,8 @@ def ooc_cmd_cm(client, arg):
         client.server.area_manager.send_arup_cms()
         if not client.ghost:
             client.area.broadcast_ooc('{} [{}] is CM in this area now.'.format(client.char_name, client.id))
+        else:
+            client.send_ooc('You are now ghost CM of this area.')
         database.log_room('cm.add', client, client.area, target=client, message='self-added')
     elif client in client.area.owners or client.is_mod:
         if len(arg) > 0:
@@ -224,15 +228,17 @@ def ooc_cmd_uncm(client, arg):
             if c in client.area.owners:
                 client.area.owners.remove(c)
                 client.server.area_manager.send_arup_cms()
-				if not client.ghost:
+                if not client.ghost:
                     client.area.broadcast_ooc('{} [{}] is no longer CM in this area.'.format(c.char_name, c.id))
+                else:
+                    client.send_ooc('You are no longer ghost CM of this area.')
                 database.log_room('cm.remove', client, client.area, target=c)
                 if len(client.area.owners) == 0:
                     if client.area.is_restricted:
                         client.area.is_restricted = False
                         client.area.connections.clear()
                     client.area.is_recording = False
-					client.area.recorded_messages = []
+                    client.area.recorded_messages = []
                     client.area.statement = 0
             else:
                 client.send_ooc(
