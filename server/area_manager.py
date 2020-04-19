@@ -500,7 +500,8 @@ class AreaManager:
             """
             msg = ''
             for i in self.owners:
-                msg += f'[{str(i.id)}] {i.char_name}, '
+                if not i.ghost:
+                    msg += f'[{str(i.id)}] {i.char_name}, '
             if len(msg) > 2:
                 msg = msg[:-2]
             return msg

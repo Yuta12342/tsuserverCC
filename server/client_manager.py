@@ -506,11 +506,11 @@ class ClientManager:
                             sorted_clients.append(client)
                 for owner in area.owners:
                     if not (mods or owner in area.clients):
-                        sorted_clients.append(owner)
+                        if not owner.ghost or self.is_mod:
+                            sorted_clients.append(owner)
                 if not sorted_clients:
                     return ''
-                sorted_clients = sorted(sorted_clients,
-                                    key=lambda x: x.char_name or '')
+                sorted_clients = sorted(sorted_clients, key=lambda x: x.char_name or '')
                 for c in sorted_clients:
                     info += '\r\n'
                     if c.hidden and self in area.owners:
