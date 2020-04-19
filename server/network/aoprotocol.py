@@ -552,7 +552,7 @@ class AOProtocol(asyncio.Protocol):
 				return
 		if not len(self.client.area.poslock) == 0:
 			if pos not in self.client.area.poslock:
-				self.client.send_ooc('Your current pos is poslocked, try using a different pos.')
+				self.client.send_ooc('Your current position is locked, try using a different one. Check /poslock for available positions')
 				return
 		msg = self.dezalgo(text)[:256]
 		if self.client.shaken:
@@ -1711,6 +1711,16 @@ class AOProtocol(asyncio.Protocol):
 		if args[1].startswith(' /'):
 			self.client.send_ooc(
 				'Your message was not sent for safety reasons: you left a space before that slash.'
+			)
+			return
+        if args[1].startswith('.'):
+			self.client.send_ooc(
+				'Your message was not sent for safety reasons: you left a dot before that message.'
+			)
+			return
+        if len(args[1]) > 1000:
+			self.client.send_ooc(
+				'Your message was not sent for safety reasons: you left a dot before that message.'
 			)
 			return
 		if args[1].startswith('/'):
