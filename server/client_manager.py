@@ -779,6 +779,9 @@ class ClientManager:
                 client.server.parties.remove(party)
         if client.friendlist != None:
             self.server.friend_manager.friendlists.remove(client.friendlist)
+        for c in self.server.client_manager.clients:
+            if c.ipid == client.ipid:
+                c.clientscon -= 1
         heappush(self.cur_id, client.id)
         self.clients.remove(client)
 
