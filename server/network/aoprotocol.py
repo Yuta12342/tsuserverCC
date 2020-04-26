@@ -11,11 +11,11 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program.	If not, see <https://www.gnu.org/licenses/>.
 
 
 import asyncio
@@ -24,15 +24,16 @@ import unicodedata
 
 import logging
 
-import re
-
 logger_debug = logging.getLogger('debug')
 logger = logging.getLogger('events')
 
 from enum import Enum
+
+import arrow
 from time import localtime, strftime
 
 from server import database
+from server.utils import Utilities
 from server.statements import Statement, AreaPairMessage
 from server.exceptions import ClientError, AreaError, ArgumentError, ServerError
 from server.fantacrypt import fanta_decrypt
@@ -58,14 +59,27 @@ class AOProtocol(asyncio.Protocol):
 
 	def dezalgo(self, input):
 		"""
-		Turns any string into a de-zalgo'd version, with a tolerance to allow for special language characters.
+		Turns any string into a de-zalgo'd version, with a tolerance to allow for normal diacritic use.
+	
+	
+	
+	
+	
+	
+	
+		The following Unicode blocks are scrubbed:
+		U+0300 - U+036F - COMBINING DIACRITICAL MARKS
+		U+1AB0 - U+1AFF - COMBINING DIACRITICAL MARKS EXTENDED
+		U+1DC0 - U+1DFF - COMBINING DIACRITICAL MARKS SUPPLEMENT
+		U+20D0 - U+20FF - COMBINING DIACRITICAL MARKS FOR SYMBOLS
+		U+FE20 - U+FE2F - COMBINING HALF MARKS
 		"""
-		print(self.server.zalgo_tolerance)
-		filtered = re.sub('([\u0300\u036f\u1ab0\u1aff\u1dc0\u1dff\u20d0\u20ff\ufe20\ufe2f]' +
+	
+		filtered = re.sub('([\u0300-\u036f\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]' +
 						  '{' + re.escape(str(self.server.zalgo_tolerance)) + ',})',
 						  '', input)
 		return filtered
-
+		
 	def data_received(self, data):
 		"""Handles any data received from the network.
 
@@ -127,7 +141,7 @@ class AOProtocol(asyncio.Protocol):
 			self.server.config['timeout'], self.client.disconnect)
 		asyncio.get_event_loop().call_later(0.25, self.client.send_command,
 											'decryptor',
-											34)  # just fantacrypt things)
+											34)	 # just fantacrypt things)
 		
 
 	def connection_lost(self, exc):
@@ -194,14 +208,14 @@ class AOProtocol(asyncio.Protocol):
 		ban = database.find_ban(ipid, hdid)
 		if ban is not None:
 			if ban.unban_date is not None:
-				unban_date = ban.unban_date.date().isoformat()
+				unban_date = arrow.get(ban.unban_date)
 			else:
 				unban_date = 'N/A'
-
+	
 			msg = f'{ban.reason}\r\n'
 			msg += f'ID: {ban.ban_id}\r\n'
-			msg += f'Until: {unban_date}'
-
+			msg += f'Until: {unban_date.humanize()}'
+	
 			database.log_connect(self.client, failed=True)
 			self.client.send_command('BD', msg)
 			self.client.disconnect()
@@ -349,7 +363,7 @@ class AOProtocol(asyncio.Protocol):
 		"""
 		if not self.client.is_checked:
 			return
-		elif self.client.is_muted:  # Checks to see if the client has been muted by a mod
+		elif self.client.is_muted:	# Checks to see if the client has been muted by a mod
 			self.client.send_ooc('You are muted by a moderator.')
 			return
 		elif not self.client.area.can_send_message(self.client):
@@ -537,7 +551,7 @@ class AOProtocol(asyncio.Protocol):
 			color = 0
 		if color == 6:
 			text = re.sub(r'[^\x00-\x7F]+', ' ',
-						  text)  # remove all unicode to prevent redtext abuse
+						  text)	 # remove all unicode to prevent redtext abuse
 			if len(text.strip(' ')) == 1:
 				color = 0
 			else:
@@ -709,7 +723,7 @@ class AOProtocol(asyncio.Protocol):
 
 	#	if msg == ' ':
 	#	   msg = msg[1:]
-		if msg == '  ':
+		if msg == '	 ':
 			msg = msg[2:]
 		if self.client.offset != 0 and not confirmed and self.client.areapair == 'middle':
 			offset_pair = self.client.offset
@@ -1713,12 +1727,12 @@ class AOProtocol(asyncio.Protocol):
 				'Your message was not sent for safety reasons: you left a space before that slash.'
 			)
 			return
-        if args[1].startswith('.'):
+		if args[1].startswith('.'):
 			self.client.send_ooc(
 				'Your message was not sent for safety reasons: you left a dot before that message.'
 			)
 			return
-        if len(args[1]) > 1000:
+		if len(args[1]) > 1000:
 			self.client.send_ooc(
 				'Your message was not sent for safety reasons: you left a dot before that message.'
 			)
@@ -1774,7 +1788,7 @@ class AOProtocol(asyncio.Protocol):
 				return
 			if not self.client.is_dj:
 				self.client.send_ooc(
-					'You were blockdj\'d by a moderator.')
+					"You were blockdj'd by a moderator.")
 				return
 			if self.client.area.cannot_ic_interact(self.client):
 				self.client.send_ooc("You are not on the area's invite list, and thus, you cannot change music!")
@@ -2041,7 +2055,7 @@ class AOProtocol(asyncio.Protocol):
 			return
 
 		current_time = strftime("%H:%M", localtime())
-
+		w = Utilities(self.server)
 		if len(args) < 1:
 			self.server.send_all_cmd_pred(
 				'ZZ',
@@ -2051,6 +2065,10 @@ class AOProtocol(asyncio.Protocol):
 				pred=lambda c: c.is_mod)
 			self.client.set_mod_call_delay()
 			database.log_room('modcall', self.client, self.client.area)
+			if self.server.config['webhooks_enabled']:
+				w.modcall_webhook(message='[{}] {} ({}) in {} without reason (not using 2.6?)'.format(
+						current_time, self.client.char_name,
+						self.client.ip, self.client.area.name))
 		else:
 			self.server.send_all_cmd_pred(
 				'ZZ',
@@ -2061,6 +2079,11 @@ class AOProtocol(asyncio.Protocol):
 				pred=lambda c: c.is_mod)
 			self.client.set_mod_call_delay()
 			database.log_room('modcall', self.client, self.client.area, message=args[0])
+			if self.server.config['webhooks_enabled']:
+				w.modcall_webhook(message='[{}] {} ({}) in {} with reason: {}'.format(
+						current_time, self.client.char_name,
+						self.client.ip, self.client.area.name,
+						args[0][:100]))
 
 	def net_cmd_opKICK(self, args):
 		"""
@@ -2080,7 +2103,7 @@ class AOProtocol(asyncio.Protocol):
 		'HI': net_cmd_hi,  # handshake
 		'ID': net_cmd_id,  # client version
 		'CH': net_cmd_ch,  # keepalive
-		'askchaa': net_cmd_askchaa,  # ask for list lengths
+		'askchaa': net_cmd_askchaa,	 # ask for list lengths
 		'askchar2': net_cmd_askchar2,  # ask for list of characters
 		'AN': net_cmd_an,  # character list
 		'AE': net_cmd_ae,  # evidence list
@@ -2095,12 +2118,12 @@ class AOProtocol(asyncio.Protocol):
 		'RT': net_cmd_rt,  # WT/CE buttons
 		'SETCASE':
 		net_cmd_setcase,  # set case-announcement preferences for user
-		'CASEA': net_cmd_casea,  # announce a case
+		'CASEA': net_cmd_casea,	 # announce a case
 		'HP': net_cmd_hp,  # penalties
 		'PE': net_cmd_pe,  # add evidence
 		'DE': net_cmd_de,  # delete evidence
 		'EE': net_cmd_ee,  # edit evidence
 		'ZZ': net_cmd_zz,  # call mod button
 		'opKICK': net_cmd_opKICK,  # /kick with guard on
-		'opBAN': net_cmd_opBAN,  # /ban with guard on
+		'opBAN': net_cmd_opBAN,	 # /ban with guard on
 	}
