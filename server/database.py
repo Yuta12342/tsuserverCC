@@ -137,7 +137,7 @@ class Database:
             logger.debug('Migration to v1 complete')
 
     def migrate(self):
-        for version in [2, 3]:
+        for version in [2, 3, 4]:
             self.migrate_to_version(version)
 
     def migrate_to_version(self, version):
@@ -213,6 +213,29 @@ class Database:
             self._schedule_unban(ban_id)
 
         return ban_id
+    
+    def warn(self,
+            target,
+            reason,
+            warned_by=None,
+            warn_id=None):
+        """
+        Warn an IPID.
+        """
+        with self.db as conn:
+            if warn_id is None:
+                event_logger.info(f'{warned_by.name} ({warned_by.ipid}) ' +
+                                  f'warned {target.ipid}: \'{reason}\'.')
+                warn_id = conn.execute(dedent('''
+                    INSERT INTO warns(reason, warned_by)
+                    VALUES (?, ?)
+                    '''), (reason, warned_by.ipid)).lastrowid
+                warn_id_int = int(warn_id)
+                try:
+                    conn.execute("UPDATE warns SET ipid = ? WHERE warn_id = ?", (target.ipid, warn_id_int))
+                except sqlite3.IntegrityError as exc:
+                    raise ServerError(f'Error inserting warn: {exc}')
+        return warn_id
 
     def last_known_name(self, ipid):
         """
@@ -269,6 +292,36 @@ class Database:
             """
             return _database_singleton.last_known_name(self.banned_by)
 
+    @dataclass
+    class Warn:
+        warn_id: int
+        ipid: int
+        warn_date: datetime
+        warned_by: int
+        reason: str
+
+        def __post_init__(self):
+            self.warn_date = arrow.get(self.warn_date).datetime
+
+        @property
+        def ipids(self):
+            """Find IPIDs affected by this warn."""
+            with _database_singleton.db as conn:
+                return [row['ipid'] for row in
+                    conn.execute(dedent('''
+                        SELECT * FROM warns WHERE warn_id = ?
+                        '''), (self.warn_id,)).fetchall()
+                ]
+
+        @property
+        def warned_by_name(self):
+            """
+            Find the last known OOC name of the player who issued
+            the warn.
+            """
+            return _database_singleton.last_known_name(self.warned_by)
+
+
     def find_ban(self, ipid=None, hdid=None, ban_id=None):
         """Check if an IPID and/or HDID are banned."""
         with self.db as conn:
@@ -304,6 +357,50 @@ class Database:
                 DELETE FROM bans WHERE ban_id = ?
                 '''), (ban_id,)).rowcount
             return unbans > 0
+        
+    def find_warn(self, warn_id):
+        """Get the warn entry matching the given warn ID."""
+        #TODO: this should not be a for loop
+        with self.db as conn:
+            return [Database.Warn(**row) for row in
+                conn.execute(dedent('''
+                SELECT * FROM warns WHERE warn_id = ?
+                '''), (warn_id,)).fetchall()]
+    
+    def list_warns(self, query, count, lookup_type='ipid'):
+        """
+        List the last <count> warns for a given query.
+        """
+        with self.db as conn:
+            if lookup_type == 'ipid':
+                return [Database.Warn(**row) for row in
+                    conn.execute(dedent('''
+                    SELECT *
+                    FROM (
+                        SELECT * FROM warns WHERE ipid = ?
+                        ORDER BY warn_date DESC LIMIT ?
+                    )
+                    ORDER BY warn_date ASC
+                    '''), (query,count)).fetchall()]
+            elif lookup_type == 'warned_by':
+                return [Database.Warn(**row) for row in
+                    conn.execute(dedent('''
+                    SELECT *
+                    FROM (
+                        SELECT * FROM warns WHERE warned_by = ?
+                        ORDER BY warn_date DESC LIMIT ?
+                    )
+                    ORDER BY warn_date ASC
+                    '''), (query,count)).fetchall()]
+
+    def unwarn(self, warn_id):
+        """Remove a warn entry."""
+        event_logger.info(f'Unwarning {warn_id}')
+        with self.db as conn:
+            unwarns = conn.execute(dedent('''
+                DELETE FROM warns WHERE warn_id = ?
+                '''), (warn_id,)).rowcount
+            return unwarns > 0
 
     def schedule_unbans(self):
         """
