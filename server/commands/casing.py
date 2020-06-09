@@ -70,11 +70,13 @@ def ooc_cmd_doc(client, arg):
     if len(arg) == 0:
         client.send_ooc(f'Document: {client.area.doc}')
         database.log_room('doc.request', client, client.area)
-    else:
+    elif client in client.area.owners or client.is_mod:
         client.area.change_doc(arg)
         client.area.broadcast_ooc('{} changed the doc link.'.format(
             client.char_name))
         database.log_room('doc.change', client, client.area, message=arg)
+    else:
+        client.send_ooc('You must be CM to change the doc.')
 
 def ooc_cmd_cleartestimony(client, arg):
     if client in client.area.owners:
@@ -90,11 +92,13 @@ def ooc_cmd_cleardoc(client, arg):
     """
     if len(arg) != 0:
         raise ArgumentError('This command has no arguments.')
-    client.area.change_doc()
-    client.area.broadcast_ooc('{} cleared the doc link.'.format(
-        client.char_name))
-    database.log_room('doc.clear', client, client.area)
-
+    if client in client.area.owners or client.is_mod:
+        client.area.change_doc()
+        client.area.broadcast_ooc('{} cleared the doc link.'.format(
+            client.char_name))
+        database.log_room('doc.clear', client, client.area)
+    else:
+        client.send_ooc('You must be CM to change the doc.')
 
 @mod_only()
 def ooc_cmd_evidence_mod(client, arg):
