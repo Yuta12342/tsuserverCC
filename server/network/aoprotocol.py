@@ -388,6 +388,8 @@ class AOProtocol(asyncio.Protocol):
 			frame_screenshake = ""
 			frame_realization = ""
 			frame_sfx = ""
+			additive = 0
+			effect = ""
 		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
 								   self.ArgType.STR,
 								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
@@ -403,6 +405,8 @@ class AOProtocol(asyncio.Protocol):
 			frame_screenshake = ""
 			frame_realization = ""
 			frame_sfx = ""
+			additive = 0
+			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -420,6 +424,8 @@ class AOProtocol(asyncio.Protocol):
 			frame_screenshake = ""
 			frame_realization = ""
 			frame_sfx = ""
+			additive = 0
+			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -436,6 +442,8 @@ class AOProtocol(asyncio.Protocol):
 			frame_screenshake = ""
 			frame_realization = ""
 			frame_sfx = ""
+			additive = 0
+			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -447,6 +455,8 @@ class AOProtocol(asyncio.Protocol):
 								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.STR_OR_EMPTY, self.ArgType.STR_OR_EMPTY):
 			# 2.7.0 validation monstrosity
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx = args
+			additive = 0
+			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -458,7 +468,7 @@ class AOProtocol(asyncio.Protocol):
                                    self.ArgType.STR, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
                                    self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
                                    self.ArgType.INT, self.ArgType.STR):
-			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, sfx_looping, screenshake, frames_shake, frames_realization, frames_sfx, additive, effect = args
+			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect = args
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
