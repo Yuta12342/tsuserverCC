@@ -236,7 +236,7 @@ class AOProtocol(asyncio.Protocol):
 		ID#<pv:int>#<software:string>#<version:string>#%
 		"""
 		self.client.send_command('FL', 'yellowtext', 'customobjections', 'flipping', 'fastloading', 'noencryption',
-								 'deskmod', 'evidence', 'modcall_reason', 'cccc_ic_support', 'arup', 'casing_alerts', 'looping_sfx')
+								 'deskmod', 'evidence', 'modcall_reason', 'cccc_ic_support', 'arup', 'casing_alerts', 'looping_sfx', 'additive', 'effects', 'prezoom' )
 
 	def net_cmd_ch(self, _):
 		"""Reset the client drop timeout (keepalive).
@@ -448,11 +448,12 @@ class AOProtocol(asyncio.Protocol):
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
 		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
-								   self.ArgType.STR,
-								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
-								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT_OR_STR, self.ArgType.INT,
-								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
-								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.STR_OR_EMPTY, self.ArgType.STR_OR_EMPTY):
+                                   self.ArgType.STR,
+                                   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
+                                   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR):
 			# 2.7.0 validation monstrosity
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx = args
 			additive = 0
@@ -469,6 +470,11 @@ class AOProtocol(asyncio.Protocol):
                                    self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
                                    self.ArgType.INT, self.ArgType.STR):
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect = args
+			additive = 0
+			pair_args = charid_pair.split("^")
+			charid_pair = int(pair_args[0])
+			if (len(pair_args) > 1):
+				pair_order = pair_args[1]
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -619,7 +625,7 @@ class AOProtocol(asyncio.Protocol):
 		other_folder = ''
 
 		confirmed = False
-		if charid_pair > -1:
+		if charid_pair > -1 and not confirmed:
 			for target in self.client.area.clients:
 				if target.char_id == self.client.charid_pair and target.charid_pair == self.client.char_id and target != self.client and target.pos == self.client.pos:
 					confirmed = True
