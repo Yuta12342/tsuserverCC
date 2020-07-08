@@ -450,6 +450,18 @@ class AOProtocol(asyncio.Protocol):
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
+		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
+                                   self.ArgType.STR,
+                                   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
+                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
+                                   self.ArgType.STR, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
+                                   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
+                                   self.ArgType.INT, self.ArgType.STR):
+			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, sfx_looping, screenshake, frames_shake, frames_realization, frames_sfx, additive, effect = args
+			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
+				self.client.send_host_message("Showname changes are forbidden in this area!")
+				return
 		else:
 			return
 		self.client.showname = showname
@@ -621,7 +633,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
+									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 				if self.client.can_wtce:
 					self.client.area.send_command('RT', 'testimony2')
 				self.client.area.statement = 0
@@ -637,7 +649,7 @@ class AOProtocol(asyncio.Protocol):
 									  flip, ding, color, showname, charid_pair,
 									  other_folder, other_emote, offset_pair,
 									  other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 				statement.id = self.client.area.statement
 				self.client.area.recorded_messages.append(statement)
 				self.client.send_ooc('Recording testimony!')
@@ -653,7 +665,7 @@ class AOProtocol(asyncio.Protocol):
 									  flip, ding, color, showname, charid_pair,
 									  other_folder, other_emote, offset_pair,
 									  other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 				statement.id = self.client.area.statement
 				self.client.area.recorded_messages.append(statement)
 				self.client.send_ooc('No longer recording testimony.')
@@ -668,7 +680,7 @@ class AOProtocol(asyncio.Protocol):
 									  flip, ding, 1, showname, charid_pair,
 									  other_folder, other_emote, offset_pair,
 									  other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 				statement.id = self.client.area.statement
 				self.client.area.recorded_messages.append(statement)
 				self.client.send_ooc('Statement added!')
@@ -682,7 +694,7 @@ class AOProtocol(asyncio.Protocol):
 									  flip, ding, 1, showname, charid_pair,
 									  other_folder, other_emote, offset_pair,
 									  other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 				statement.id = self.client.area.statement
 				for s in self.client.area.recorded_messages:
 					if s.id >= statement.id:
@@ -718,6 +730,8 @@ class AOProtocol(asyncio.Protocol):
 						s.frame_screenshake = frame_screenshake
 						s.frame_realization = frame_realization
 						s.frame_sfx = frame_sfx
+						s.additive = additive
+						s.effect = effect
 						self.client.send_ooc(f'Statement {s.id} amended.')			  
 
 	#	if msg == ' ':
@@ -1539,7 +1553,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
+									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 		elif msg.startswith('>'):
 			if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 				msg = msg[1:]
@@ -1559,7 +1573,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
+									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 						self.client.area.broadcast_ooc(f'{self.client.char_name} skipped to statement {self.client.area.statement}.')
 						break
 				if not playback:
@@ -1585,7 +1599,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
+									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 		if msg == '=':
 			if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 				if self.client.area.statement <= 0:
@@ -1602,7 +1616,7 @@ class AOProtocol(asyncio.Protocol):
 									  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
 									  statement.other_folder, statement.other_emote, statement.offset_pair,
 									  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx)
+									  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 
 		if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
 			if not playback:
@@ -1610,21 +1624,21 @@ class AOProtocol(asyncio.Protocol):
 					self.client.area.send_command('MS', msg_type, pre, folder, anim, msg, pos, sfx, anim_type, cid,
 								sfx_delay, button, self.client.evi_list[evidence], flip, ding, color, showname,
 								charid_pair, other_folder, other_emote, offset_pair, other_offset, other_flip,
-								nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx)
+								nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 			   
 					self.client.area.send_owner_command('MS', msg_type, pre, folder, anim,
 								'[' + self.client.area.abbreviation + ']' + msg, pos, sfx, anim_type, cid,
 								sfx_delay, button, self.client.evi_list[evidence], flip, ding, color,
 								showname,
 								charid_pair, other_folder, other_emote, offset_pair, other_offset,
-								other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx)
+								other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 			   
 					self.server.area_manager.send_remote_command(target_area, 'MS', msg_type, pre, folder, anim, msg, pos, sfx,
 								 anim_type, cid,
 								 sfx_delay, button, self.client.evi_list[evidence], flip, ding,
 								 color, showname,
 								 charid_pair, other_folder, other_emote, offset_pair, other_offset,
-								 other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx)
+								 other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					self.client.area.set_next_msg_delay(len(msg))
 
@@ -1637,7 +1651,7 @@ class AOProtocol(asyncio.Protocol):
 									  flip, ding, color, showname, charid_pair,
 									  other_folder, other_emote, offset_pair,
 									  other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					self.client.area.send_owner_command(
 						'MS', msg_type, pre, 'Narrator', 'normal',
@@ -1645,14 +1659,14 @@ class AOProtocol(asyncio.Protocol):
 						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					self.server.area_manager.send_remote_command(
 						target_area, 'MS', msg_type, pre, 'Narrator', 'normal', msg, pos, sfx,
 						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
@@ -1663,7 +1677,7 @@ class AOProtocol(asyncio.Protocol):
 									  flip, ding, color, showname, charid_pair,
 									  other_folder, other_emote, offset_pair,
 									  other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					self.client.area.send_owner_command(
 						'MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk',
@@ -1671,14 +1685,14 @@ class AOProtocol(asyncio.Protocol):
 						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					self.server.area_manager.send_remote_command(
 						target_area, 'MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk', msg, pos, sfx,
 						anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
 						flip, ding, color, showname, charid_pair, other_folder,
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-									  screenshake, frame_screenshake, frame_realization, frame_sfx)
+									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
