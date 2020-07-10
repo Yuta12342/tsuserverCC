@@ -448,12 +448,12 @@ class AOProtocol(asyncio.Protocol):
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
 		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
-                                   self.ArgType.STR,
-                                   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
-                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
-                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
-                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
-                                   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR):
+								   self.ArgType.STR,
+								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
+								   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR):
 			# 2.7.0 validation monstrosity
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx = args
 			additive = 0
@@ -462,13 +462,13 @@ class AOProtocol(asyncio.Protocol):
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
 		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
-                                   self.ArgType.STR,
-                                   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
-                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
-                                   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
-                                   self.ArgType.STR, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
-                                   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
-                                   self.ArgType.INT, self.ArgType.STR):
+								   self.ArgType.STR,
+								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
+								   self.ArgType.STR, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
+								   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
+								   self.ArgType.INT, self.ArgType.STR):
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect = args
 			additive = 0
 			pair_args = charid_pair.split("^")
@@ -1827,11 +1827,10 @@ class AOProtocol(asyncio.Protocol):
 				self.client.send_ooc('The CM has disallowed music changes, ask them to change the music.')
 				return
 			if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT):
-                if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
-                    if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT):
-                        if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, self.ArgType.INT):
-                            return
-				return
+				if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
+					if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT):
+						if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, self.ArgType.INT):
+							return
 			if args[1] != self.client.char_id:
 				return
 			if self.client.change_music_cd():
@@ -1868,8 +1867,12 @@ class AOProtocol(asyncio.Protocol):
 							self.client.send_ooc(
 								"Showname changes are forbidden in this area!")
 							return
+					# Effects info
+					effects = 0
+					if len(args) > 3:
+						effects = int(args[3])
 						self.client.area.play_music_shownamed(
-							name, self.client.char_id, showname, length)
+							name, self.client.char_id, showname, length, effects)
 						self.client.area.add_music_playing_shownamed(
 							self.client, showname, name)
 					else:
@@ -1958,31 +1961,31 @@ class AOProtocol(asyncio.Protocol):
 			return
 		if self.client in self.client.area.owners or self.client.area.evidence_mod == 'FFA':
 			if not self.client.can_call_case():
-                raise ClientError('Please wait 60 seconds between case announcements!')
+				raise ClientError('Please wait 60 seconds between case announcements!')
 
-            if not args[1] == "1" and not args[2] == "1" and not args[3] == "1" and not args[4] == "1" and not args[5] == "1":
-                raise ArgumentError('You should probably announce the case to at least one person.')
-            msg = '=== Case Announcement ===\r\n{} [{}] is hosting {}, looking for '.format(self.client.get_char_name(),
-                                                                                            self.client.id, args[0])
+			if not args[1] == "1" and not args[2] == "1" and not args[3] == "1" and not args[4] == "1" and not args[5] == "1":
+				raise ArgumentError('You should probably announce the case to at least one person.')
+			msg = '=== Case Announcement ===\r\n{} [{}] is hosting {}, looking for '.format(self.client.get_char_name(),
+																							self.client.id, args[0])
 
-            lookingfor = []
+			lookingfor = []
 
-            if args[1] == "1":
-                lookingfor.append("defence")
-            if args[2] == "1":
-                lookingfor.append("prosecutor")
-            if args[3] == "1":
-                lookingfor.append("judge")
-            if args[4] == "1":
-                lookingfor.append("juror")
-            if args[5] == "1":
-                lookingfor.append("stenographer")
+			if args[1] == "1":
+				lookingfor.append("defence")
+			if args[2] == "1":
+				lookingfor.append("prosecutor")
+			if args[3] == "1":
+				lookingfor.append("judge")
+			if args[4] == "1":
+				lookingfor.append("juror")
+			if args[5] == "1":
+				lookingfor.append("stenographer")
 
-            msg = msg + ', '.join(lookingfor) + '.\r\n=================='
+			msg = msg + ', '.join(lookingfor) + '.\r\n=================='
 
-            self.client.server.send_all_cmd_pred('CASEA', msg, args[1], args[2], args[3], args[4], args[5], '1')
+			self.client.server.send_all_cmd_pred('CASEA', msg, args[1], args[2], args[3], args[4], args[5], '1')
 
-            self.client.set_case_call_delay()
+			self.client.set_case_call_delay()
 
 			log_data = {k: v for k, v in \
 				zip(('message', 'def', 'pro', 'jud', 'jur', 'steno','wit'), args)}

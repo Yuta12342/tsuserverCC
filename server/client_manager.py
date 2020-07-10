@@ -752,7 +752,7 @@ class ClientManager:
                     if client.area.is_restricted:
                         client.area.is_restricted = False
                         client.area.connections.clear()
-            if len(client.area.clients) <= 1:
+            if len(client.area.clients) < 1:
                 if client.area.is_locked != client.area.Locked.FREE:
                     client.area.unlock()
         for c in client.following:

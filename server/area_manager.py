@@ -257,7 +257,7 @@ class AreaManager:
                 self.music_looper = asyncio.get_event_loop().call_later(
                     length, lambda: self.play_music(name, -1, length))
 
-        def play_music_shownamed(self, name, cid, showname, length=-1):
+        def play_music_shownamed(self, name, cid, showname, length=-1, effects=0):
             """
             Play a track, but show showname as the player instead of character
             ID.
@@ -266,7 +266,7 @@ class AreaManager:
             :param showname: showname of origin user
             :param length: track length (Default value = -1)
             """
-            self.send_command('MC', name, cid, showname)
+            self.send_command('MC', name, cid, showname, length, 0, effects)
             if self.music_looper:
                 self.music_looper.cancel()
             if length > 0:
