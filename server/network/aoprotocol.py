@@ -1826,11 +1826,11 @@ class AOProtocol(asyncio.Protocol):
 			if not self.client.area.allowmusic and self.client not in self.client.area.owners:
 				self.client.send_ooc('The CM has disallowed music changes, ask them to change the music.')
 				return
-			if not self.validate_net_cmd(
-					args, self.ArgType.STR,
-					self.ArgType.INT) and not self.validate_net_cmd(
-						args, self.ArgType.STR, self.ArgType.INT,
-						self.ArgType.STR):
+			if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT):
+                if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
+                    if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT):
+                        if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, self.ArgType.INT):
+                            return
 				return
 			if args[1] != self.client.char_id:
 				return
