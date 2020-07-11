@@ -369,6 +369,7 @@ class AOProtocol(asyncio.Protocol):
 			return
 
 		target_area = []
+		pair_order = 0
 		if self.validate_net_cmd(args, self.ArgType.STR, # msg_type
 								 self.ArgType.STR_OR_EMPTY, self.ArgType.STR, # pre, folder
 								 self.ArgType.STR, self.ArgType.STR, # anim, text
@@ -633,11 +634,13 @@ class AOProtocol(asyncio.Protocol):
 					other_emote = target.last_sprite
 					other_flip = target.flip
 					other_folder = target.claimed_folder
+					if (pair_order != ""):
+						charid_pair = "{}^{}".format(charid_pair, pair_order)
 					break
 
 		if not confirmed:
 			charid_pair = -1
-			offset_pair = 0
+			# offset_pair = 0
 		if msg == '///':
 			if self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
 				for statements in self.client.area.recorded_messages:
