@@ -606,13 +606,13 @@ class AOProtocol(asyncio.Protocol):
 					other_emote = target.last_sprite
 					other_flip = target.flip
 					other_folder = target.claimed_folder
-					if (pair_order != ""):
+					if (pair_order != 0):
 						charid_pair = "{}^{}".format(charid_pair, pair_order)
 					break
 
 		if not confirmed:
 			charid_pair = -1
-			# offset_pair = 0
+			#offset_pair = 0
 			
 		if self.client.area.last_speaker != self.client:
 			additive = 0
