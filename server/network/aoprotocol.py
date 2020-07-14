@@ -369,6 +369,17 @@ class AOProtocol(asyncio.Protocol):
 			return
 
 		target_area = []
+		showname = ""
+		charid_pair = -1
+		offset_pair = 0
+		nonint_pre = 0
+		looping_sfx = 0
+		screenshake = 0
+		frame_shake = ""
+		frame_realization = ""
+		frame_sfx = ""
+		additive = 0
+		effect = ""
 		pair_order = 0
 		if self.validate_net_cmd(args, self.ArgType.STR, # msg_type
 								 self.ArgType.STR_OR_EMPTY, self.ArgType.STR, # pre, folder
@@ -380,17 +391,6 @@ class AOProtocol(asyncio.Protocol):
 								 self.ArgType.INT, self.ArgType.INT): # ding, color
 			# Pre-2.6 validation monstrosity.
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color = args
-			showname = ""
-			charid_pair = -1
-			offset_pair = 0
-			nonint_pre = 0
-			looping_sfx = 0
-			screenshake = 0
-			frame_screenshake = ""
-			frame_realization = ""
-			frame_sfx = ""
-			additive = 0
-			effect = ""
 		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
 								   self.ArgType.STR,
 								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
@@ -398,16 +398,6 @@ class AOProtocol(asyncio.Protocol):
 								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
 			# 1.3.0 validation monstrosity.
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname = args
-			charid_pair = -1
-			offset_pair = 0
-			nonint_pre = 0
-			looping_sfx = 0
-			screenshake = 0
-			frame_screenshake = ""
-			frame_realization = ""
-			frame_sfx = ""
-			additive = 0
-			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -419,14 +409,6 @@ class AOProtocol(asyncio.Protocol):
 								   self.ArgType.INT, self.ArgType.INT):
 			# 1.3.5 validation monstrosity.
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair = args
-			nonint_pre = 0
-			looping_sfx = 0
-			screenshake = 0
-			frame_screenshake = ""
-			frame_realization = ""
-			frame_sfx = ""
-			additive = 0
-			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -438,13 +420,6 @@ class AOProtocol(asyncio.Protocol):
 								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT):
 			# 1.4.0 validation monstrosity.
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre = args
-			looping_sfx = 0
-			screenshake = 0
-			frame_screenshake = ""
-			frame_realization = ""
-			frame_sfx = ""
-			additive = 0
-			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -457,8 +432,6 @@ class AOProtocol(asyncio.Protocol):
 								   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR):
 			# 2.7.0 validation monstrosity
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx = args
-			additive = 0
-			effect = ""
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
@@ -471,7 +444,6 @@ class AOProtocol(asyncio.Protocol):
 								   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
 								   self.ArgType.INT, self.ArgType.STR):
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect = args
-			additive = 0
 			pair_args = charid_pair.split("^")
 			charid_pair = int(pair_args[0])
 			if (len(pair_args) > 1):
@@ -641,6 +613,10 @@ class AOProtocol(asyncio.Protocol):
 		if not confirmed:
 			charid_pair = -1
 			# offset_pair = 0
+			
+		if self.client.area.last_speaker != self.client:
+			additive = 0
+
 		if msg == '///':
 			if self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
 				for statements in self.client.area.recorded_messages:
@@ -1660,7 +1636,7 @@ class AOProtocol(asyncio.Protocol):
 								 other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
 					self.client.area.set_next_msg_delay(len(msg))
-
+					self.client.area.last_speaker = self.client
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
 				elif self.client.narrator:
@@ -1687,6 +1663,8 @@ class AOProtocol(asyncio.Protocol):
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
 									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
+					self.client.area.set_next_msg_delay(len(msg))
+					self.client.area.last_speaker = self.client
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
 				else:
@@ -1713,6 +1691,8 @@ class AOProtocol(asyncio.Protocol):
 						other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
 									  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
 
+					self.client.area.set_next_msg_delay(len(msg))
+					self.client.area.last_speaker = self.client
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
 
