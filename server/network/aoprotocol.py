@@ -375,7 +375,7 @@ class AOProtocol(asyncio.Protocol):
 		nonint_pre = 0
 		looping_sfx = 0
 		screenshake = 0
-		frame_shake = ""
+		frame_screenshake = ""
 		frame_realization = ""
 		frame_sfx = ""
 		additive = 0
