@@ -48,10 +48,12 @@ class AreaManager:
 					 jukebox=False,
 					 abbreviation='',
 					 non_int_pres_only=False,
-					 hub=False):
-			self.hub = hub
+					 is_hub=False):
+			self.is_hub = is_hub
+			self.hub = None
 			self.subareas = []
 			self.sub = False
+			self.cur_subid = 2
 			self.iniswap_allowed = iniswap_allowed
 			self.clients = set()
 			self.invite_list = {}
@@ -510,13 +512,61 @@ class AreaManager:
 			if len(msg) > 2:
 				msg = msg[:-2]
 			return msg
+
 		def get_mods(self):
 			mods = []
 			for client in self.clients:
 				if client.is_mod:
 					mods.append(client)
 			return mods
+	
+		def get_sub(self, name):
+			for area in self.subareas:
+				if area.name == name:
+					return area
+			raise AreaError('Area not found.')
 
+		def sub_arup_players(self):
+			"""Broadcast ARUP packet containing player counts."""
+			players_list = [0]
+			lobby = self.server.area_manager.default_area()
+			players_list.append(len(lobby.clients))
+			players_list.append(len(self.clients))
+			for area in self.subareas:
+				if area.hidden == True:
+					players_list.append(-1)
+				else:
+					index = 0
+					for client in area.clients:
+						if not client.ghost and not client.hidden:
+							index += 1
+					players_list.append(index)
+			self.server.send_hub_arup(players_list)
+
+		def sub_arup_status(self):
+			"""Broadcast ARUP packet containing area statuses."""
+			status_list = [1]
+			for area in self.subareas:
+				status_list.append(area.status)
+			self.server.send_hub_arup(status_list)
+
+		def sub_arup_cms(self):
+			"""Broadcast ARUP packet containing area CMs."""
+			cms_list = [2]
+			for area in self.subareas:
+				cm = 'FREE'
+				if len(area.owners) > 0:
+					cm = area.get_cms()
+				cms_list.append(cm)
+			self.server.send_hub_arup(cms_list)
+
+		def sub_arup_lock(self):
+			"""Broadcast ARUP packet containing the lock status of each area."""
+			lock_list = [3]
+			for area in self.subareas:
+				lock_list.append(area.is_locked.name)
+			self.server.send_hub_arup(lock_list)
+		
 		class JukeboxVote:
 			"""Represents a single vote cast for the jukebox."""
 			def __init__(self, client, name, length, showname):
@@ -553,6 +603,8 @@ class AreaManager:
 				item['noninterrupting_pres'] = False
 			if 'abbreviation' not in item:
 				item['abbreviation'] = self.abbreviate(item['area'])
+			if 'is_hub' not in item:
+				item['is_hub'] = False
 			self.areas.append(
 				self.Area(self.cur_id, self.server, item['area'],
 						  item['background'], item['bglock'],
@@ -560,7 +612,7 @@ class AreaManager:
 						  item['iniswap_allowed'],
 						  item['showname_changes_allowed'],
 						  item['shouts_allowed'], item['jukebox'],
-						  item['abbreviation'], item['noninterrupting_pres']))
+						  item['abbreviation'], item['noninterrupting_pres'], item['is_hub']))
 			self.cur_id += 1
 
 	def default_area(self):
@@ -617,6 +669,11 @@ class AreaManager:
 				for client in area.clients:
 					if not client.ghost and not client.hidden:
 						index += 1
+				if area.is_hub:
+                    for sub in area.subareas:
+						for client in sub.clients:
+							if not client.ghost and not client.hidden:
+								index += 1
 				players_list.append(index)
 		self.server.send_arup(players_list)
 
@@ -648,4 +705,7 @@ class AreaManager:
 		num = 0
 		for area in self.areas:
 			num += len(area.get_mods())
+			if area.hub:
+				for sub in area.subareas:
+					num += len(area.get_mods())
 		return num

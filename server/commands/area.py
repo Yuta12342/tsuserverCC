@@ -42,7 +42,8 @@ __all__ = [
 	'ooc_cmd_shouts',
 	'ooc_cmd_allclients',
 	'ooc_cmd_poslock',
-	'ooc_cmd_password'
+	'ooc_cmd_password',
+	'ooc_cmd_addarea'
 ]
 
 def ooc_cmd_poslock(client, arg):
@@ -132,9 +133,40 @@ def ooc_cmd_create(client, arg):
 		'CT', '{}'.format(client.server.config['hostname']),
 		f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
 	sendareas = []
-	#for area in client.server.area_manager.areas:
-		#sendareas.append(area.name)
-	#client.server.send_all_cmd_pred('FA', *sendareas)
+	for area in client.server.area_manager.areas:
+		sendareas.append(area.name)
+	client.server.send_all_cmd_pred('FA', *sendareas)
+	
+def ooc_cmd_addarea(client, arg):
+	if not client.is_mod and client.permission == False:
+		raise ClientError('You must have permission to create an area, please ask staff.')
+	if len(arg) == 0:
+		raise ArgumentError('Not enough arguments, use /create <name>.')
+	if len(arg) > 25:
+		raise ArgumentError('That name is too long!')
+	if not client.area.is_hub and not client.area.sub:
+		raise ClientError('You can only create areas in hubs.')
+	new_id = client.area.cur_subid
+	client.area.cur_subid += 1
+	client.area.subareas.append(client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='CA', non_int_pres_only=False))
+	client.server.send_all_cmd_pred(
+		'CT', '{}'.format(client.server.config['hostname']),
+		f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
+	sendareas = []
+	area_list = []
+	lobby = None
+	for a in client.server.area_manager.areas:
+		if a.id == 0:
+			lobby = a
+			break
+	if lobby == None:
+		raise ClientError('There is no default area.')
+	area_list.append(lobby.name)
+	if client.area.is_hub:
+		area_list.append(client.area.name)
+	for a in client.area.subareas:
+		area_list.append(a.name)
+	client.send_command('FA', *area_list)
 
 def ooc_cmd_destroy(client, arg):
 	if client not in client.area.owners and not client.is_mod:
@@ -399,15 +431,20 @@ def ooc_cmd_area(client, arg):
 	args = arg.split()
 	if len(args) == 0:
 		client.send_area_list()
-	elif len(args) == 1:
+		return
+
+	try:
+		area = client.server.area_manager.get_area_by_id(int(args[0]))
+		client.change_area(area)
+	except:
 		try:
-			area = client.server.area_manager.get_area_by_id(int(args[0]))
+			area = client.server.area_manager.get_area_by_name(arg)
 			client.change_area(area)
 		except ValueError:
 			raise ArgumentError('Area ID must be a number.')
 		except (AreaError, ClientError):
 			raise
-	elif len(args) == 2:
+	"""if len(args) == 2:
 		try:
 			area = client.server.area_manager.get_area_by_id(int(args[0]))
 			if area.password != '':
@@ -421,6 +458,7 @@ def ooc_cmd_area(client, arg):
 			raise
 	else:
 		raise ArgumentError('Too many arguments. Use /area <id> and optionally <password>.')
+		"""
 
 def ooc_cmd_connect(client, arg):
 	"""
@@ -708,7 +746,7 @@ def ooc_cmd_uninvite(client, arg):
 		raise ClientError ('You are not a CM.')
 	arg = arg.split(' ')
 	targets = client.server.client_manager.get_targets(client, TargetType.ID,
-													   int(arg[0]), True)
+														 int(arg[0]), True)
 	if targets:
 		try:
 			for c in targets:

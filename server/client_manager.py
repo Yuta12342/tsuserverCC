@@ -443,17 +443,19 @@ class ClientManager:
 			self.send_command('HP', 2, self.area.hp_pro)
 			self.send_command('BN', self.area.background)
 			self.send_command('LE', *self.area.get_evidence_list(self))
-			if area.hub:
+			if self.area.is_hub == True:
 				area_list = []
 				lobby = None
-				for a in self.area.area_manager.areas:
-					if id == 0:
+				for a in self.server.area_manager.areas:
+					if a.id == 0:
 						lobby = a
 						break
-                if lobby = None:
+				if lobby == None:
 					raise ClientError('There is no default area.')
 				area_list.append(lobby.name)
 				area_list.append(area.name)
+				for a in self.area.subareas:
+					area_list.append(a.name)
 				self.send_command('FA', *area_list)
 
 		def send_area_list(self):

@@ -1792,81 +1792,85 @@ class AOProtocol(asyncio.Protocol):
 		if not self.client.is_checked:
 			return
 		try:
-			area = self.server.area_manager.get_area_by_name(args[0])
+			area = self.client.area.get_sub(args[0])
 			self.client.change_area(area)
 		except AreaError:
-			if self.client.is_muted:  # Checks to see if the client has been muted by a mod
-				self.client.send_ooc(
-					'You are muted by a moderator.')
-				return
-			if not self.client.is_dj:
-				self.client.send_ooc(
-					"You were blockdj'd by a moderator.")
-				return
-			if self.client.area.cannot_ic_interact(self.client):
-				self.client.send_ooc("You are not on the area's invite list, and thus, you cannot change music!")
-				return
-			if not self.client.area.allowmusic and self.client not in self.client.area.owners:
-				self.client.send_ooc('The CM has disallowed music changes, ask them to change the music.')
-				return
-			if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT):
-				if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
-					if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT):
-						if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, self.ArgType.INT):
-							return
-			if args[1] != self.client.char_id:
-				return
-			if self.client.change_music_cd():
-				self.client.send_ooc(
-					'You changed song too many times. Please try again after {} seconds.'
-					.format(int(self.client.change_music_cd())))
-				return
 			try:
-				name, length, mod = self.server.get_song_data(args[0])
-				if not mod == -1:
-					if not self.client.is_mod:
-						self.client.send_host_message("This song is reserved for moderators.")
+				area = self.server.area_manager.get_area_by_name(args[0])
+				self.client.change_area(area)
+			except AreaError:
+					if self.client.is_muted:  # Checks to see if the client has been muted by a mod
+						self.client.send_ooc(
+							'You are muted by a moderator.')
 						return
+					if not self.client.is_dj:
+						self.client.send_ooc(
+							"You were blockdj'd by a moderator.")
+						return
+					if self.client.area.cannot_ic_interact(self.client):
+						self.client.send_ooc("You are not on the area's invite list, and thus, you cannot change music!")
+						return
+					if not self.client.area.allowmusic and self.client not in self.client.area.owners:
+						self.client.send_ooc('The CM has disallowed music changes, ask them to change the music.')
+						return
+					if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT):
+						if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
+							if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT):
+								if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, self.ArgType.INT):
+									return
+					if args[1] != self.client.char_id:
+						return
+					if self.client.change_music_cd():
+						self.client.send_ooc(
+							'You changed song too many times. Please try again after {} seconds.'
+							.format(int(self.client.change_music_cd())))
+						return
+					try:
+						name, length, mod = self.server.get_song_data(args[0])
+						if not mod == -1:
+							if not self.client.is_mod:
+								self.client.send_host_message("This song is reserved for moderators.")
+								return
 
-				if self.client.area.jukebox:
-					showname = ''
-					if len(args) > 2:
-						showname = args[2]
-						if len(
-								showname
-						) > 0 and not self.client.area.showname_changes_allowed:
-							self.client.send_ooc(
-								"Showname changes are forbidden in this area!")
-							return
-					self.client.area.add_jukebox_vote(self.client, name,
-													  length, showname)
-					database.log_room('jukebox.vote', self.client, self.client.area, message=name)
-				else:
-					if len(args) > 2:
-						showname = args[2]
-						if len(
-								showname
-						) > 0 and not self.client.area.showname_changes_allowed:
-							self.client.send_ooc(
-								"Showname changes are forbidden in this area!")
-							return
-					# Effects info
-					effects = 0
-					if len(args) > 3:
-						effects = int(args[3])
-						self.client.area.play_music_shownamed(
-							name, self.client.char_id, showname, length, effects)
-						self.client.area.add_music_playing_shownamed(
-							self.client, showname, name)
-					else:
-						self.client.area.play_music(name, self.client.char_id,
-													length)
-						self.client.area.add_music_playing(self.client, name)
-					database.log_room('music', self.client, self.client.area, message=name)
-			except ServerError:
-				return
-		except ClientError as ex:
-			self.client.send_ooc(ex)
+						if self.client.area.jukebox:
+							showname = ''
+							if len(args) > 2:
+								showname = args[2]
+								if len(
+										showname
+								) > 0 and not self.client.area.showname_changes_allowed:
+									self.client.send_ooc(
+										"Showname changes are forbidden in this area!")
+									return
+							self.client.area.add_jukebox_vote(self.client, name,
+															  length, showname)
+							database.log_room('jukebox.vote', self.client, self.client.area, message=name)
+						else:
+							if len(args) > 2:
+								showname = args[2]
+								if len(
+										showname
+								) > 0 and not self.client.area.showname_changes_allowed:
+									self.client.send_ooc(
+										"Showname changes are forbidden in this area!")
+									return
+							# Effects info
+							effects = 0
+							if len(args) > 3:
+								effects = int(args[3])
+								self.client.area.play_music_shownamed(
+									name, self.client.char_id, showname, length, effects)
+								self.client.area.add_music_playing_shownamed(
+									self.client, showname, name)
+							else:
+								self.client.area.play_music(name, self.client.char_id,
+															length)
+								self.client.area.add_music_playing(self.client, name)
+							database.log_room('music', self.client, self.client.area, message=name)
+					except ServerError:
+						return
+			except ClientError as ex:
+				self.client.send_ooc(ex)
 
 	def net_cmd_rt(self, args):
 		"""Plays the Testimony/CE animation.
