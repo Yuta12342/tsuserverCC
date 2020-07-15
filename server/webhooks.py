@@ -71,9 +71,13 @@ class Webhooks:
         if mods == 0 and no_mods_ping:
             message = f"@{mod_role_id if mod_role_id != None else 'here'} A user called for a moderator, but there are none online!"
         else:
-            message = f"New modcall received ({mods} moderator{None if mods == 1 else 's'} online)"
+            if mods == 1:
+                s = ''
+            else:
+                s = 's'
+            message = f"New modcall received ({mods} moderator{s} online)"
         
-        description = f"[{current_time}] {char} ({ipid}) in {area} {'without reason (using <2.6?)' if reason is None else f'with reason {reason}'}"
+        description = f"[{current_time}] {char} ({ipid}) in {area} {'without reason (using <2.6?)' if reason is None else f'with reason: {reason}'}"
         
         self.send_webhook(username=username, avatar_url=avatar_url, message=message, embed=True, title="Modcall", description=description)
 
