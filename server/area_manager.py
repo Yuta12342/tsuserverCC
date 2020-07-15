@@ -47,7 +47,11 @@ class AreaManager:
 					 shouts_allowed=True,
 					 jukebox=False,
 					 abbreviation='',
-					 non_int_pres_only=False):
+					 non_int_pres_only=False,
+					 hub=False):
+			self.hub = hub
+			self.subareas = []
+			self.sub = False
 			self.iniswap_allowed = iniswap_allowed
 			self.clients = set()
 			self.invite_list = {}
