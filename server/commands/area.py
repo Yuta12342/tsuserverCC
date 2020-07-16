@@ -140,7 +140,7 @@ def ooc_cmd_create(client, arg):
 def ooc_cmd_addarea(client, arg):
 	if not client.area.is_hub and not client.area.sub:
 		raise ClientError('You can only create areas in hubs.')
-	if not client in client.area.owners:
+	if not client in client.area.owners and not client.is_mod:
 		if client.area.is_hub:
 			if not client.area.name.startswith('Arcade') and not client.area.name.startswith('User'):
 				raise ClientError('You must be CM to create an area.')
@@ -204,7 +204,47 @@ def ooc_cmd_addarea(client, arg):
 		newsub.status = client.area.status
 		newsub.hub.sub_arup_cms()
 		newsub.hub.sub_arup_status()
-	client.send_command('FA', *area_list)
+	client.server.send_all_cmd_pred('FA', *area_list pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
+
+def ooc_cmd_destroyarea(client, arg):
+	if not client.area.sub:
+		raise ClientError('Cannot destroy a non-subarea.')
+	if client not in client.area.owners and not client.is_mod:
+		raise ClientError('You must be CM.')
+	if len(arg) > 0:
+		raise ArgumentError('This command takes no arguments.')
+	destroyed = client.area
+	hub = destroyed.hub
+	destroyedclients = set()
+	for c in destroyed.clients:
+		if c in destroyed.owners:
+			destroyed.owners.remove(c)
+		destroyedclients.add(c)
+	for c in destroyedclients:
+		if c in destroyed.clients:
+			c.change_area(hub)
+			c.send_ooc(f'You were moved to {hub.name} from {destroyed.name} because it was destroyed.')
+	hub.subareas.remove(destroyed)
+	old_sublist = hub.subareas
+	hub.subareas.clear()
+	hub.cur_subid = 1
+	for sub in old_sublist:
+		sub.id = hub.cur_subid
+		sub.abbreviation = f'H{hub.hubid}S{sub.id}'
+		hub.subareas.append(sub)
+		hub.cur_subid += 1
+	area_list = []
+	for a in client.server.area_manager.areas:
+		if a.id == 0:
+			lobby = a
+			break
+	if lobby == None:
+		raise ClientError('There is no default area.')
+	area_list.append(lobby.name)
+	area_list.append(hub.name)
+	for sub in hub.subareas:
+		area_list.append(sub.name)
+	client.server.send_all_cmd_pred('FA', *area_list pred=lambda x: x.area == hub or x.area in hub.subareas)
 
 def ooc_cmd_destroy(client, arg):
 	if client not in client.area.owners and not client.is_mod:
