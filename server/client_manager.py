@@ -416,7 +416,7 @@ class ClientManager:
 			self.area.remove_client(self)
 			self.area = area
 			
-			if self.area.is_hub == True:
+			if self.area.is_hub and not old_area.sub:
 				area_list = []
 				lobby = None
 				for a in self.server.area_manager.areas:
@@ -430,13 +430,21 @@ class ClientManager:
 				for a in self.area.subareas:
 					area_list.append(a.name)
 				self.send_command('FA', *area_list)
-			if old_area.is_hub and not self.area.sub:
-				area_list = []
-				for a in self.server.area_manager.areas:
-					area_list.append(a.name)
-				self.send_command('FA', *area_list)
+			if old_area.is_hub or old_area.sub:
+				if not self.area.sub and not self.area.is_hub:
+					area_list = []
+					for a in self.server.area_manager.areas:
+						area_list.append(a.name)
+					self.send_command('FA', *area_list)
 					
 			area.new_client(self)
+			if self.area.is_hub:
+				self.area.sub_arup_cms()
+				self.area.sub_arup_status()
+				self.area.sub_arup_lock()
+			self.server.area_manager.send_arup_cms()
+			self.server.area_manager.send_arup_status()
+			self.server.area_manager.send_arup_lock()
 
 			self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')
 			if self.autopass == True:
@@ -766,7 +774,13 @@ class ClientManager:
 		for a in self.server.area_manager.areas:
 			if client in a.owners:
 				a.owners.remove(client)
-				client.server.area_manager.send_arup_cms()
+				if client.area.sub:
+					client.area.hub.sub_arup_cms()
+				elif client.area.is_hub:
+					client.area.sub_arup_cms()
+					client.server.area_manager.send_arup_cms()
+				else:
+					client.server.area_manager.send_arup_cms()
 				if len(a.owners) == 0:
 					if a.is_locked != a.Locked.FREE:
 						a.unlock()
@@ -823,7 +837,12 @@ class ClientManager:
 		if local:
 			areas = [client.area]
 		else:
-			areas = client.server.area_manager.areas
+			areas = []
+			for a in client.server.area_manager.areas:
+				areas.append(a)
+				if a.is_hub:
+					for sub in a.subareas:
+						areas.append(sub)
 		targets = []
 		if key == TargetType.ALL:
 			for nkey in range(6):

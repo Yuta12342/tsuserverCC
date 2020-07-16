@@ -578,40 +578,46 @@ class AreaManager:
 						if not client.ghost and not client.hidden:
 							index += 1
 					players_list.append(index)
-			self.server.send_hub_arup(players_list)
+			self.server.send_hub_arup(players_list, self)
 
 		def sub_arup_status(self):
 			"""Broadcast ARUP packet containing area statuses."""
 			status_list = [1]
 			lobby = self.server.area_manager.default_area()
-			status_list.append(len(lobby.clients))
-			status_list.append(len(self.clients))
+			status_list.append(lobby.status)
+			status_list.append(self.status)
 			for area in self.subareas:
 				status_list.append(area.status)
-			self.server.send_hub_arup(status_list)
+			self.server.send_hub_arup(status_list, self)
 
 		def sub_arup_cms(self):
 			"""Broadcast ARUP packet containing area CMs."""
 			cms_list = [2]
 			lobby = self.server.area_manager.default_area()
-			cms_list.append(len(lobby.clients))
-			cms_list.append(len(self.clients))
+			if len(lobby.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(lobby.get_cms())
+			if len(self.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(self.get_cms())
 			for area in self.subareas:
 				cm = 'FREE'
 				if len(area.owners) > 0:
 					cm = area.get_cms()
 				cms_list.append(cm)
-			self.server.send_hub_arup(cms_list)
+			self.server.send_hub_arup(cms_list, self)
 
 		def sub_arup_lock(self):
 			"""Broadcast ARUP packet containing the lock status of each area."""
 			lock_list = [3]
 			lobby = self.server.area_manager.default_area()
-			lock_list.append(len(lobby.clients))
-			lock_list.append(len(self.clients))
+			lock_list.append(lobby.is_locked.name)
+			lock_list.append(self.is_locked.name)
 			for area in self.subareas:
 				lock_list.append(area.is_locked.name)
-			self.server.send_hub_arup(lock_list)
+			self.server.send_hub_arup(lock_list, self)
 		
 		class JukeboxVote:
 			"""Represents a single vote cast for the jukebox."""
@@ -716,7 +722,7 @@ class AreaManager:
 					if not client.ghost and not client.hidden:
 						index += 1
 				if area.is_hub:
-                    for sub in area.subareas:
+					for sub in area.subareas:
 						for client in sub.clients:
 							if not client.ghost and not client.hidden:
 								index += 1

@@ -146,17 +146,21 @@ def ooc_cmd_addarea(client, arg):
 		raise ArgumentError('That name is too long!')
 	if not client.area.is_hub and not client.area.sub:
 		raise ClientError('You can only create areas in hubs.')
-	new_id = client.area.cur_subid
-	client.area.cur_subid += 1
-	newsub = client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='CA', non_int_pres_only=False)
-	client.area.subareas.append(newsub)
+	if client.area.is_hub:
+		new_id = client.area.cur_subid
+		client.area.cur_subid += 1
+	else:
+		new_id = client.area.hub.cur_subid
+		client.area.hub.cur_subid += 1
+	newsub = client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation=f'SUB{new_id}', non_int_pres_only=False)
+	newsub.sub = True
 	if client.area.is_hub:
 		newsub.hub = client.area
+		client.area.subareas.append(newsub)
 	else:
 		newsub.hub = client.area.hub
-	client.server.send_all_cmd_pred(
-		'CT', '{}'.format(client.server.config['hostname']),
-		f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
+		client.area.hub.subareas.append(newsub)
+	#client.server.send_all_cmd_pred('CT', '{}'.format(client.server.config['hostname']),f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
 	area_list = []
 	lobby = None
 	for a in client.server.area_manager.areas:
@@ -174,6 +178,10 @@ def ooc_cmd_addarea(client, arg):
 		area_list.append(client.area.hub.name)
 		for a in client.area.hub.subareas:
 			area_list.append(a.name)
+	newsub.owners.append(client)
+	newsub.status = client.area.status
+	newsub.hub.sub_arup_cms()
+	newsub.hub.sub_arup_status()
 	client.send_command('FA', *area_list)
 
 def ooc_cmd_destroy(client, arg):

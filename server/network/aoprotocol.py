@@ -1792,15 +1792,18 @@ class AOProtocol(asyncio.Protocol):
 		if not self.client.is_checked:
 			return
 		try:
-			area = self.client.area.get_sub(args[0])
+			area = self.server.area_manager.get_area_by_name(args[0])
 			self.client.change_area(area)
 		except AreaError:
 			try:
-				area = self.client.area.hub.get_sub(args[0])
+				area = self.client.area.get_sub(args[0])
 				self.client.change_area(area)
 			except AreaError:
 				try:
-					area = self.server.area_manager.get_area_by_name(args[0])
+					if self.client.area.sub:
+						area = self.client.area.hub.get_sub(args[0])
+					else:
+						area = None
 					self.client.change_area(area)
 				except AreaError:
 					if self.client.is_muted:  # Checks to see if the client has been muted by a mod
@@ -1873,8 +1876,12 @@ class AOProtocol(asyncio.Protocol):
 							database.log_room('music', self.client, self.client.area, message=name)
 					except ServerError:
 						return
+				except ClientError as ex:
+					self.client.send_ooc(ex)
 			except ClientError as ex:
 				self.client.send_ooc(ex)
+		except ClientError as ex:
+			self.client.send_ooc(ex)
 
 	def net_cmd_rt(self, args):
 		"""Plays the Testimony/CE animation.
