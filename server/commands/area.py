@@ -43,7 +43,8 @@ __all__ = [
 	'ooc_cmd_allclients',
 	'ooc_cmd_poslock',
 	'ooc_cmd_password',
-	'ooc_cmd_addarea'
+	'ooc_cmd_addarea',
+	'ooc_cmd_destroyarea'
 ]
 
 def ooc_cmd_poslock(client, arg):
@@ -225,7 +226,9 @@ def ooc_cmd_destroyarea(client, arg):
 			c.change_area(hub)
 			c.send_ooc(f'You were moved to {hub.name} from {destroyed.name} because it was destroyed.')
 	hub.subareas.remove(destroyed)
-	old_sublist = hub.subareas
+	old_sublist = []
+	for sub in hub.subareas:
+		old_sublist.append(sub)
 	hub.subareas.clear()
 	hub.cur_subid = 1
 	for sub in old_sublist:
@@ -245,6 +248,8 @@ def ooc_cmd_destroyarea(client, arg):
 	for sub in hub.subareas:
 		area_list.append(sub.name)
 	client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == hub or x.area in hub.subareas)
+	hub.sub_arup_cms()
+	hub.sub_arup_status()
 
 def ooc_cmd_destroy(client, arg):
 	if client not in client.area.owners and not client.is_mod:
