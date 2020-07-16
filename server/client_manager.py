@@ -774,9 +774,9 @@ class ClientManager:
 		for a in self.server.area_manager.areas:
 			if client in a.owners:
 				a.owners.remove(client)
-				if client.area.sub:
-					client.area.hub.sub_arup_cms()
-				elif client.area.is_hub:
+				#if client.area.sub:
+				#	client.area.hub.sub_arup_cms()
+				if client.area.is_hub:
 					client.area.sub_arup_cms()
 					client.server.area_manager.send_arup_cms()
 				else:
@@ -790,6 +790,22 @@ class ClientManager:
 			if len(client.area.clients) < 1:
 				if client.area.is_locked != client.area.Locked.FREE:
 					client.area.unlock()
+			if a.is_hub:
+				for sub in a.subareas:
+					sub.owners.remove(client)
+					if client.area.sub:
+						client.area.hub.sub_arup_cms()
+					elif client.area.is_hub:
+						client.area.sub_arup_cms()
+						client.server.area_manager.send_arup_cms()
+					else:
+						client.server.area_manager.send_arup_cms()
+					if len(sub.owners) == 0:
+						if sub.is_locked != sub.Locked.FREE:
+							sub.unlock()
+						if client.area.is_restricted:
+							client.area.is_restricted = False
+							client.area.connections.clear()
 		for c in client.following:
 			c.followers.remove(client)
 			c.send_ooc(f'{client.char_name} disconnected and is no longer following you.')
