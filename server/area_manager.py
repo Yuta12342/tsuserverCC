@@ -53,7 +53,7 @@ class AreaManager:
 			self.hub = None
 			self.subareas = []
 			self.sub = False
-			self.cur_subid = 2
+			self.cur_subid = 1
 			self.iniswap_allowed = iniswap_allowed
 			self.clients = set()
 			self.invite_list = {}
@@ -131,7 +131,13 @@ class AreaManager:
 		def new_client(self, client):
 			"""Add a client to the area."""
 			self.clients.add(client)
-			self.server.area_manager.send_arup_players()
+			if self.sub:
+				self.hub.sub_arup_players()
+			elif self.is_hub:
+				self.sub_arup_players()
+				self.server.area_manager.send_arup_players()
+			else:
+				self.server.area_manager.send_arup_players()
 			if client.char_id != -1:
 				database.log_room('area.join', client, self)
 
@@ -149,7 +155,13 @@ class AreaManager:
 			self.is_locked = self.Locked.FREE
 			self.blankposting_allowed = True
 			self.invite_list = {}
-			self.server.area_manager.send_arup_lock()
+			if self.sub:
+				self.hub.sub_arup_lock()
+			elif self.is_hub:
+				self.sub_arup_lock()
+				self.server.area_manager.send_arup_lock()
+			else:
+				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is open now.')
 
 		def spectator(self):
@@ -159,7 +171,13 @@ class AreaManager:
 				self.invite_list[i.id] = None
 			for i in self.owners:
 				self.invite_list[i.id] = None
-			self.server.area_manager.send_arup_lock()
+			if self.sub:
+				self.hub.sub_arup_lock()
+			elif self.is_hub:
+				self.sub_arup_lock()
+				self.server.area_manager.send_arup_lock()
+			else:
+				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is spectatable now.')
 
 		def lock(self):
@@ -169,7 +187,13 @@ class AreaManager:
 				self.invite_list[i.id] = None
 			for i in self.owners:
 				self.invite_list[i.id] = None
-			self.server.area_manager.send_arup_lock()
+			if self.sub:
+				self.hub.sub_arup_lock()
+			elif self.is_hub:
+				self.sub_arup_lock()
+				self.server.area_manager.send_arup_lock()
+			else:
+				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is locked now.')
 
 		def is_char_available(self, char_id):
@@ -435,15 +459,28 @@ class AreaManager:
 			if value.lower() == 'lfp':
 				value = 'looking-for-players'
 			self.status = value.upper()
-			self.server.area_manager.send_arup_status()
-
+			if self.sub:
+				self.hub.sub_arup_status()
+			elif self.is_hub:
+				self.sub_arup_status()
+				self.server.area_manager.send_arup_status()
+			else:
+				self.server.area_manager.send_arup_status()
+			
 		def custom_status(self, value):
 			"""
 			Set the status of the room.
 			:param value: status code
 			"""
 			self.status = value.upper()
-			self.server.area_manager.send_arup_status()
+			
+			if self.sub:
+				self.hub.sub_arup_status()
+			elif self.is_hub:
+				self.sub_arup_status()
+				self.server.area_manager.send_arup_status()
+			else:
+				self.server.area_manager.send_arup_status()
 
 		def change_doc(self, doc='No document.'):
 			"""
@@ -546,6 +583,9 @@ class AreaManager:
 		def sub_arup_status(self):
 			"""Broadcast ARUP packet containing area statuses."""
 			status_list = [1]
+			lobby = self.server.area_manager.default_area()
+			status_list.append(len(lobby.clients))
+			status_list.append(len(self.clients))
 			for area in self.subareas:
 				status_list.append(area.status)
 			self.server.send_hub_arup(status_list)
@@ -553,6 +593,9 @@ class AreaManager:
 		def sub_arup_cms(self):
 			"""Broadcast ARUP packet containing area CMs."""
 			cms_list = [2]
+			lobby = self.server.area_manager.default_area()
+			cms_list.append(len(lobby.clients))
+			cms_list.append(len(self.clients))
 			for area in self.subareas:
 				cm = 'FREE'
 				if len(area.owners) > 0:
@@ -563,6 +606,9 @@ class AreaManager:
 		def sub_arup_lock(self):
 			"""Broadcast ARUP packet containing the lock status of each area."""
 			lock_list = [3]
+			lobby = self.server.area_manager.default_area()
+			lock_list.append(len(lobby.clients))
+			lock_list.append(len(self.clients))
 			for area in self.subareas:
 				lock_list.append(area.is_locked.name)
 			self.server.send_hub_arup(lock_list)

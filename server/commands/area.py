@@ -138,7 +138,7 @@ def ooc_cmd_create(client, arg):
 	client.server.send_all_cmd_pred('FA', *sendareas)
 	
 def ooc_cmd_addarea(client, arg):
-	if not client.is_mod and client.permission == False:
+	if not client in client.area.owners:
 		raise ClientError('You must have permission to create an area, please ask staff.')
 	if len(arg) == 0:
 		raise ArgumentError('Not enough arguments, use /create <name>.')
@@ -148,11 +148,15 @@ def ooc_cmd_addarea(client, arg):
 		raise ClientError('You can only create areas in hubs.')
 	new_id = client.area.cur_subid
 	client.area.cur_subid += 1
-	client.area.subareas.append(client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='CA', non_int_pres_only=False))
+	newsub = client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='CA', non_int_pres_only=False)
+	client.area.subareas.append(newsub)
+	if client.area.is_hub:
+		newsub.hub = client.area
+	else:
+		newsub.hub = client.area.hub
 	client.server.send_all_cmd_pred(
 		'CT', '{}'.format(client.server.config['hostname']),
 		f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
-	sendareas = []
 	area_list = []
 	lobby = None
 	for a in client.server.area_manager.areas:
@@ -164,8 +168,12 @@ def ooc_cmd_addarea(client, arg):
 	area_list.append(lobby.name)
 	if client.area.is_hub:
 		area_list.append(client.area.name)
-	for a in client.area.subareas:
-		area_list.append(a.name)
+		for a in client.area.subareas:
+			area_list.append(a.name)
+	else:
+		area_list.append(client.area.hub.name)
+		for a in client.area.hub.subareas:
+			area_list.append(a.name)
 	client.send_command('FA', *area_list)
 
 def ooc_cmd_destroy(client, arg):
