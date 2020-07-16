@@ -204,7 +204,7 @@ def ooc_cmd_addarea(client, arg):
 		newsub.status = client.area.status
 		newsub.hub.sub_arup_cms()
 		newsub.hub.sub_arup_status()
-	client.server.send_all_cmd_pred('FA', *area_list pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
+	client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
 
 def ooc_cmd_destroyarea(client, arg):
 	if not client.area.sub:
@@ -244,7 +244,7 @@ def ooc_cmd_destroyarea(client, arg):
 	area_list.append(hub.name)
 	for sub in hub.subareas:
 		area_list.append(sub.name)
-	client.server.send_all_cmd_pred('FA', *area_list pred=lambda x: x.area == hub or x.area in hub.subareas)
+	client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == hub or x.area in hub.subareas)
 
 def ooc_cmd_destroy(client, arg):
 	if client not in client.area.owners and not client.is_mod:
