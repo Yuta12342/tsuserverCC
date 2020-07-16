@@ -138,21 +138,41 @@ def ooc_cmd_create(client, arg):
 	client.server.send_all_cmd_pred('FA', *sendareas)
 	
 def ooc_cmd_addarea(client, arg):
+	if not client.area.is_hub and not client.area.sub:
+		raise ClientError('You can only create areas in hubs.')
 	if not client in client.area.owners:
-		raise ClientError('You must have permission to create an area, please ask staff.')
+		if client.area.is_hub:
+			if not client.area.name.startswith('Arcade') and not client.area.name.startswith('User'):
+				raise ClientError('You must be CM to create an area.')
+		else:
+			if not client.area.hub.name.startswith('Arcade') and not client.area.hub.name.startswith('User'):
+				raise ClientError('You must be CM to create an area.')
 	if len(arg) == 0:
 		raise ArgumentError('Not enough arguments, use /create <name>.')
 	if len(arg) > 25:
 		raise ArgumentError('That name is too long!')
-	if not client.area.is_hub and not client.area.sub:
-		raise ClientError('You can only create areas in hubs.')
+	index = 0
+	for area in client.server.area_manager.areas:
+		if area.is_hub:
+			index += 1
+			area.hubid = index
 	if client.area.is_hub:
+		if client.area.cur_subid > 50:
+			raise ClientError('You cannot have more than 50 areas in a hub.')
+		elif client.area.name.startswith('Arcade') or client.area.name.startswith('User'):
+			if client.area.cur_subid > 15:
+				raise ClientError('Cannot have more than 15 areas in this hub.')
 		new_id = client.area.cur_subid
 		client.area.cur_subid += 1
 	else:
+		if client.area.hub.cur_subid > 50:
+			raise ClientError('You cannot have more than 50 areas in a hub.')
+		elif client.area.hub.name.startswith('Arcade') or client.area.hub.name.startswith('User'):
+			if client.area.hub.cur_subid > 15:
+				raise ClientError('Cannot have more than 15 areas in this hub.')
 		new_id = client.area.hub.cur_subid
 		client.area.hub.cur_subid += 1
-	newsub = client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation=f'SUB{new_id}', non_int_pres_only=False)
+	newsub = client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
 	newsub.sub = True
 	if client.area.is_hub:
 		newsub.hub = client.area
@@ -160,6 +180,7 @@ def ooc_cmd_addarea(client, arg):
 	else:
 		newsub.hub = client.area.hub
 		client.area.hub.subareas.append(newsub)
+	newsub.abbreviation = f'H{newsub.hub.hubid}S{new_id}'
 	#client.server.send_all_cmd_pred('CT', '{}'.format(client.server.config['hostname']),f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
 	area_list = []
 	lobby = None
@@ -178,10 +199,11 @@ def ooc_cmd_addarea(client, arg):
 		area_list.append(client.area.hub.name)
 		for a in client.area.hub.subareas:
 			area_list.append(a.name)
-	newsub.owners.append(client)
-	newsub.status = client.area.status
-	newsub.hub.sub_arup_cms()
-	newsub.hub.sub_arup_status()
+	if client in client.area.owners:
+		newsub.owners.append(client)
+		newsub.status = client.area.status
+		newsub.hub.sub_arup_cms()
+		newsub.hub.sub_arup_status()
 	client.send_command('FA', *area_list)
 
 def ooc_cmd_destroy(client, arg):

@@ -50,6 +50,7 @@ class AreaManager:
 					 non_int_pres_only=False,
 					 is_hub=False):
 			self.is_hub = is_hub
+			self.hubid = 0
 			self.hub = None
 			self.subareas = []
 			self.sub = False
