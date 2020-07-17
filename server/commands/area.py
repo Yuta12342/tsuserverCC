@@ -595,15 +595,15 @@ def ooc_cmd_getarea(client, arg):
 	Show information about the current area.
 	Usage: /getarea
 	"""
-	client.send_area_info(client.area.id, False)
+	client.send_area_info(client.area, False)
 
 
-def ooc_cmd_getareas(client, arg):
+def ooc_cmd_getareas(client.area, arg):
 	"""
 	Show information about all areas.
 	Usage: /getareas
 	"""
-	client.send_area_info(-1, False)
+	client.send_area_info(client.area, True)
 
 
 def ooc_cmd_lock(client, arg):

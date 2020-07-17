@@ -490,7 +490,7 @@ class ClientManager:
 					msg += ' [*]'
 			self.send_ooc(msg)
 
-		def get_area_info(self, area_id, mods):
+		def get_area_info(self, area):
 			"""
 			Get information about a specific area.
 			:param area_id: area ID
@@ -498,10 +498,6 @@ class ClientManager:
 			:returns: information as a string
 			"""
 			info = '\r\n'
-			try:
-				area = self.server.area_manager.get_area_by_id(area_id)
-			except AreaError:
-				raise
 			info += f'=== {area.name} ==='
 			info += '\r\n'
 
@@ -524,19 +520,19 @@ class ClientManager:
 				sorted_clients = []
 				for client in area.clients:
 					if self.is_mod:
-						if (not mods) or client.is_mod:
+						if client.is_mod:
 							sorted_clients.append(client)
 					elif self in area.owners and not client.ghost and client.hidden:
-						if (not mods) or client.is_mod:
+						if client.is_mod:
 							sorted_clients.append(client)
 					elif self == client and client.hidden:
-						if (not mods) or client.is_mod:
+						if client.is_mod:
 							sorted_clients.append(client)
 					elif not self.is_mod and not client.ghost and not client.hidden:
-						if (not mods) or client.is_mod:
+						if client.is_mod:
 							sorted_clients.append(client)
 				for owner in area.owners:
-					if not (mods or owner in area.clients):
+					if not owner in area.clients:
 						if not owner.ghost or self.is_mod:
 							sorted_clients.append(owner)
 				if not sorted_clients:
@@ -562,45 +558,62 @@ class ClientManager:
 						info += f' ({c.showname})'
 				return info
 
-		def send_area_info(self, area_id, mods):
+		def send_area_info(self, area, all):
 			"""
 			Send information over OOC about a specific area.
 			:param area_id: area ID
 			:param mods: limit player list to mods
 			"""
-			# if area_id is -1 then return all areas. If mods is True then return only mods
 			info = ''
-			if area_id == -1:
+			if all:
 				# all areas info
 				cnt = 0
 				info = '\n== Area List =='
-				for i in range(len(self.server.area_manager.areas)):
-					if len(self.server.area_manager.areas[i].clients) > 0 or len(self.server.area_manager.areas[i].owners) > 0:
-						for client in self.server.area_manager.areas[i].clients:
-							if self.is_mod:
-								cnt += 1
-							elif self in self.server.area_manager.areas[i].owners and not client.ghost:
-								cnt += 1
-							elif self == client and client.hidden:
-								cnt += 1
-							elif not client.ghost and not client.hidden:
-								cnt += 1
-						info += f'{self.get_area_info(i, mods)}'
+				for a in self.server.area_manager.areas:
+					for client in a.clients
+						if self.is_mod:
+							cnt += 1
+						elif self in area.owners and not client.ghost:
+							cnt += 1
+						elif self == client and client.hidden:
+							cnt += 1
+						elif not client.ghost and not client.hidden:
+							cnt += 1
+					if a.is_hub:
+						for sub in a.subareas:
+							for client in sub.clients
+								if self.is_mod:
+									cnt += 1
+								elif self in area.owners and not client.ghost:
+									cnt += 1
+								elif self == client and client.hidden:
+									cnt += 1
+								elif not client.ghost and not client.hidden:
+									cnt += 1
+					if not area.is_hub and not area.sub
+						info += f'{self.get_area_info(a)}'
+					else:
+						if area.is_hub:
+							for sub in area.subareas:
+								info += f'{self.get_area_info(sub)}'
+						else:
+							for sub in area.hub.subareas:
+								info += f'{self.get_area_info(sub)}'
 				info = f'Current online: {cnt}{info}'
 			else:
 				try:
 					area_client_cnt = 0
-					for client in self.server.area_manager.areas[area_id].clients:
+					for client in area.clients:
 						if self.is_mod:
 							area_client_cnt += 1
-						elif self in self.server.area_manager.areas[area_id].owners and not client.ghost:
+						elif self in area.owners and not client.ghost:
 							area_client_cnt += 1
 						elif self == client and client.hidden:
 							area_client_cnt += 1
 						elif not client.ghost and not client.hidden:
 							area_client_cnt += 1
 					info = f'People in this area: {area_client_cnt}'
-					info += self.get_area_info(area_id, mods)
+					info += self.get_area_info(area)
 
 				except AreaError:
 					raise
@@ -690,11 +703,9 @@ class ClientManager:
 			Change the character's current position in the area.
 			:param pos: position in area (Default value = '')
 			"""
-			positions = ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur', 'sea')
-			if pos not in positions and pos != '':
+			if pos == '':
 				raise ClientError(
-					f'Invalid position. Possible values: {", ".join(positions)}'
-				)
+					'Invalid position.')
 			self.pos = pos
 
 		def set_mod_call_delay(self):

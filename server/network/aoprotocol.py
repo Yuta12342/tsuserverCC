@@ -559,8 +559,10 @@ class AOProtocol(asyncio.Protocol):
 									   '<and>'):
 					color = 0
 		if pos != self.client.pos:
-			if pos in ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur', 'sea'):
+			if self.client.pos in ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur'):
 				self.client.pos = pos
+			else:
+				pos = self.client.pos
 		if not len(self.client.area.poslock) == 0:
 			if pos not in self.client.area.poslock:
 				self.client.send_ooc('Your current position is locked, try using a different one. Check /poslock for available positions')
