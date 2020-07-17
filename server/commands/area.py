@@ -11,7 +11,6 @@ __all__ = [
 	'ooc_cmd_allowblankposting',
 	'ooc_cmd_forcenonintpres',
 	'ooc_cmd_status',
-	'ooc_cmd_customstatus',
 	'ooc_cmd_area',
 	'ooc_cmd_getarea',
 	'ooc_cmd_getareas',
@@ -392,28 +391,6 @@ def ooc_cmd_hubstatus(client, arg):
 			for sub in client.area.subareas:
 				sub.broadcast_ooc('{} changed status to {}.'.format(client.char_name, client.area.status))
 			database.log_room('hubstatus', client, client.area, message=arg)
-		except AreaError:
-			raise
-
-def ooc_cmd_customstatus(client, arg):
-	"""
-	Show or modify the current status of a room.
-	Usage: /status <idle|rp|casing|looking-for-players|lfp|recess|gaming>
-	"""
-	if len(arg) == 0:
-		client.send_ooc(f'Current status: {client.area.status}')
-	elif 'CM' not in client.area.evidence_mod and not client.is_mod:
-		raise ClientError('You can\'t change the status of this area')
-	elif client not in client.area.owners and not client.is_mod:
-		raise ClientError('You must be CM.')
-	elif len(arg) > 35:
-		raise ArgumentError('That status is too long!')
-	else:
-		try:
-			client.area.custom_status(arg)
-			client.area.broadcast_ooc('{} changed status to {}.'.format(
-				client.char_name, client.area.status))
-			database.log_room('status', client, client.area, message=arg)
 		except AreaError:
 			raise
 

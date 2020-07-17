@@ -467,11 +467,22 @@ class AreaManager:
 						self.hub.status = value.upper()
 					else:
 						lfp = False
+						idle = True
+						recess = True
 						for area in self.hub.subareas:
 							if area.status == 'LOOKING-FOR-PLAYERS':
 								lfp = True
-						if lfp == False:
+							if area.status != 'IDLE':
+								idle = False
+							if area.status == 'RP' or if area.status == 'CASING' or if area.status == 'GAMING':
+								recess = False
+						if lfp == False and not value.lower() == 'idle' and not value.lower() == 'recess':
 							self.hub.status = value.upper()
+						if value.lower() == 'idle' and idle == True:
+							self.hub.status = value.upper()
+						if value.lower() == 'recess' and recess = True:
+							self.hub.status = value.upper()
+							
 				self.hub.sub_arup_status()
 			elif self.is_hub:
 				self.sub_arup_status()
@@ -497,21 +508,6 @@ class AreaManager:
 				area.status = value.upper()
 			self.sub_arup_status()
 			self.server.area_manager.send_arup_status()
-
-		def custom_status(self, value):
-			"""
-			Set the status of the room.
-			:param value: status code
-			"""
-			self.status = value.upper()
-			
-			if self.sub:
-				self.hub.sub_arup_status()
-			elif self.is_hub:
-				self.sub_arup_status()
-				self.server.area_manager.send_arup_status()
-			else:
-				self.server.area_manager.send_arup_status()
 
 		def change_doc(self, doc='No document.'):
 			"""

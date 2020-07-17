@@ -196,11 +196,10 @@ class HubManager:
 			area_list.append(client.area.hub.name)
 			for a in client.area.hub.subareas:
 				area_list.append(a.name)
-		if client in client.area.owners:
-			newsub.owners.append(client)
-			newsub.status = client.area.status
-			newsub.hub.sub_arup_cms()
-			newsub.hub.sub_arup_status()
+		newsub.owners.append(client)
+		newsub.status = client.area.status
+		newsub.hub.sub_arup_cms()
+		newsub.hub.sub_arup_status()
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
 		if more == False:
 			client.send_ooc('Area created!')
