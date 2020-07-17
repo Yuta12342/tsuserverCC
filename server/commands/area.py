@@ -44,7 +44,7 @@ __all__ = [
 	'ooc_cmd_poslock',
 	'ooc_cmd_password',
 	'ooc_cmd_addarea',
-	'ooc_cmd_removearea'
+	'ooc_cmd_removearea',
 	'ooc_cmd_clearhub',
 	'ooc_cmd_savehub',
 	'ooc_cmd_loadhub'
@@ -141,21 +141,21 @@ def ooc_cmd_create(client, arg):
 		sendareas.append(area.name)
 	client.server.send_all_cmd_pred('FA', *sendareas)
 	
-def ooc_cmd_savehub(client, arg)
-	if not client.area.is_hub
+def ooc_cmd_savehub(client, arg):
+	if not client.area.is_hub:
 		raise ClientError('You must be in a hub.')
 	if not client in client.area.owners and not client.is_mod:
 		raise ClientError('You must be CM to save a hub.')
 	if len(arg) > 20:
 		raise ArgumentError('That name is too long!')
-	client.server.hub_manager.savehub()
+	client.server.hub_manager.savehub(client, arg)
 	
-def ooc_cmd_loadhub(client, arg)
-	if not client.area.is_hub
+def ooc_cmd_loadhub(client, arg):
+	if not client.area.is_hub:
 		raise ClientError('You must be in a hub.')
 	if not client in client.area.owners and not client.is_mod:
 		raise ClientError('You must be CM to save a hub.')
-	client.server.hub_manager.savehub()
+	client.server.hub_manager.loadhub(client, arg)
 
 def ooc_cmd_addarea(client, arg):
 	if not client.area.is_hub and not client.area.sub:
@@ -187,7 +187,7 @@ def ooc_cmd_clearhub(client, arg):
 		raise ClientError('You must be CM.')
 	if len(arg) > 0:
 		raise ArgumentError('This command takes no arguments.')
-	client.server.hub_manager.clearsub(client)
+	client.server.hub_manager.clearhub(client)
 
 def ooc_cmd_destroy(client, arg):
 	if client not in client.area.owners and not client.is_mod:

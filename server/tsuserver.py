@@ -56,6 +56,7 @@ class TsuServerCC:
 		self.area_manager = AreaManager(self)
 		self.musiclist_manager = MusicListManager(self)
 		self.friend_manager = FriendManager(self)
+		self.hub_manager = HubManager(self)
 		self.software = 'tsuservercc'
 
 		self.release = 1

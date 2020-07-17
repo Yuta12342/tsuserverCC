@@ -22,48 +22,55 @@ import logging
 import yaml
 
 class HubManager:
-    """
-    Handles storing and loading areas for hubs.
-    """
-    def __init__(self, server):
-        self.server = server
+	"""
+	Handles storing and loading areas for hubs.
+	"""
+	def __init__(self, server):
+		self.server = server
 
 	def loadhub(self, client, arg):
-        hubname = f'storage/hub/{arg}.yaml'
-        new = not os.path.exists(hubname)
-        if new:
-            client.send_ooc('No hub with that name found.')
-            return
+		index = 0
+		for area in client.server.area_manager.areas:
+			if area.is_hub:
+				index += 1
+				area.hubid = index
+		hubname = f'storage/hub/{arg}.yaml'
+		new = not os.path.exists(hubname)
+		if new:
+			client.send_ooc('No hub with that name found.')
+			return
 		else:
 			with open(hubname, 'r') as chars:
 				areas = yaml.safe_load(chars)
-			self.clearsub(client)
+			self.clearhub(client)
 			for item in areas:
-				sub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
+				newsub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
 						  item['background'], bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, 
 						  showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
-				client.area.subareas.append(sub)
-				sub.owners.add(client)
-				client.area.cur_subid += 1
+				client.area.subareas.append(newsub)
+				newsub.owners.append(client)
+				newsub.sub = True
+				newsub.hub = client.area
+				newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
+				client.area.cur_subid += 1	
 			area_list = []
 			lobby = self.server.area_manager.default_area()
 			area_list.append(lobby.name)
 			area_list.append(client.area.name)
-				for a in client.area.subareas:
-					area_list.append(a.name)
+			for a in client.area.subareas:
+				area_list.append(a.name)
 			client.area.sub_arup_cms()
 			client.area.sub_arup_status()
 			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
 		
 	def savehub(self, client, arg):
 		hubname = f'storage/hub/{arg}.yaml'
-        new = not os.path.exists(hubname)
-        if not new:
-            os.remove(hubname)
-		hub = dict()
+		new = not os.path.exists(hubname)
+		if not new:
+			os.remove(hubname)
+		hub = []
 		for area in client.area.subareas:
-			hub['area'] = area.name
-			hub['background'] = area.background
+			hub.append({'area': area.name, 'background': area.background})
 		with open(hubname, 'w', encoding='utf-8') as hubfile:
 			yaml.dump(hub, hubfile)
 	
@@ -100,8 +107,8 @@ class HubManager:
 		hub.sub_arup_cms()
 		hub.sub_arup_status()
 	
-	def clearsub(self, client)
-		hub.client.area
+	def clearhub(self, client):
+		hub = client.area
 		destroyedclients = set()
 		for sub in hub.subareas:
 			for c in sub.clients:
@@ -115,14 +122,14 @@ class HubManager:
 		hub.subareas.clear()
 		hub.cur_subid = 1
 		area_list = []
-		lobby = self.server.area_manager.default_area()
+		lobby = client.server.area_manager.default_area()
 		area_list.append(lobby.name)
 		area_list.append(hub.name)
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == hub or x.area in hub.subareas)
 		hub.sub_arup_cms()
 		hub.sub_arup_status()
 
-	def addsub(self, client, arg)
+	def addsub(self, client, arg):
 		index = 0
 		for area in client.server.area_manager.areas:
 			if area.is_hub:
@@ -163,7 +170,7 @@ class HubManager:
 			newsub.abbreviation = f'H{newsub.hub.hubid}S{new_id}'
 		#client.server.send_all_cmd_pred('CT', '{}'.format(client.server.config['hostname']),f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
 		area_list = []
-		lobby = self.server.area_manager.default_area()
+		lobby = client.server.area_manager.default_area()
 		area_list.append(lobby.name)
 		if client.area.is_hub:
 			area_list.append(client.area.name)
