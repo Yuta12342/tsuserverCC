@@ -147,7 +147,7 @@ class AreaManager:
 			"""Remove a disconnected client from the area."""
 			self.clients.remove(client)
 			if len(self.clients) == 0:
-				if len(self.owners) == 0:
+				if len(self.owners) == 0 and not self.is_hub:
 					self.change_status('IDLE')
 			if client.char_id != -1:
 				database.log_room('area.leave', client, self)
@@ -462,7 +462,7 @@ class AreaManager:
 				value = 'looking-for-players'
 			self.status = value.upper()
 			if self.sub:
-				if self.hub.name.startswith('Arcade'):
+				if self.hub.name.startswith('Arcade') or self.hub.name.startswith('Courtroom'):
 					if value == 'looking-for-players':
 						self.hub.status = value.upper()
 					else:
@@ -474,16 +474,17 @@ class AreaManager:
 								lfp = True
 							if area.status != 'IDLE':
 								idle = False
-							if area.status == 'RP' or if area.status == 'CASING' or if area.status == 'GAMING':
+							if area.status == 'RP' or area.status == 'CASING' or area.status == 'GAMING':
 								recess = False
 						if lfp == False and not value.lower() == 'idle' and not value.lower() == 'recess':
 							self.hub.status = value.upper()
 						if value.lower() == 'idle' and idle == True:
 							self.hub.status = value.upper()
-						if value.lower() == 'recess' and recess = True:
+						if value.lower() == 'recess' and recess == True:
 							self.hub.status = value.upper()
 							
 				self.hub.sub_arup_status()
+				self.server.area_manager.send_arup_status()
 			elif self.is_hub:
 				self.sub_arup_status()
 				self.server.area_manager.send_arup_status()

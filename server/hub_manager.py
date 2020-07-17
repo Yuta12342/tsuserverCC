@@ -182,8 +182,14 @@ class HubManager:
 			newsub.abbreviation = f'HAS{new_id}'
 		elif newsub.hub.name.startswith('User'):
 			newsub.abbreviation = f'HUS{new_id}'
+		elif newsub.hub.name.startswith('Courtroom'):
+			newsub.abbreviation = f'CR{new_id}'
+			if len(arg) == 0:
+				newsub.name = f'Courtroom {new_id}'
+			newsub.evidence_mod = 'HiddenCM'
 		else:
 			newsub.abbreviation = f'H{newsub.hub.hubid}S{new_id}'
+		
 		#client.server.send_all_cmd_pred('CT', '{}'.format(client.server.config['hostname']),f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
 		area_list = []
 		lobby = client.server.area_manager.default_area()

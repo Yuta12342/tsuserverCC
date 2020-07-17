@@ -133,10 +133,10 @@ def ooc_cmd_addarea(client, arg):
 		raise ClientError('You can only create areas in hubs.')
 	if not client in client.area.owners and not client.is_mod:
 		if client.area.is_hub:
-			if not client.area.name.startswith('Arcade') and not client.area.name.startswith('User'):
+			if not client.area.name.startswith('Arcade') and not client.area.name.startswith('User') and not client.area.name.startswith('Courtroom'):
 				raise ClientError('You must be CM to create an area.')
 		else:
-			if not client.area.hub.name.startswith('Arcade') and not client.area.hub.name.startswith('User'):
+			if not client.area.hub.name.startswith('Arcade') and not client.area.hub.name.startswith('User') and not client.area.name.startswith('Courtroom'):
 				raise ClientError('You must be CM to create an area.')
 	if len(arg) > 25:
 		raise ArgumentError('That name is too long!')
