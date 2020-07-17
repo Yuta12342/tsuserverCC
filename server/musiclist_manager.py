@@ -22,46 +22,46 @@ import logging
 import yaml
 
 class MusicListManager:
-    """
-    Handles storing and loading custom music lists for areas.
-    """
-    def __init__(self, server):
-        self.server = server
+	"""
+	Handles storing and loading custom music lists for areas.
+	"""
+	def __init__(self, server):
+		self.server = server
 
-    def loadlist(self, client, arg):
-        listname = f'storage/musiclist/{arg}.yaml'
-        new = not os.path.exists(listname)
-        if new:
-            client.send_ooc('No music list with that name found.')
-            return
-        else:
-            client.area.cmusic_list = dict()
-            with open(listname, 'r', encoding='utf-8') as file:
-                list = yaml.safe_load(file)
-                for name, length in list.items():
-                    client.area.cmusic_list[name] = length
-            client.area.broadcast_ooc(f'Music list {arg} loaded!')
+	def loadlist(self, client, arg):
+		listname = f'storage/musiclist/{arg}.yaml'
+		new = not os.path.exists(listname)
+		if new:
+			client.send_ooc('No music list with that name found.')
+			return
+		else:
+			client.area.cmusic_list = dict()
+			with open(listname, 'r', encoding='utf-8') as file:
+				list = yaml.safe_load(file)
+				for name, length in list.items():
+					client.area.cmusic_list[name] = length
+			client.area.broadcast_ooc(f'Music list {arg} loaded!')
 			client.area.cmusic_listname = arg
 		
 	def loadsublist(self, area, arg):
-        listname = f'storage/musiclist/{arg}.yaml'
-        new = not os.path.exists(listname)
-        if new:
-            return
-        else:
-            area.cmusic_list = dict()
-            with open(listname, 'r', encoding='utf-8') as file:
-                list = yaml.safe_load(file)
-                for name, length in list.items():
-                    area.cmusic_list[name] = length
+		listname = f'storage/musiclist/{arg}.yaml'
+		new = not os.path.exists(listname)
+		if new:
+			return
+		else:
+			area.cmusic_list = dict()
+			with open(listname, 'r', encoding='utf-8') as file:
+				list = yaml.safe_load(file)
+				for name, length in list.items():
+					area.cmusic_list[name] = length
 			area.cmusic_listname = arg
 
-    def storelist(self, client, arg):
-        listname = f'storage/musiclist/{arg}.yaml'
-        new = not os.path.exists(listname)
-        if not new:
-            os.remove(listname)
-        with open(listname, 'w', encoding='utf-8') as list:
-            yaml.dump(client.area.cmusic_list, list)
-        client.send_ooc(f'Music list {arg} stored!')
+	def storelist(self, client, arg):
+		listname = f'storage/musiclist/{arg}.yaml'
+		new = not os.path.exists(listname)
+		if not new:
+			os.remove(listname)
+		with open(listname, 'w', encoding='utf-8') as list:
+			yaml.dump(client.area.cmusic_list, list)
+		client.send_ooc(f'Music list {arg} stored!')
 		client.area.cmusic_listname = arg

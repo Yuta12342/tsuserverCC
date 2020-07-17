@@ -34,7 +34,7 @@ __all__ = [
 	'ooc_cmd_bidisconnect',
 	'ooc_cmd_clearconnect',
 	'ooc_cmd_hidecount',
-	'ooc_cmd_rename',,
+	'ooc_cmd_rename',
 	'ooc_cmd_shouts',
 	'ooc_cmd_allclients',
 	'ooc_cmd_poslock',
@@ -184,7 +184,7 @@ def ooc_cmd_rename(client, arg):
 	if not client.area.is_hub or not client.area.sub:
 		raise ClientError('Area must be hub or in a hub.')
 	if len(arg) == 0:
-		if client.area.is_hub
+		if client.area.is_hub:
 			client.area.name = f'Hub {client.area.hubid}'
 		else:
 			raise ArgumentError('Not enough arguments, use /rename <name>.')

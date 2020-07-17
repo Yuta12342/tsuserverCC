@@ -493,7 +493,7 @@ class AreaManager:
 			if value.lower() == 'lfp':
 				value = 'looking-for-players'
 			self.status = value.upper()
-			for area in self.subareas
+			for area in self.subareas:
 				area.status = value.upper()
 			self.sub_arup_status()
 			self.server.area_manager.send_arup_status()
