@@ -458,37 +458,32 @@ def ooc_cmd_connect(client, arg):
 	"""
 	Connects areas together.
 	"""
+	return
 	args = arg.split()
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
+	if not client.area.sub:
+		raise ClientError('Must be in a hub subarea.')
 	elif len(args) == 0:
-		raise ArgumentError('You must specify an area, use /connect <area id>')
+		raise ArgumentError('You must specify an area, use /connect <area name>')
 	elif len(args) == 1:
-		try:
-			connection = client.server.area_manager.get_area_by_id(int(args[0]))
-			landing = client.server.area_manager.get_area_by_id(0)
-			is_landing = False
-			for c in client.area.connections:
-				if c == connection:
-					raise AreaError('Area is already connected.')
-				if c == landing:
-					is_landing = True
-			if landing != connection and not is_landing:
-				client.area.connections.append(landing)
-			client.area.connections.append(connection)
-			client.area.is_restricted = True
-			client.send_ooc(f'Area connected to {connection.name}')
-		except ValueError:
-			raise ArgumentError('Area ID must be a number.')
-		except (AreaError, ClientError):
-			raise
+		done = False
+		for area in client.area.hub.subarea:
+			if area.name == args[0]:
+				if area in client.area.connections:
+					raise ArgumentError('Already connected to that area.')
+				client.area.connections.append(area)
+				client.send_ooc('Area connected!')
+				done = True
+				client.area.restricted = True
 	else:
-		raise ArgumentError('Too many arguments. Use /connect <area id>.')
+		raise ArgumentError('Too many arguments. Use /connect <area name>.')
 
 def ooc_cmd_biconnect(client, arg):
 	"""
 	Connects areas together.
 	"""
+	return
 	args = arg.split()
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
