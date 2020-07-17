@@ -6,7 +6,6 @@ from . import mod_only
 
 __all__ = [
 	'ooc_cmd_bg',
-	'ooc_cmd_custombg',
 	'ooc_cmd_bglock',
 	'ooc_cmd_allowiniswap',
 	'ooc_cmd_allowblankposting',
@@ -35,19 +34,18 @@ __all__ = [
 	'ooc_cmd_bidisconnect',
 	'ooc_cmd_clearconnect',
 	'ooc_cmd_hidecount',
-	'ooc_cmd_rename',
-	'ooc_cmd_create',
-	'ooc_cmd_destroy',
-	'ooc_cmd_currentbg',
+	'ooc_cmd_rename',,
 	'ooc_cmd_shouts',
 	'ooc_cmd_allclients',
 	'ooc_cmd_poslock',
 	'ooc_cmd_password',
 	'ooc_cmd_addarea',
+	'ooc_cmd_addareas',
 	'ooc_cmd_removearea',
 	'ooc_cmd_clearhub',
 	'ooc_cmd_savehub',
-	'ooc_cmd_loadhub'
+	'ooc_cmd_loadhub',
+	'ooc_cmd_hubstatus'
 ]
 
 def ooc_cmd_poslock(client, arg):
@@ -114,32 +112,6 @@ def ooc_cmd_hidecount(client, arg):
 		client.area.hidden = False
 		client.server.area_manager.send_arup_players()
 		client.area.broadcast_ooc('The playercount for this area has been revealed.')
-
-def ooc_cmd_create(client, arg):
-	if not client.is_mod and client.permission == False:
-		raise ClientError('You must have permission to create an area, please ask staff.')
-	if len(arg) == 0:
-		raise ArgumentError('Not enough arguments, use /create <name>.')
-	if len(arg) > 25:
-		raise ArgumentError('That name is too long!')
-	staffroom = None
-	for a in client.server.area_manager.areas:
-		if a.abbreviation == 'SR':
-			staffroom = a
-	client.server.area_manager.areas.remove(staffroom)
-	new_id = staffroom.id
-	staffroom.id = client.server.area_manager.cur_id
-	client.server.area_manager.cur_id += 1
-	client.server.area_manager.areas.append(client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='CA', non_int_pres_only=False))
-	client.server.area_manager.areas.append(staffroom)
-	client.server.build_music_list_ao2()
-	client.server.send_all_cmd_pred(
-		'CT', '{}'.format(client.server.config['hostname']),
-		f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
-	sendareas = []
-	for area in client.server.area_manager.areas:
-		sendareas.append(area.name)
-	client.server.send_all_cmd_pred('FA', *sendareas)
 	
 def ooc_cmd_savehub(client, arg):
 	if not client.area.is_hub:
@@ -170,6 +142,22 @@ def ooc_cmd_addarea(client, arg):
 	if len(arg) > 25:
 		raise ArgumentError('That name is too long!')
 	client.server.hub_manager.addsub(client, arg)
+	
+def ooc_cmd_addareas(client, arg):
+	if not client.area.is_hub and not client.area.sub:
+		raise ClientError('You can only create areas in hubs.')
+	if not client in client.area.owners and not client.is_mod:
+		if client.area.is_hub:
+			raise ClientError('You must be CM to create areas.')
+		else:
+			raise ClientError('You must be CM to create areas.')
+	try:
+		amount = int(arg)
+	except ValueError:
+		raise ArgumentError('Not a valid number.')
+	if amount < 1:
+		raise ArgumentError('Must input at least 1 or more.')
+	client.server.hub_manager.addmoresubs(client, amount)
 
 def ooc_cmd_removearea(client, arg):
 	if not client.area.sub:
@@ -189,59 +177,43 @@ def ooc_cmd_clearhub(client, arg):
 		raise ArgumentError('This command takes no arguments.')
 	client.server.hub_manager.clearhub(client)
 
-def ooc_cmd_destroy(client, arg):
-	if client not in client.area.owners and not client.is_mod:
-		raise ClientError('You must be CM.')
-	if not client.is_mod and client.permission == False:
-		raise ClientError('You must have permission to destroy an area, please ask staff.')
-	if not client.is_mod and client.area.abbreviation != 'CA':
-		raise AreaError('You are not allowed to destroy non-custom areas!')
-	if len(arg) > 0:
-		raise ArgumentError('This command takes no arguments.')
-	destroyed = client.area
-	destroyedclients = set()
-	client.server.area_manager.send_arup_cms()
-	client.server.area_manager.cur_id = 0
-	client.server.area_manager.areas.remove(destroyed)
-	list = []
-	for a in client.server.area_manager.areas:
-		list.append(a)
-		a.id = client.server.area_manager.cur_id
-		client.server.area_manager.cur_id += 1
-	for c in destroyed.clients:
-		if c in destroyed.owners:
-			destroyed.owners.remove(c)
-			database.log_room('cm.remove', c, c.destroyed, target=c)
-		destroyedclients.add(c)
-	landing = client.server.area_manager.get_area_by_id(0)
-	for cc in destroyedclients:
-		if cc in destroyed.clients:
-			cc.change_area(landing)
-			cc.send_ooc(f'You were removed from {destroyed.name} because it was destroyed.')
-	client.server.area_manager.areas.clear()
-	for aa in list:
-		client.server.area_manager.areas.append(aa)
-	client.server.build_music_list_ao2()
-	client.server.send_all_cmd_pred('CT', '{}'.format(client.server.config['hostname']), f'=== Announcement ===\r\n{destroyed.name} was destroyed and no longer exists.\r\n==================', '1')
-
 
 def ooc_cmd_rename(client, arg):
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
-	if not client.is_mod and client.permission == False:
-		raise ClientError('You must have permission to rename an area, please ask staff.')
+	if not client.area.is_hub or not client.area.sub:
+		raise ClientError('Area must be hub or in a hub.')
 	if len(arg) == 0:
-		raise ArgumentError('Not enough arguments, use /rename <name>.')
-	if len(arg) > 25:
+		if client.area.is_hub
+			client.area.name = f'Hub {client.area.hubid}'
+		else:
+			raise ArgumentError('Not enough arguments, use /rename <name>.')
+	if len(arg) > 30:
 		raise ArgumentError('That name is too long!')
-	if not client.is_mod and client.area.abbreviation.startswith('CR') == True:
-		raise AreaError('Can\'t change the name of a Courtroom.')
-	old_name = client.area.name
-	client.area.name = arg
-	client.server.build_music_list_ao2()
-	client.server.send_all_cmd_pred(
-		'CT', '{}'.format(client.server.config['hostname']),
-		f'=== Announcement ===\r\n{old_name} [{client.area.id}] has been renamed to {client.area.name}.\r\n==================', '1')
+	if client.area.is_hub:
+		client.area.name = f'Hub {client.area.hubid}: {arg}'
+		area_list = []
+		lobby = client.server.area_manager.default_area()
+		area_list.append(lobby.name)
+		area_list.append(client.area.name)
+		for a in client.area.subareas:
+			area_list.append(a.name)
+		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
+		
+		area_list = []
+		for area in client.server.area_manager.areas:
+			area_list.append(area.name)
+		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: not x.area.is_hub and not x.area.sub)
+	else:
+		client.area.name = arg
+		area_list = []
+		lobby = client.server.area_manager.default_area()
+		area_list.append(lobby.name)
+		area_list.append(client.area.hub.name)
+		for a in client.area.hub.subareas:
+			area_list.append(a.name)
+		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area.hub or x.area in client.area.hub.subareas)
+	client.send_ooc('Area renamed!')
 
 def ooc_cmd_bg(client, arg):
 	"""
@@ -249,44 +221,22 @@ def ooc_cmd_bg(client, arg):
 	Usage: /bg <background>
 	"""
 	if len(arg) == 0:
-		raise ArgumentError('You must specify a name. Use /bg <background>.')
+		client.send_ooc(f'Current background is "{client.area.background}".')
+		return
 	if not client.is_mod and client.area.bg_lock == True:
 		raise AreaError("This area's background is locked")
 	try:
 		client.area.change_background(arg)
 	except AreaError:
-		raise
+		msg = 'custom/'
+		msg += arg
+		try:
+			client.area.change_cbackground(msg)
+		except AreaError:
+			raise
 	client.area.broadcast_ooc(
 		f'{client.char_name} changed the background to {arg}.')
 	database.log_room('bg', client, client.area, message=arg)
-
-def ooc_cmd_currentbg(client, arg):
-	"""
-	Set the background of a room.
-	Usage: /bg <background>
-	"""
-	if len(arg) > 0:
-		raise ArgumentError('This command takes no arguments.')
-	client.send_ooc(f'Current background is "{client.area.background}".')
-
-def ooc_cmd_custombg(client, arg):
-	"""
-	Set the background of a room.
-	Usage: /bg <background>
-	"""
-	if client not in client.area.owners and not client.is_mod:
-		raise ClientError('You must be a CM.')
-	if len(arg) == 0:
-		raise ArgumentError('You must specify a name. Use /bg <background>.')
-	msg = 'custom/'
-	msg += arg
-	try:
-		client.area.change_cbackground(msg)
-	except AreaError:
-		raise
-	client.area.broadcast_ooc(
-		f'{client.char_name} changed the background to {arg}.')
-	database.log_room('bg', client, client.area, message=msg)
 
 def ooc_cmd_addcustom(client, arg):
 	"""
@@ -413,12 +363,35 @@ def ooc_cmd_status(client, arg):
 		client.send_ooc(f'Current status: {client.area.status}')
 	elif 'CM' not in client.area.evidence_mod:
 		raise ClientError('You can\'t change the status of this area')
+	if client.area.is_hub and not client in client.area.owners:
+		raise ClientError('Must be CM.')
 	else:
 		try:
 			client.area.change_status(arg)
 			client.area.broadcast_ooc('{} changed status to {}.'.format(
 				client.char_name, client.area.status))
 			database.log_room('status', client, client.area, message=arg)
+		except AreaError:
+			raise
+	
+def ooc_cmd_hubstatus(client, arg):
+	"""
+	Show or modify the current status of a room.
+	Usage: /status <idle|rp|casing|looking-for-players|lfp|recess|gaming>
+	"""
+	if len(arg) == 0:
+		client.send_ooc(f'Current status: {client.area.status}')
+	elif 'CM' not in client.area.evidence_mod:
+		raise ClientError('You can\'t change the status of this area')
+	if client.area.is_hub and not client in client.area.owners:
+		raise ClientError('Must be CM.')
+	else:
+		try:
+			client.area.hub_status(arg)
+			client.area.broadcast_ooc('{} changed status to {}.'.format(client.char_name, client.area.status))
+			for sub in client.area.subareas:
+				sub.broadcast_ooc('{} changed status to {}.'.format(client.char_name, client.area.status))
+			database.log_room('hubstatus', client, client.area, message=arg)
 		except AreaError:
 			raise
 

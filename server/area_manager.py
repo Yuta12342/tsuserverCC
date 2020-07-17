@@ -87,6 +87,7 @@ class AreaManager:
 			self.cards = dict()
 			self.custom_list = dict()
 			self.cmusic_list = dict()
+			self.cmusic_listname = ''
 			self.hidden = False
 			self.password = ''
 			self.allowmusic = True
@@ -461,13 +462,42 @@ class AreaManager:
 				value = 'looking-for-players'
 			self.status = value.upper()
 			if self.sub:
+				if self.hub.name.startswith('Arcade'):
+					if value == 'looking-for-players':
+						self.hub.status = value.upper()
+					else:
+						lfp = False
+						for area in self.hub.subareas:
+							if area.status == 'LOOKING-FOR-PLAYERS':
+								lfp = True
+						if lfp == False:
+							self.hub.status = value.upper()
 				self.hub.sub_arup_status()
 			elif self.is_hub:
 				self.sub_arup_status()
 				self.server.area_manager.send_arup_status()
 			else:
 				self.server.area_manager.send_arup_status()
-			
+		
+		def hub_status(self, value):
+			"""
+			Set the status of all areas in a hub.
+			:param value: status code
+			"""
+			allowed_values = ('idle', 'rp', 'casing', 'looking-for-players',
+							  'lfp', 'recess', 'gaming')
+			if value.lower() not in allowed_values:
+				raise AreaError(
+					f'Invalid status. Possible values: {", ".join(allowed_values)}'
+				)
+			if value.lower() == 'lfp':
+				value = 'looking-for-players'
+			self.status = value.upper()
+			for area in self.subareas
+				area.status = value.upper()
+			self.sub_arup_status()
+			self.server.area_manager.send_arup_status()
+
 		def custom_status(self, value):
 			"""
 			Set the status of the room.

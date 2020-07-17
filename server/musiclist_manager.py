@@ -41,6 +41,20 @@ class MusicListManager:
                 for name, length in list.items():
                     client.area.cmusic_list[name] = length
             client.area.broadcast_ooc(f'Music list {arg} loaded!')
+			client.area.cmusic_listname = arg
+		
+	def loadsublist(self, area, arg):
+        listname = f'storage/musiclist/{arg}.yaml'
+        new = not os.path.exists(listname)
+        if new:
+            return
+        else:
+            area.cmusic_list = dict()
+            with open(listname, 'r', encoding='utf-8') as file:
+                list = yaml.safe_load(file)
+                for name, length in list.items():
+                    area.cmusic_list[name] = length
+			area.cmusic_listname = arg
 
     def storelist(self, client, arg):
         listname = f'storage/musiclist/{arg}.yaml'
@@ -50,3 +64,4 @@ class MusicListManager:
         with open(listname, 'w', encoding='utf-8') as list:
             yaml.dump(client.area.cmusic_list, list)
         client.send_ooc(f'Music list {arg} stored!')
+		client.area.cmusic_listname = arg

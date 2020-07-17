@@ -51,6 +51,9 @@ class HubManager:
 				newsub.owners.append(client)
 				newsub.sub = True
 				newsub.hub = client.area
+				newsub.doc = item['doc']
+				if item['musiclist'] != '':
+					self.server.music_manager.loadsublist(newsub, item['musiclist'])
 				newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
 				client.area.cur_subid += 1	
 			area_list = []
@@ -62,6 +65,7 @@ class HubManager:
 			client.area.sub_arup_cms()
 			client.area.sub_arup_status()
 			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
+			client.send_ooc(f'Hub {arg} loaded!')
 		
 	def savehub(self, client, arg):
 		hubname = f'storage/hub/{arg}.yaml'
@@ -70,9 +74,10 @@ class HubManager:
 			os.remove(hubname)
 		hub = []
 		for area in client.area.subareas:
-			hub.append({'area': area.name, 'background': area.background})
+			hub.append({'area': area.name, 'background': area.background, 'doc': area.doc, 'musiclist': area.cmusic_listname})
 		with open(hubname, 'w', encoding='utf-8') as hubfile:
 			yaml.dump(hub, hubfile)
+		client.send_ooc(f'Hub {arg} saved!')
 	
 	def removesub(self, client):
 		destroyed = client.area
@@ -129,25 +134,36 @@ class HubManager:
 		hub.sub_arup_cms()
 		hub.sub_arup_status()
 
-	def addsub(self, client, arg):
+	def addmoresubs(self, client, arg):
+		if arg + client.area.cur_subid > 51:
+			client.send_ooc('Cannot have more than 50 areas in a hub!')
+			return
+		index = 0
+		while index < arg:
+			self.addsub(client, '', True)
+			index += 1
+		client.send_ooc('Areas created!')
+		
+		
+	def addsub(self, client, arg, more=False):
 		index = 0
 		for area in client.server.area_manager.areas:
 			if area.is_hub:
 				index += 1
 				area.hubid = index
 		if client.area.is_hub:
-			if client.area.cur_subid > 50:
+			if client.area.cur_subid > 51:
 				raise ClientError('You cannot have more than 50 areas in a hub.')
 			elif client.area.name.startswith('Arcade') or client.area.name.startswith('User'):
-				if client.area.cur_subid > 15:
+				if client.area.cur_subid > 16:
 					raise ClientError('Cannot have more than 15 areas in this hub.')
 			new_id = client.area.cur_subid
 			client.area.cur_subid += 1
 		else:
-			if client.area.hub.cur_subid > 50:
+			if client.area.hub.cur_subid > 51:
 				raise ClientError('You cannot have more than 50 areas in a hub.')
 			elif client.area.hub.name.startswith('Arcade') or client.area.hub.name.startswith('User'):
-				if client.area.hub.cur_subid > 15:
+				if client.area.hub.cur_subid > 16:
 					raise ClientError('Cannot have more than 15 areas in this hub.')
 			new_id = client.area.hub.cur_subid
 			client.area.hub.cur_subid += 1
@@ -186,3 +202,5 @@ class HubManager:
 			newsub.hub.sub_arup_cms()
 			newsub.hub.sub_arup_status()
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
+		if more == False:
+			client.send_ooc('Area created!')
