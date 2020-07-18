@@ -579,10 +579,10 @@ class AreaManager:
 			return msg
 
 		def get_mods(self):
-			mods = []
+			mods = set()
 			for client in self.clients:
 				if client.is_mod:
-					mods.append(client)
+					mods.add(client)
 			return mods
 	
 		def get_sub(self, name):
@@ -785,7 +785,7 @@ class AreaManager:
 		num = 0
 		for area in self.areas:
 			num += len(area.get_mods())
-			if area.hub:
+			if area.hub and len(area.subareas) > 0:
 				for sub in area.subareas:
 					num += len(area.get_mods())
 		return num

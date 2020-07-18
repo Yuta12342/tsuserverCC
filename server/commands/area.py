@@ -180,7 +180,7 @@ def ooc_cmd_clearhub(client, arg):
 def ooc_cmd_rename(client, arg):
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
-	if not client.area.is_hub or not client.area.sub:
+	if not client.area.is_hub and not client.area.sub:
 		raise ClientError('Area must be hub or in a hub.')
 	if len(arg) == 0:
 		if client.area.is_hub:
@@ -598,7 +598,7 @@ def ooc_cmd_getarea(client, arg):
 	client.send_area_info(client.area, False)
 
 
-def ooc_cmd_getareas(client.area, arg):
+def ooc_cmd_getareas(client, arg):
 	"""
 	Show information about all areas.
 	Usage: /getareas

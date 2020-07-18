@@ -2094,24 +2094,24 @@ class AOProtocol(asyncio.Protocol):
 		if len(args) < 1:
 			self.server.send_all_cmd_pred(
 				'ZZ',
-				'[{}] {} ({}) in {} without reason (not using 2.6?)'.format(
+				'[{}] {} ({}) in [{}]{} without reason (not using 2.6?)'.format(
 					current_time, self.client.char_name,
-					self.client.ip, self.client.area.name),
+					self.client.ip, self.client.area.abbreviation, self.client.area.name),
 				pred=lambda c: c.is_mod)
 			self.client.set_mod_call_delay()
 			database.log_room('modcall', self.client, self.client.area)
-			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area.name)
+			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area)
 		else:
 			self.server.send_all_cmd_pred(
 				'ZZ',
-				'[{}] {} ({}) in {} with reason: {}'.format(
+				'[{}] {} ({}) in [{}]{} with reason: {}'.format(
 					current_time, self.client.char_name,
-					self.client.ip, self.client.area.name,
+					self.client.ip, self.client.area.abbreviation, self.client.area.name,
 					args[0][:100]),
 				pred=lambda c: c.is_mod)
 			self.client.set_mod_call_delay()
 			database.log_room('modcall', self.client, self.client.area, message=args[0])
-			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area.name, reason=args[0][:100])
+			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area, reason=args[0][:100])
 
 	def net_cmd_opKICK(self, args):
 		"""

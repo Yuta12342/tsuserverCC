@@ -490,13 +490,15 @@ class ClientManager:
 					msg += ' [*]'
 			self.send_ooc(msg)
 
-		def get_area_info(self, area):
+		def get_area_info(self, a):
 			"""
 			Get information about a specific area.
 			:param area_id: area ID
 			:param mods: limit player list to mods
 			:returns: information as a string
 			"""
+			selfarea = self.area
+			area = a
 			info = '\r\n'
 			info += f'=== {area.name} ==='
 			info += '\r\n'
@@ -516,25 +518,40 @@ class ClientManager:
 				for client in area.clients:
 					if not client.ghost and not client.hidden:
 						index += 1
+				if area.is_hub and len(area.subareas) > 0:
+					if not selfarea.is_hub and not selfarea.sub:
+						for sub in area.subareas:
+							if len(sub.clients) > 0:
+								for client in sub.clients:
+									if not client.ghost and not client.hidden:
+										index += 1
 				info += f'[{area.abbreviation}]: [{index} Users][{area.status}]{lock[area.is_locked]}'
-				sorted_clients = []
+				sorted_clients = [] 
 				for client in area.clients:
 					if self.is_mod:
-						if client.is_mod:
-							sorted_clients.append(client)
+						sorted_clients.append(client)
 					elif self in area.owners and not client.ghost and client.hidden:
-						if client.is_mod:
-							sorted_clients.append(client)
+						sorted_clients.append(client)
 					elif self == client and client.hidden:
-						if client.is_mod:
-							sorted_clients.append(client)
-					elif not self.is_mod and not client.ghost and not client.hidden:
-						if client.is_mod:
-							sorted_clients.append(client)
+						sorted_clients.append(client)
+					elif not client.ghost and not client.hidden:
+						sorted_clients.append(client)
 				for owner in area.owners:
 					if not owner in area.clients:
 						if not owner.ghost or self.is_mod:
 							sorted_clients.append(owner)
+				if area.is_hub and not selfarea.is_hub and not selfarea.sub:
+					if len(area.subareas) > 0:
+						for sub in area.subareas:
+							for client in sub.clients:
+								if self.is_mod:
+									sorted_clients.append(client)
+								elif self in area.owners and not client.ghost and client.hidden:
+									sorted_clients.append(client)
+								elif self == client and client.hidden:
+									sorted_clients.append(client)
+								elif not self.is_mod and not client.ghost and not client.hidden:
+									sorted_clients.append(client)
 				if not sorted_clients:
 					return ''
 				sorted_clients = sorted(sorted_clients, key=lambda x: x.char_name or '')
@@ -556,7 +573,8 @@ class ClientManager:
 						info += f' ({c.ipid}): {c.name}'
 					if c.showname != '':
 						info += f' ({c.showname})'
-				return info
+			return info
+			
 
 		def send_area_info(self, area, all):
 			"""
@@ -570,35 +588,40 @@ class ClientManager:
 				cnt = 0
 				info = '\n== Area List =='
 				for a in self.server.area_manager.areas:
-					for client in a.clients
+					for client in a.clients:
 						if self.is_mod:
 							cnt += 1
-						elif self in area.owners and not client.ghost:
+						elif self in a.owners and not client.ghost:
 							cnt += 1
 						elif self == client and client.hidden:
 							cnt += 1
 						elif not client.ghost and not client.hidden:
 							cnt += 1
-					if a.is_hub:
+					if a.is_hub and len(a.subareas) > 0:
 						for sub in a.subareas:
-							for client in sub.clients
-								if self.is_mod:
-									cnt += 1
-								elif self in area.owners and not client.ghost:
-									cnt += 1
-								elif self == client and client.hidden:
-									cnt += 1
-								elif not client.ghost and not client.hidden:
-									cnt += 1
-					if not area.is_hub and not area.sub
+							if len(sub.clients) > 0:
+								for client in sub.clients:
+									if self.is_mod:
+										cnt += 1
+									elif self in sub.owners and not client.ghost:
+										cnt += 1
+									elif self == client and client.hidden:
+										cnt += 1
+									elif not client.ghost and not client.hidden:
+										cnt += 1
+					if not area.is_hub and not area.sub:
 						info += f'{self.get_area_info(a)}'
+				if area.is_hub or area.sub:
+					if area.is_hub:
+						info += f'{self.get_area_info(self.server.area_manager.default_area())}'
+						info += f'{self.get_area_info(area)}'
+						for sub in area.subareas:
+							info += f'{self.get_area_info(sub)}'
 					else:
-						if area.is_hub:
-							for sub in area.subareas:
-								info += f'{self.get_area_info(sub)}'
-						else:
-							for sub in area.hub.subareas:
-								info += f'{self.get_area_info(sub)}'
+						info += f'{self.get_area_info(self.server.area_manager.default_area())}'
+						info += f'{self.get_area_info(area.hub)}'
+						for sub in area.hub.subareas:
+							info += f'{self.get_area_info(sub)}'
 				info = f'Current online: {cnt}{info}'
 			else:
 				try:
