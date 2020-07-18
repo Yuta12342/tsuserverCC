@@ -91,20 +91,7 @@ class AreaManager:
 			self.hidden = False
 			self.password = ''
 			self.allowmusic = True
-			self.leftwit = None
-			self.rightwit = None
-			self.leftdef = None
-			self.rightdef = None
-			self.leftpro = None
-			self.rightpro = None
-			self.leftjud = None
-			self.rightjud = None
-			self.leftjur = None
-			self.rightjur = None
-			self.lefthld = None
-			self.righthld = None
-			self.lefthlp = None
-			self.righthlp = None
+			self.areapair = dict()
 			self.poslock = []
 			self.last_speaker = None
 			
@@ -146,6 +133,10 @@ class AreaManager:
 		def remove_client(self, client):
 			"""Remove a disconnected client from the area."""
 			self.clients.remove(client)
+			ap = self.areapair.copy()
+			for x in ap:
+				if ap[x].client == client:
+					self.areapair.pop(x)
 			if len(self.clients) == 0:
 				if len(self.owners) == 0 and not self.is_hub:
 					self.change_status('IDLE')

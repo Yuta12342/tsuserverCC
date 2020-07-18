@@ -97,6 +97,7 @@ def ooc_cmd_pos(client, arg):
 	Set the place your character resides in the room.
 	Usage: /pos <name>
 	"""
+	return
 	if len(arg) == 0:
 		client.change_position()
 		client.send_ooc('Position reset.')
