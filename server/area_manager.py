@@ -726,7 +726,7 @@ class AreaManager:
 		else:
 			return name.upper()
 
-	def send_remote_command(self, area_ids, cmd, *args):
+	def send_remote_command(self, areas, cmd, *args):
 		"""
 		Broadcast an AO-compatible command to a specified
 		list of areas and their owners.
@@ -734,9 +734,9 @@ class AreaManager:
 		:param cmd: command name
 		:param *args: command arguments
 		"""
-		for a_id in area_ids:
-			self.get_area_by_id(a_id).send_command(cmd, *args)
-			self.get_area_by_id(a_id).send_owner_command(cmd, *args)
+		for area in areas:
+			area.send_command(cmd, *args)
+			area.send_owner_command(cmd, *args)
 
 	def send_arup_players(self):
 		"""Broadcast ARUP packet containing player counts."""

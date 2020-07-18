@@ -539,7 +539,8 @@ class ClientManager:
 				for owner in area.owners:
 					if not owner in area.clients:
 						if not owner.ghost or self.is_mod:
-							sorted_clients.append(owner)
+							if not area.is_hub:
+								sorted_clients.append(owner)
 				if area.is_hub and not selfarea.is_hub and not selfarea.sub:
 					if len(area.subareas) > 0:
 						for sub in area.subareas:
@@ -564,7 +565,7 @@ class ClientManager:
 					elif c.hidden and self.is_mod:
 						info += '[Hidden]'
 					if c in area.owners:
-						if not c in area.clients:
+						if not c in area.clients and not area.is_hub:
 							info += '[RCM]'
 						else:
 							info += '[CM]'

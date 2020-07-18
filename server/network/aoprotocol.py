@@ -491,16 +491,19 @@ class AOProtocol(asyncio.Protocol):
 					return
 				text = ' '.join(part[2:])
 			except ValueError:
-				self.client.send_ooc(
-					"That does not look like a valid area ID!")
+				self.client.send_ooc("That does not look like a valid area ID!")
 				return
 		elif text.startswith('/s '):
 			part = text.split(' ')
 			for a in self.server.area_manager.areas:
+				if a.is_hub:
+					for sub in a.subareas:
+						if self.client in sub.owners:
+							target_area.append(sub)
 				if self.client in a.owners:
-					target_area.append(a.id)
+					target_area.append(a)
 			if not target_area:
-				self.client.send_ooc('You don\'t any areas!')
+				self.client.send_ooc('You aren\'t CMing any areas!')
 				return
 			text = ' '.join(part[1:])
 		if msg_type not in ('chat', '0', '1'):
