@@ -553,12 +553,11 @@ class AOProtocol(asyncio.Protocol):
 							   or self.client in self.client.area.owners):
 			color = 0
 		if pos != self.client.pos:
-			if self.client.pos not in ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur', 'sea'):
-				pos = self.client.pos
+			self.client.pos = pos
 		if not len(self.client.area.poslock) == 0:
 			if pos not in self.client.area.poslock:
-				self.client.send_ooc('Your current position is locked, try using a different one. Check /poslock for available positions')
-				return
+				pos = self.client.area.poslock[0]
+				self.client.send_ooc(f'Your pos isn\'t in /poslock, falling back on {pos}. Please switch to a pos in /poslock!')
 		msg = self.dezalgo(text)[:256]
 		if self.client.shaken:
 			msg = self.client.shake_message(msg)
@@ -745,14 +744,14 @@ class AOProtocol(asyncio.Protocol):
 				ap[f'right-{pos}'] = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
 				if f'left-{pos}' in ap:
 					left = ap[f'left-{pos}']
-					offset_pair = -25
-					other_offset = 25
+					offset_pair = 25
+					other_offset = -25
 					other_emote = left.anim
 					other_flip = left.flip
 					other_folder = left.folder
 					charid_pair = left.cid
 				else:
-					offset_pair = -25
+					offset_pair = 25
 				for x in apdupe:
 					if apdupe[x].client == self.client:
 						ap.pop(x)

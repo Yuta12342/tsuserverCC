@@ -64,14 +64,10 @@ def ooc_cmd_poslock(client, arg):
 		client.area.poslock.clear()
 		client.send_ooc('Poslock cleared.')
 	else:
-		positions = ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur', 'sea')
 		args = arg.split()
 		for pos in args:
-			if pos in positions:
-				client.area.poslock.append(pos)
-				client.send_ooc(f'{pos} added to area\'s poslock.')
-			else:
-				client.send_ooc(f'{pos} doesn\'t seem to be a valid position.')
+			client.area.poslock.append(pos)
+			client.send_ooc(f'{pos} added to area\'s poslock.')
 
 def ooc_cmd_allclients(client, arg):
 	if not client.is_mod:
@@ -325,7 +321,7 @@ def ooc_cmd_allowblankposting(client, arg):
 	"""
 	Toggle whether or not in-character messages purely consisting of spaces
 	are allowed.
-	Usage: /allow_blankposting
+	Usage: /allowblankposting
 	"""
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
@@ -341,7 +337,7 @@ def ooc_cmd_forcenonintpres(client, arg):
 	"""
 	Toggle whether or not all pre-animations lack a delay before a
 	character begins speaking.
-	Usage: /force_nonint_pres
+	Usage: /forcenonintpres
 	"""
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
@@ -375,12 +371,10 @@ def ooc_cmd_status(client, arg):
 	
 def ooc_cmd_hubstatus(client, arg):
 	"""
-	Show or modify the current status of a room.
-	Usage: /status <idle|rp|casing|looking-for-players|lfp|recess|gaming>
+	Changes a hub and all it's subareas to specified status.
+	Usage: /hubstatus <idle|rp|casing|looking-for-players|lfp|recess|gaming>
 	"""
-	if len(arg) == 0:
-		client.send_ooc(f'Current status: {client.area.status}')
-	elif 'CM' not in client.area.evidence_mod:
+	if 'CM' not in client.area.evidence_mod:
 		raise ClientError('You can\'t change the status of this area')
 	if client.area.is_hub and not client in client.area.owners:
 		raise ClientError('Must be CM.')
@@ -403,37 +397,48 @@ def ooc_cmd_area(client, arg):
 	if len(args) == 0:
 		client.send_area_list()
 		return
-
-	try:
-		area = client.server.area_manager.get_area_by_id(int(args[0]))
-		client.change_area(area)
-	except:
+	if len(args) == 1:
 		try:
-			area = client.server.area_manager.get_area_by_name(arg)
+			area = client.server.area_manager.get_area_by_name(args)
 			client.change_area(area)
-		except ValueError:
-			raise ArgumentError('Area ID must be a number.')
-		except (AreaError, ClientError):
-			raise
-	"""if len(args) == 2:
+		except:
+			try:
+				area = client.server.area_manager.get_area_by_abbreviation(args)
+				client.change_area(area)
+			except (AreaError, ClientError):
+				raise
+		client.send_ooc(f'Area changed to {area.name}')
+	if len(args) > 1:
+		fullname = ''
+		index = 0
+		nameceiling = len(args) - 2
+		lastitem = len(args) - 1
+		while index < nameceiling:
+			fullname += args[index]
+			index += 1
 		try:
-			area = client.server.area_manager.get_area_by_id(int(args[0]))
-			if area.password != '':
-				if area.password == args[1]:
-					area.invite_list[client.id] = None
-					client.send_ooc('Password accepted.')
+			area = client.server.area_manager.get_area_by_name(args)
+		except:
+			try:
+				area = client.server.area_manager.get_area_by_name(fullname)
+			except:
+				try:
+					area = client.server.area_manager.get_area_by_abbreviation(args[0])
+				except (AreaError):
+					raise
+		if area.password != '':
+			if area.password == args[lastitem]:
+				area.invite_list[client.id] = None
+				client.send_ooc('Password accepted.')
+		try:
 			client.change_area(area)
-		except ValueError:
-			raise ArgumentError('Area ID must be a number.')
 		except (AreaError, ClientError):
-			raise
-	else:
-		raise ArgumentError('Too many arguments. Use /area <id> and optionally <password>.')
-		"""
+				raise
+		client.send_ooc(f'Area changed to {area.name}')
 
 def ooc_cmd_connect(client, arg):
 	"""
-	Connects areas together.
+	Connects areas together. One way.
 	"""
 	return
 	args = arg.split()
@@ -458,7 +463,7 @@ def ooc_cmd_connect(client, arg):
 
 def ooc_cmd_biconnect(client, arg):
 	"""
-	Connects areas together.
+	Connects areas together. Two-way.
 	"""
 	return
 	args = arg.split()
@@ -502,7 +507,7 @@ def ooc_cmd_biconnect(client, arg):
 
 def ooc_cmd_connectlist(client, arg):
 	"""
-	Connects areas together.
+	Shows what areas the current area is connected to.
 	"""
 	if len(arg) > 0:
 		raise ArgumentError('This command takes no arguments.')
@@ -520,7 +525,7 @@ def ooc_cmd_connectlist(client, arg):
 
 def ooc_cmd_clearconnect(client, arg):
 	"""
-	Connects areas together.
+	Removes all connections to other areas. One-way.
 	"""
 	if len(arg) > 0:
 		raise ArgumentError('This command takes no arguments.')
@@ -532,7 +537,7 @@ def ooc_cmd_clearconnect(client, arg):
 
 def ooc_cmd_disconnect(client, arg):
 	"""
-	Connects areas together.
+	Removes a one-way connection to an area.
 	"""
 	args = arg.split()
 	if client not in client.area.owners and not client.is_mod:
@@ -558,7 +563,7 @@ def ooc_cmd_disconnect(client, arg):
 
 def ooc_cmd_bidisconnect(client, arg):
 	"""
-	Connects areas together.
+	Removes two-way connection between areas.
 	"""
 	args = arg.split()
 	if client not in client.area.owners and not client.is_mod:
@@ -611,7 +616,7 @@ def ooc_cmd_lock(client, arg):
 	Prevent users from joining the current area.
 	Usage: /lock <optional password>
 	"""
-	if not client.area.locking_allowed:
+	if not client.area.locking_allowed and not client.is_mod:
 		client.send_ooc('Area locking is disabled in this area.')
 	elif client.area.is_locked == client.area.Locked.LOCKED:
 		client.send_ooc('Area is already locked.')
