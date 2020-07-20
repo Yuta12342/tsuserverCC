@@ -698,7 +698,7 @@ class AreaManager:
 			if area.is_hub:
 				for sub in area.subareas:
 					if sub.name == name:
-						return area
+						return sub
 		raise AreaError('Area not found.')
 	
 	def get_area_by_abbreviation(self, abbreviation):
@@ -709,7 +709,7 @@ class AreaManager:
 			if area.is_hub:
 				for sub in area.subareas:
 					if sub.abbreviation == abbreviation:
-						return area
+						return sub
 		raise AreaError('Area not found.')
 
 	def get_area_by_id(self, num):
