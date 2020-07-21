@@ -103,10 +103,17 @@ def ooc_cmd_hidecount(client, arg):
 	if client.area.hidden == False:
 		client.area.hidden = True
 		client.server.area_manager.send_arup_players()
+		if client.area.is_hub:
+			for sub in client.area.subareas:
+				sub.hidden = True
 		client.area.broadcast_ooc('The playercount for this area has been hidden.')
 	else:
 		client.area.hidden = False
 		client.server.area_manager.send_arup_players()
+		if client.area.is_hub:
+			for sub in client.area.subareas:
+				sub.hidden = False
+			client.area.sub_arup_players()
 		client.area.broadcast_ooc('The playercount for this area has been revealed.')
 	
 def ooc_cmd_savehub(client, arg):

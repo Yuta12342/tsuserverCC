@@ -416,7 +416,7 @@ class ClientManager:
 			self.area.remove_client(self)
 			self.area = area
 			
-			if self.area.is_hub and not old_area.sub:
+			if self.area.is_hub and not old_area.sub or self.area.is_hub and old_area.is_restricted:
 				area_list = []
 				lobby = None
 				for a in self.server.area_manager.areas:
@@ -436,7 +436,23 @@ class ClientManager:
 					for a in self.server.area_manager.areas:
 						area_list.append(a.name)
 					self.send_command('FA', *area_list)
-					
+			if self.area.sub and self.area.is_restricted:
+				area_list = []
+				lobby = None
+				for a in self.server.area_manager.areas:
+					if a.id == 0:
+						lobby = a
+						break
+				if lobby == None:
+					raise ClientError('There is no default area.')
+				area_list.append(lobby.name)
+				area_list.append(area.hub.name)
+				area_list.append(area.name)
+				for conn in area.connections:
+					if conn != lobby and conn != area.hub:
+						area_list.append(conn.name)
+				self.send_command('FA', *area_list)		
+
 			area.new_client(self)
 
 			self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')

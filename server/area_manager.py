@@ -121,7 +121,10 @@ class AreaManager:
 			"""Add a client to the area."""
 			self.clients.add(client)
 			if self.sub:
-				self.hub.sub_arup_players()
+				if self.is_restricted:
+					self.conn_arup_players()
+				else:
+					self.hub.sub_arup_players()
 			elif self.is_hub:
 				self.sub_arup_players()
 				self.server.area_manager.send_arup_players()
@@ -149,7 +152,10 @@ class AreaManager:
 			self.blankposting_allowed = True
 			self.invite_list = {}
 			if self.sub:
-				self.hub.sub_arup_lock()
+				if self.is_restricted:
+					self.conn_arup_lock()
+				else:
+					self.hub.sub_arup_lock()
 			elif self.is_hub:
 				self.sub_arup_lock()
 				self.server.area_manager.send_arup_lock()
@@ -165,7 +171,10 @@ class AreaManager:
 			for i in self.owners:
 				self.invite_list[i.id] = None
 			if self.sub:
-				self.hub.sub_arup_lock()
+				if self.is_restricted:
+					self.conn_arup_lock()
+				else:
+					self.hub.sub_arup_lock()
 			elif self.is_hub:
 				self.sub_arup_lock()
 				self.server.area_manager.send_arup_lock()
@@ -181,7 +190,10 @@ class AreaManager:
 			for i in self.owners:
 				self.invite_list[i.id] = None
 			if self.sub:
-				self.hub.sub_arup_lock()
+				if self.is_restricted:
+					self.conn_arup_lock()
+				else:
+					self.hub.sub_arup_lock()
 			elif self.is_hub:
 				self.sub_arup_lock()
 				self.server.area_manager.send_arup_lock()
@@ -473,9 +485,12 @@ class AreaManager:
 							self.hub.status = value.upper()
 						if value.lower() == 'recess' and recess == True:
 							self.hub.status = value.upper()
-							
-				self.hub.sub_arup_status()
-				self.server.area_manager.send_arup_status()
+					self.server.area_manager.send_arup_status()
+				if self.is_restricted:
+					self.conn_arup_status()
+				else:
+					self.hub.sub_arup_status()
+				
 			elif self.is_hub:
 				self.sub_arup_status()
 				self.server.area_manager.send_arup_status()
@@ -498,6 +513,8 @@ class AreaManager:
 			self.status = value.upper()
 			for area in self.subareas:
 				area.status = value.upper()
+				if area.is_restricted:
+					self.conn_arup_status()
 			self.sub_arup_status()
 			self.server.area_manager.send_arup_status()
 
@@ -581,6 +598,74 @@ class AreaManager:
 				if area.name == name:
 					return area
 			raise AreaError('Area not found.')
+
+		def conn_arup_players(self):
+			players_list = [0]
+			lobby = self.server.area_manager.default_area()
+			players_list.append(len(lobby.clients))
+			if self.hub.hidden:
+				players_list.append(-1)
+			else:
+				players_list.append(len(self.hub.clients))
+			if self.hidden:
+				players_list.append(-1)
+			else:
+				players_list.append(len(self.clients))
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					if link.hidden:
+						players_list.append(-1)
+					else:
+						players_list.append(len(link.clients))
+			self.server.send_conn_arup(players_list, self)	
+
+		def conn_arup_status(self):
+			"""Broadcast ARUP packet containing area statuses."""
+			status_list = [1]
+			lobby = self.server.area_manager.default_area()
+			status_list.append(lobby.status)
+			status_list.append(self.hub.status)
+			status_list.append(self.status)
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					status_list.append(link.status)
+			self.server.send_conn_arup(status_list, self)
+			
+		def conn_arup_cms(self):
+			"""Broadcast ARUP packet containing area CMs."""
+			cms_list = [2]
+			lobby = self.server.area_manager.default_area()
+			if len(lobby.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(lobby.get_cms())
+			if len(self.hub.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(self.hub.get_cms())
+			if len(self.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(self.get_cms())
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					cm = 'FREE'
+					if len(link.owners) > 0:
+						cm = link.get_cms()
+					cms_list.append(cm)
+			self.server.send_conn_arup(cms_list, self)
+			
+		def conn_arup_lock(self):
+			"""Broadcast ARUP packet containing the lock status of each area."""
+			lock_list = [3]
+			lobby = self.server.area_manager.default_area()
+			lock_list.append(lobby.is_locked.name)
+			lock_list.append(self.hub.is_locked.name)
+			lock_list.append(self.is_locked.name)
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					lock_list.append(link.is_locked.name)
+			self.server.send_hub_arup(lock_list, self)
 
 		def sub_arup_players(self):
 			"""Broadcast ARUP packet containing player counts."""

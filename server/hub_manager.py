@@ -20,6 +20,7 @@
 import os
 import logging
 import yaml
+from server.exceptions import ClientError, AreaError, ArgumentError
 
 class HubManager:
 	"""
@@ -66,16 +67,17 @@ class HubManager:
 						r_areas.split(', ')
 						newsub.connections = r_areas
 						newsub.is_restricted = True
+			lobby = client.server.area_manager.default_area()
 			for area in client.area.subareas:
 				tempcon = []
 				for area2 in client.area.subareas:
 					if area2.name in area.connections:
 						tempcon.append(area2)
 				area.connections = tempcon
-				if area.hub not in area.connections:
-					area.connections.append(area.hub)
-				if client.server.area_manager.default_area() not in area.connection:
-					area.connections.append(client.server.area_manager.default_area())
+				if client.area not in area.connections:
+					area.connections.append(client.area)
+				if lobby not in area.connections:
+					area.connections.append(lobby)
 			area_list = []
 			lobby = self.server.area_manager.default_area()
 			area_list.append(lobby.name)
