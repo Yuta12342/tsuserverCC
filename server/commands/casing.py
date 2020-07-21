@@ -153,6 +153,10 @@ def ooc_cmd_cm(client, arg):
 		if client.area.sub:
 			client.area.hub.sub_arup_cms()
 		elif client.area.is_hub:
+			for sub in client.area.subareas:
+				sub.owners.append(client)
+				if sub.is_restricted:
+					sub.conn_arup_cms()
 			client.area.sub_arup_cms()
 			client.server.area_manager.send_arup_cms()
 		else:
@@ -236,8 +240,7 @@ def ooc_cmd_uncm(client, arg):
 	Usage: /uncm <id>
 	"""
 	if client not in client.area.owners and not client.is_mod:
-		raise ClientError(
-				'You must be a CM.')
+		raise ClientError('You must be a CM.')
 	elif len(arg) > 0:
 		arg = arg.split(' ')
 	else:
@@ -252,6 +255,10 @@ def ooc_cmd_uncm(client, arg):
 				if client.area.sub:
 					client.area.hub.sub_arup_cms()
 				elif client.area.is_hub:
+					for sub in client.area.subareas:
+						sub.owners.remove(client)
+						if sub.is_restricted:
+							sub.conn_arup_cms()
 					client.area.sub_arup_cms()
 					client.server.area_manager.send_arup_cms()
 				else:
