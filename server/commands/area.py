@@ -569,7 +569,7 @@ def ooc_cmd_bidisconnect(client, arg):
 		raise ClientError('Must be in a hub subarea.')
 	if len(args) == 0:
 		raise ArgumentError('You must specify an area, use /disconnect <abbreviation>')
-	if len(client.area.connections) =! 0:
+	if len(client.area.connections) < 3:
 		for area in client.area.connections:
 			if area != area.hub and area != client.server.area_manager.default_area() and area.abbreviation in args:
 				client.area.connections.remove(area)

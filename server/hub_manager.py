@@ -43,6 +43,9 @@ class HubManager:
 			with open(hubname, 'r') as chars:
 				areas = yaml.safe_load(chars)
 			self.clearhub(client)
+			if len(areas) > 100:
+				client.send_ooc('Cannot have more than 100 areas in a hub!')
+				return
 			for item in areas:
 				newsub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
 						  item['background'], bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, 
@@ -56,7 +59,23 @@ class HubManager:
 				if 'musiclist' in item:
 					self.server.music_manager.loadsublist(newsub, item['musiclist'])
 				newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
-				client.area.cur_subid += 1	
+				client.area.cur_subid += 1
+				if 'reachable_areas' in item:
+					if item['reachable_areas'] != '':
+						r_areas = item['reachable_areas']
+						r_areas.split(', ')
+						newsub.connections = r_areas
+						newsub.is_restricted = True
+			for area in client.area.subareas:
+				tempcon = []
+				for area2 in client.area.subareas:
+					if area2.name in area.connections:
+						tempcon.append(area2)
+				area.connections = tempcon
+				if area.hub not in area.connections:
+					area.connections.append(area.hub)
+				if client.server.area_manager.default_area() not in area.connection:
+					area.connections.append(client.server.area_manager.default_area())
 			area_list = []
 			lobby = self.server.area_manager.default_area()
 			area_list.append(lobby.name)
@@ -65,6 +84,7 @@ class HubManager:
 				area_list.append(a.name)
 			client.area.sub_arup_cms()
 			client.area.sub_arup_status()
+			client.area.sub_arup_lock()
 			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
 			client.send_ooc(f'Hub {arg} loaded!')
 		
@@ -74,8 +94,13 @@ class HubManager:
 		if not new:
 			os.remove(hubname)
 		hub = []
+		connections = ''
 		for area in client.area.subareas:
-			hub.append({'area': area.name, 'background': area.background, 'doc': area.doc, 'musiclist': area.cmusic_listname})
+			if len(area.connections) > 0:
+				for connection in area.connections:
+					connections += f'{connection.name}, '
+				connections = connections[:-2]
+			hub.append({'area': area.name, 'background': area.background, 'doc': area.doc, 'musiclist': area.cmusic_listname, 'reachable_areas': connections})
 		with open(hubname, 'w', encoding='utf-8') as hubfile:
 			yaml.dump(hub, hubfile)
 		client.send_ooc(f'Hub {arg} saved!')
@@ -112,6 +137,7 @@ class HubManager:
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == hub or x.area in hub.subareas)
 		hub.sub_arup_cms()
 		hub.sub_arup_status()
+		hub.sub_arup_lock()
 	
 	def clearhub(self, client):
 		hub = client.area
@@ -134,10 +160,11 @@ class HubManager:
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == hub or x.area in hub.subareas)
 		hub.sub_arup_cms()
 		hub.sub_arup_status()
+		hub.sub_arup_lock()
 
 	def addmoresubs(self, client, arg):
-		if arg + client.area.cur_subid > 51:
-			client.send_ooc('Cannot have more than 50 areas in a hub!')
+		if arg + client.area.cur_subid > 101:
+			client.send_ooc('Cannot have more than 100 areas in a hub!')
 			return
 		index = 0
 		while index < arg:
@@ -153,8 +180,8 @@ class HubManager:
 				index += 1
 				area.hubid = index
 		if client.area.is_hub:
-			if client.area.cur_subid > 51:
-				raise ClientError('You cannot have more than 50 areas in a hub.')
+			if client.area.cur_subid > 101:
+				raise ClientError('You cannot have more than 100 areas in a hub.')
 			elif client.area.name.startswith('Arcade') or client.area.name.startswith('User') or client.area.name.startswith('Courtroom'):
 				if client.area.cur_subid > 16:
 					raise ClientError('Cannot have more than 15 areas in this hub.')
@@ -207,6 +234,7 @@ class HubManager:
 		newsub.status = client.area.status
 		newsub.hub.sub_arup_cms()
 		newsub.hub.sub_arup_status()
+		newsub.hub.sub_arup_lock()
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
 		if more == False:
 			client.send_ooc('Area created!')
