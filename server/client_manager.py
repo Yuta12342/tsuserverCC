@@ -438,13 +438,6 @@ class ClientManager:
 					self.send_command('FA', *area_list)
 					
 			area.new_client(self)
-			if self.area.is_hub:
-				self.area.sub_arup_cms()
-				self.area.sub_arup_status()
-				self.area.sub_arup_lock()
-			self.server.area_manager.send_arup_cms()
-			self.server.area_manager.send_arup_status()
-			self.server.area_manager.send_arup_lock()
 
 			self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')
 			if self.autopass == True:
