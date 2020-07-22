@@ -48,25 +48,30 @@ class HubManager:
 				client.send_ooc('Cannot have more than 100 areas in a hub!')
 				return
 			for item in areas:
-				newsub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
-						  item['background'], bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, 
-						  showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
-				client.area.subareas.append(newsub)
-				newsub.owners.append(client)
-				newsub.sub = True
-				newsub.hub = client.area
-				if 'doc' in item:
-					newsub.doc = item['doc']
-				if 'musiclist' in item:
-					self.server.music_manager.loadsublist(newsub, item['musiclist'])
-				newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
-				client.area.cur_subid += 1
-				if 'reachable_areas' in item:
-					if item['reachable_areas'] != '':
-						r_areas = item['reachable_areas']
-						r_areas.split(', ')
-						newsub.connections = r_areas
-						newsub.is_restricted = True
+				if 'hub' in items:
+					client.area.background = item['background']
+					client.area.doc = item['doc']
+					client.area.cmusic_listname = item['musiclist']
+				else:
+					newsub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
+							  item['background'], bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, 
+							  showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
+					client.area.subareas.append(newsub)
+					newsub.owners.append(client)
+					newsub.sub = True
+					newsub.hub = client.area
+					if 'doc' in item:
+						newsub.doc = item['doc']
+					if 'musiclist' in item:
+						self.server.music_manager.loadsublist(newsub, item['musiclist'])
+					newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
+					client.area.cur_subid += 1
+					if 'reachable_areas' in item:
+						if item['reachable_areas'] != '':
+							r_areas = item['reachable_areas']
+							r_areas.split(', ')
+							newsub.connections = r_areas
+							newsub.is_restricted = True
 			lobby = client.server.area_manager.default_area()
 			for area in client.area.subareas:
 				tempcon = []
@@ -97,6 +102,7 @@ class HubManager:
 			os.remove(hubname)
 		hub = []
 		connections = ''
+		hub.append({'area': client.area.name, 'background': client.area.background, 'doc': client.area.doc, 'musiclist': client.area.cmusic_listname, 'reachable_areas': connections, 'hub': 'true'})
 		for area in client.area.subareas:
 			if len(area.connections) > 0:
 				for connection in area.connections:

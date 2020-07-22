@@ -1060,7 +1060,7 @@ class AOProtocol(asyncio.Protocol):
 							.format(int(self.client.change_music_cd())))
 						return
 					try:
-						name, length, mod = self.server.get_song_data(args[0])
+						name, length, mod, custom = self.server.get_song_data(args[0], self.client.area)
 						if not mod == -1:
 							if not self.client.is_mod:
 								self.client.send_host_message("This song is reserved for moderators.")
@@ -1090,6 +1090,10 @@ class AOProtocol(asyncio.Protocol):
 									return
 							# Effects info
 							effects = 0
+							if custom:
+								nname = name
+								name = 'custom/'
+								name += nname
 							if len(args) > 3:
 								effects = int(args[3])
 								self.client.area.play_music_shownamed(

@@ -382,7 +382,7 @@ class TsuServerCC:
 				return i
 		raise ServerError('Character not found.')
 
-	def get_song_data(self, music):
+	def get_song_data(self, music, area):
 		"""
 		Get information about a track, if exists.
 		:param music: track name
@@ -391,16 +391,27 @@ class TsuServerCC:
 		"""
 		for item in self.music_list:
 			if item['category'] == music:
-				return item['category'], -1, -1
+				return item['category'], -1, -1, False
 			for song in item['songs']:
 				if song['name'] == music:
 					try:
 						return song['name'], song['length'], song['mod']
 					except KeyError:
 						try:
-							return song['name'], song['length'], -1
+							return song['name'], song['length'], -1, False
 						except KeyError:
-							return song['name'], -1, -1
+							return song['name'], -1, -1, False
+		if len(area.cmusic_list) != 0:
+			for item in area.cmusic_list:
+				if item['category'] == music:
+					return item['category'], -1, -1, True
+				if len(item['songs']) != 0:
+					for song in item['songs']:
+						if song['name'] == music:
+							try:
+								return song['name'], song['length'], song['mod']
+							except KeyError:
+								return song['name'], song['length'], -1, True
 		raise ServerError('Music not found.')
 
 	def send_all_cmd_pred(self, cmd, *args, pred=lambda x: True):

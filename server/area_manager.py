@@ -86,7 +86,7 @@ class AreaManager:
 			self.music_looper = None
 			self.cards = dict()
 			self.custom_list = dict()
-			self.cmusic_list = dict()
+			self.cmusic_list = []
 			self.cmusic_listname = ''
 			self.hidden = False
 			self.password = ''
@@ -598,6 +598,21 @@ class AreaManager:
 				if area.name == name:
 					return area
 			raise AreaError('Area not found.')
+			
+		def get_music(self, client):
+			song_list = []
+			music_list = self.server.music_list
+			for item in music_list:
+				song_list.append(item['category'])
+				for song in item['songs']:
+					song_list.append(song['name'])
+			if len(self.cmusic_list) != 0:
+				for item in self.cmusic_list:
+					song_list.append(item['category'])
+					if len(item['songs']) != 0:
+						for song in item['songs']:
+							song_list.append(song['name'])
+			return song_list
 
 		def conn_arup_players(self):
 			players_list = [0]
