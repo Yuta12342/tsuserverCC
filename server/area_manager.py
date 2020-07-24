@@ -94,6 +94,7 @@ class AreaManager:
 			self.areapair = dict()
 			self.poslock = []
 			self.last_speaker = None
+			self.last_ooc = ''
 			
 			"""
 			#debug

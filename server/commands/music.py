@@ -72,8 +72,8 @@ def ooc_cmd_addcategory(client, arg):
 	mlist[-1]['songs'] = songs
 	music = client.area.get_music(client)
 	if client.area.is_hub:
-			for sub in client.area.subareas:
-				sub.cmusic_list = mlist
+		for sub in client.area.subareas:
+			sub.cmusic_list = mlist
 		client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area or x.area.hub == client.area)
 	else:
 		client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area)
@@ -104,8 +104,8 @@ def ooc_cmd_loadmlist(client, arg):
 	client.server.musiclist_manager.loadlist(client, arg)
 	music = client.area.get_music(client)
 	if client.area.is_hub:
-			for sub in client.area.subareas:
-				sub.cmusic_list = mlist
+		for sub in client.area.subareas:
+			sub.cmusic_list = mlist
 		client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area or x.area.hub == client.area)
 	else:
 		client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area)
@@ -120,9 +120,9 @@ def ooc_cmd_musiclist(client, arg):
 		msg = 'Music List:'
 		for item in self.cmusic_list:
 			msg += f"\n{item['category']}:"
-				if len(item['songs']) != 0:
-					for song in item['songs']:
-						msg += f"\n{song['name']}"
+			if len(item['songs']) != 0:
+				for song in item['songs']:
+					msg += f"\n{song['name']}"
 	client.send_ooc(msg)
 
 def ooc_cmd_clearmusiclist(client, arg):

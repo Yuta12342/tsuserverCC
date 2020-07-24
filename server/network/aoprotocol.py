@@ -571,10 +571,18 @@ class AOProtocol(asyncio.Protocol):
 				self.client.area.evi_list.evidences[
 					self.client.evi_list[evidence] - 1].pos = 'all'
 				self.client.area.broadcast_evidence_list()
-		if msg.lstrip().startswith('(('):
-            self.client.area.send_command('CT', self.client.name, msg)
-			self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + self.client.name, msg)
-            return
+		if msg.lstrip().startswith('((')
+			msg = msg.lstrip()
+			msg = msg.replace('((', '')
+			msg = msg.replace('))', '')
+			name = self.client.name
+			if name == '':
+				name = self.client.char_name
+			if not msg == self.client.area.last_ooc:
+				self.client.area.send_command('CT', name, msg)
+				self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + name, msg)
+				self.client.area.last_ooc = msg
+			return
 
 		# Here, we check the pair stuff, and save info about it to the client.
 		# Notably, while we only get a charid_pair and an offset, we send back a chair_pair, an emote, a talker offset
