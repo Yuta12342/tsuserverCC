@@ -12,6 +12,7 @@ __all__ = [
 	'ooc_cmd_m',
 	'ooc_cmd_lm',
 	'ooc_cmd_p',
+	'ooc_cmd_h',
 	'ooc_cmd_announce',
 	'ooc_cmd_toggleglobal',
 	'ooc_cmd_need',
@@ -94,6 +95,12 @@ def ooc_cmd_p(client, arg):
 	client.server.send_partychat(client, arg)
 	database.log_room('chat.mod', client, client.area, message=arg)
 
+def ooc_cmd_h(client, arg):
+	if len(arg) == 0:
+		raise ArgumentError('You can\'t send an empty message.')
+	if not area.is_hub and not area.sub:
+		raise ClientError('Must be in a hub.')
+	client.area.broadcast_hub(client, arg)
 
 @mod_only()
 def ooc_cmd_gm(client, arg):

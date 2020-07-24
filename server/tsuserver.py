@@ -433,14 +433,10 @@ class TsuServerCC:
 
 		"""
 		char_name = client.char_name
-		ooc_name = '{}[{}][{}]'.format('<dollar>G', client.area.abbreviation,
-									   char_name)
+		ooc_name = '{}[{}][{}]'.format('<dollar>G', client.area.abbreviation, char_name)
 		if as_mod:
-			ooc_name += '[M]'
-		self.send_all_cmd_pred('CT',
-							   ooc_name,
-							   msg,
-							   pred=lambda x: not x.muted_global)
+			ooc_name += '[MOD]'
+		self.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: not x.muted_global)
 
 	def send_modchat(self, client, msg):
 		"""

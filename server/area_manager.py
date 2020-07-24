@@ -737,6 +737,18 @@ class AreaManager:
 			for area in self.subareas:
 				lock_list.append(area.is_locked.name)
 			self.server.send_hub_arup(lock_list, self)
+
+		def broadcast_hub(self, client, msg):
+			char_name = client.char_name
+			ooc_name = '{}[{}][{}]'.format('<dollar>H', client.area.abbreviation, char_name)
+			if client.area.sub:
+				if client in client.area.hub.owners:
+					ooc_name += '[CM]'
+				self.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area.hub.subareas)
+			else:
+				if client in client.area.owners:
+					ooc_name += '[CM]'
+				self.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area.subareas)
 		
 		class JukeboxVote:
 			"""Represents a single vote cast for the jukebox."""
