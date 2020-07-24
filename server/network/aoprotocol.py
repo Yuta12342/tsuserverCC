@@ -571,7 +571,7 @@ class AOProtocol(asyncio.Protocol):
 				self.client.area.evi_list.evidences[
 					self.client.evi_list[evidence] - 1].pos = 'all'
 				self.client.area.broadcast_evidence_list()
-		if msg.lstrip().startswith('((')
+		if msg.lstrip().startswith('(('):
 			msg = msg.lstrip()
 			msg = msg.replace('((', '')
 			msg = msg.replace('))', '')
