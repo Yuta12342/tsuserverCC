@@ -571,6 +571,10 @@ class AOProtocol(asyncio.Protocol):
 				self.client.area.evi_list.evidences[
 					self.client.evi_list[evidence] - 1].pos = 'all'
 				self.client.area.broadcast_evidence_list()
+		if msg.lstrip().startswith('(('):
+            self.client.area.send_command('CT', self.client.name, msg)
+			self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + self.client.name, msg)
+            return
 
 		# Here, we check the pair stuff, and save info about it to the client.
 		# Notably, while we only get a charid_pair and an offset, we send back a chair_pair, an emote, a talker offset
@@ -959,9 +963,7 @@ class AOProtocol(asyncio.Protocol):
 				self.client.send_ooc(
 					'You cannot use format characters in your name!')
 				return
-		if self.client.name.startswith(
-				self.server.config['hostname']) or self.client.name.startswith(
-					'<dollar>G') or self.client.name.startswith('<dollar>M'):
+		if self.client.name.startswith(self.server.config['hostname']) or self.client.name.startswith('<dollar>G') or self.client.name.startswith('<dollar>M'):
 			self.client.send_ooc('That name is reserved!')
 			return
 		if args[1].startswith(' /'):
@@ -1006,10 +1008,7 @@ class AOProtocol(asyncio.Protocol):
 			if self.client.disemvowel:
 				args[1] = self.client.disemvowel_message(args[1])
 			self.client.area.send_command('CT', self.client.name, args[1])
-			self.client.area.send_owner_command(
-				'CT',
-				'[' + self.client.area.abbreviation + ']' + self.client.name,
-				args[1])
+			self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + self.client.name, args[1])
 			database.log_room('ooc', self.client, self.client.area, message=args[1])
 
 	def net_cmd_mc(self, args):
