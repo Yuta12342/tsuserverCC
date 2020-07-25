@@ -18,7 +18,6 @@ __all__ = [
 	'ooc_cmd_reload',
 	'ooc_cmd_visible',
 	'ooc_cmd_narrator',
-	'ooc_cmd_nopairoffset',
 	'ooc_cmd_areapair',
 	'ooc_cmd_kickother'
 ]
@@ -35,20 +34,6 @@ def ooc_cmd_areapair(client, arg):
 		client.send_ooc('You are no longer area-paired.')
 	else:
 		raise ArgumentError('Invalid argument.')
-
-def ooc_cmd_nopairoffset(client, arg):
-	if len(arg) == 0:
-		raise ArgumentError('Requires an offset as argument.')
-	try:
-		arg = int(arg)
-	except:
-		raise ArgumentError('That doesn\'t look like a valid number.')
-	if arg > 100:
-		raise ArgumentError('Can\'t set your offset higher than 100!')
-	if arg < -100:
-		raise ArgumentError('Can\'t set your offset lower than -100!')
-	client.offset = arg
-	client.send_ooc(f'Your offset was set to {client.offset}.') 
 
 def ooc_cmd_narrator(client, arg):
 	if len(arg) > 0:

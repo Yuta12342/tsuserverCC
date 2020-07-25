@@ -937,8 +937,6 @@ class AOProtocol(asyncio.Protocol):
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
 
-				self.client.area.set_next_msg_delay(len(msg))
-
 	def net_cmd_ct(self, args):
 		"""OOC Message
 		
