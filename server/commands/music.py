@@ -48,7 +48,7 @@ def ooc_cmd_addmusic(client, arg):
 			mlist[-1]['songs'] = songs
 			mlist[-1]['songs'].append({'name': args[0], 'length': length})
 		else:
-			mlist[-1]['songs'].append({'name': args[0], 'length': lenght})
+			mlist[-1]['songs'].append({'name': args[0], 'length': length})
 		client.area.broadcast_ooc(f'{args[0]} added to the music list.')
 		music = client.area.get_music(client)
 		if client.area.is_hub:
@@ -102,13 +102,6 @@ def ooc_cmd_loadmlist(client, arg):
 	if ' ' in arg:
 		raise ArgumentError('Try to use a name without spaces.')
 	client.server.musiclist_manager.loadlist(client, arg)
-	music = client.area.get_music(client)
-	if client.area.is_hub:
-		for sub in client.area.subareas:
-			sub.cmusic_list = mlist
-		client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area or x.area.hub == client.area)
-	else:
-		client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area)
 
 def ooc_cmd_musiclist(client, arg):
 	if len(arg) > 0:
@@ -116,9 +109,9 @@ def ooc_cmd_musiclist(client, arg):
 	if len(client.area.cmusic_list) == 0:
 		raise ArgumentError('Music list is empty.')
 	msg = 'This area has no musiclist.'
-	if len(self.cmusic_list) != 0:
+	if len(client.area.cmusic_list) != 0:
 		msg = 'Music List:'
-		for item in self.cmusic_list:
+		for item in client.area.cmusic_list:
 			msg += f"\n{item['category']}:"
 			if len(item['songs']) != 0:
 				for song in item['songs']:

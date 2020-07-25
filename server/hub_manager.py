@@ -214,6 +214,8 @@ class HubManager:
 		else:
 			newsub.hub = client.area.hub
 			client.area.hub.subareas.append(newsub)
+		newsub.cmusic_list = newsub.hub.cmusic_list
+		newsub.cmusic_listname = newsub.hub.cmusic_listname
 		if newsub.hub.name.startswith('Arcade'):
 			newsub.abbreviation = f'HAS{new_id}'
 		elif newsub.hub.name.startswith('User'):

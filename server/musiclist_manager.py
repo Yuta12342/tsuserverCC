@@ -41,10 +41,15 @@ class MusicListManager:
 			client.area.broadcast_ooc(f'Music list {arg} loaded!')
 			client.area.cmusic_listname = arg
 			client.area.cmusic_list = list
+			music = client.area.get_music(client)
 			if client.area.is_hub:
+				client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area or x.area.hub == client.area)
 				for sub in client.area.subareas:
 					sub.cmusic_listname = arg
 					sub.cmusic_list = list
+			else:
+				client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area)
+
 		
 	def loadsublist(self, area, arg):
 		listname = f'storage/musiclist/{arg}.yaml'

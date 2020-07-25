@@ -415,6 +415,8 @@ class ClientManager:
 
 			self.area.remove_client(self)
 			self.area = area
+
+			area.new_client(self)
 			
 			if self.area.is_hub and not old_area.sub or self.area.is_hub and old_area.is_restricted:
 				area_list = []
@@ -429,6 +431,9 @@ class ClientManager:
 				area_list.append(area.name)
 				for a in self.area.subareas:
 					area_list.append(a.name)
+				self.area.sub_arup_cms(client)
+				self.area.sub_arup_status(client)
+				self.area.sub_arup_lock(client)
 				self.send_command('FA', *area_list)
 			if old_area.is_hub or old_area.sub:
 				if not self.area.sub and not self.area.is_hub:
@@ -436,6 +441,9 @@ class ClientManager:
 					for a in self.server.area_manager.areas:
 						area_list.append(a.name)
 					self.send_command('FA', *area_list)
+					self.server.area_manager.send_arup_cms(client)
+					self.server.area_manager.send_arup_status(client)
+					self.server.area_manager.send_arup_lock(client)
 			if self.area.sub and self.area.is_restricted:
 				area_list = []
 				lobby = None
@@ -451,9 +459,13 @@ class ClientManager:
 				for conn in area.connections:
 					if conn != lobby and conn != area.hub:
 						area_list.append(conn.name)
-				self.send_command('FA', *area_list)		
-
-			area.new_client(self)
+				self.send_command('FA', *area_list)
+				self.area.conn_arup_cms(client)
+				self.area.conn_arup_status(client)
+				self.area.conn_arup_lock(client)
+			if old_area.cmusic_list != area.cmusic_list:
+				music = area.get_music(client)
+				self.send_command('FM', *music)
 
 			self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')
 			if self.autopass == True:

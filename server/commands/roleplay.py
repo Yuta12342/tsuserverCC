@@ -512,10 +512,6 @@ def ooc_cmd_createparty(client, arg):
     client.send_ooc(f'Created party {client.party.name}.')
 
 def ooc_cmd_partyinvite(client, arg):
-    """
-    Allow a particular user to join a locked or spectator-only area.
-    Usage: /invite <id>
-    """
     if not arg:
         raise ClientError('You must specify a target. Use /partyinvite <id>')
     elif not client.in_party:
