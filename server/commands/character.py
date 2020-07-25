@@ -287,12 +287,16 @@ def ooc_cmd_kickother(client, arg):
 	for target in targets:
 		if target != client:
 			target.disconnect()
+	targets = client.server.client_manager.get_targets(client, TargetType.HDID, client.hdid, False)
+	for target in targets:
+		if target != client:
+			target.disconnect()
 	temp = set()
 	for c in client.server.client_manager.clients:
 		temp.add(c)
 	for c in temp:
 		if c.ipid == client.ipid and c != client:
-			client.server.client_manager.clients.remove(c)
+			client.server.client_manager.remove_client(c)
 		elif c.hdid == client.hdid and c != client:
-			client.server.client_manager.clients.remove(c)
+			client.server.client_manager.remove_client(c)
 	client.send_ooc('Kicked other instances of client.')
