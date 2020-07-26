@@ -431,9 +431,9 @@ class ClientManager:
 				area_list.append(area.name)
 				for a in self.area.subareas:
 					area_list.append(a.name)
-				self.area.sub_arup_cms(client)
-				self.area.sub_arup_status(client)
-				self.area.sub_arup_lock(client)
+				self.area.sub_arup_cms(self)
+				self.area.sub_arup_status(self)
+				self.area.sub_arup_lock(self)
 				self.send_command('FA', *area_list)
 			if old_area.is_hub or old_area.sub:
 				if not self.area.sub and not self.area.is_hub:
@@ -441,9 +441,9 @@ class ClientManager:
 					for a in self.server.area_manager.areas:
 						area_list.append(a.name)
 					self.send_command('FA', *area_list)
-					self.server.area_manager.send_arup_cms(client)
-					self.server.area_manager.send_arup_status(client)
-					self.server.area_manager.send_arup_lock(client)
+					self.server.area_manager.send_arup_cms(self)
+					self.server.area_manager.send_arup_status(self)
+					self.server.area_manager.send_arup_lock(self)
 			if self.area.sub and self.area.is_restricted:
 				area_list = []
 				lobby = None
@@ -460,11 +460,11 @@ class ClientManager:
 					if conn != lobby and conn != area.hub:
 						area_list.append(conn.name)
 				self.send_command('FA', *area_list)
-				self.area.conn_arup_cms(client)
-				self.area.conn_arup_status(client)
-				self.area.conn_arup_lock(client)
+				self.area.conn_arup_cms(self)
+				self.area.conn_arup_status(self)
+				self.area.conn_arup_lock(self)
 			if old_area.cmusic_list != area.cmusic_list:
-				music = area.get_music(client)
+				music = area.get_music(self)
 				self.send_command('FM', *music)
 
 			self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')
@@ -560,8 +560,7 @@ class ClientManager:
 				for owner in area.owners:
 					if not owner in area.clients:
 						if not owner.ghost or self.is_mod:
-							if not area.is_hub:
-								sorted_clients.append(owner)
+							sorted_clients.append(owner)
 				if area.is_hub and not selfarea.is_hub and not selfarea.sub:
 					if len(area.subareas) > 0:
 						for sub in area.subareas:
@@ -631,8 +630,7 @@ class ClientManager:
 										cnt += 1
 									elif not client.ghost and not client.hidden:
 										cnt += 1
-					if not area.is_hub and not area.sub:
-						info += f'{self.get_area_info(a)}'
+					info += f'{self.get_area_info(a)}'
 				if area.is_hub or area.sub:
 					if area.is_hub:
 						info += f'{self.get_area_info(self.server.area_manager.default_area())}'
