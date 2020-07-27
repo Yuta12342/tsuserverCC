@@ -54,7 +54,6 @@ def ooc_cmd_addmusic(client, arg):
 		if client.area.is_hub:
 			for sub in client.area.subareas:
 				sub.cmusic_list = mlist
-				sub.broadcast_ooc(f'{args[0]} added to the music list.')
 			client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area or x.area.hub == client.area)
 		else:
 			client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area)
