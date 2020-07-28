@@ -515,7 +515,7 @@ class TsuServerCC:
 				except:
 					return
 		if client == None:
-			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: not x.area.is_hub and not x.area.sub)
+			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: not x.area.is_hub and not x.area.sub or x.hubview)
 		else:
 			client.send_command('ARUP', *args)
 		
@@ -554,7 +554,7 @@ class TsuServerCC:
 				except:
 					return
 		if client == None:
-			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == mainhub or x.area.hub == mainhub)
+			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == mainhub and not x.hubview or x.area.hub == mainhub and not x.hubview)
 		else:
 			client.send_command('ARUP', *args)
 	
@@ -593,7 +593,7 @@ class TsuServerCC:
 				except:
 					return
 		if client == None:
-			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == area)
+			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == area and not x.hubview)
 		else:
 			client.send_command('ARUP', *args)
 

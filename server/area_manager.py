@@ -615,7 +615,7 @@ class AreaManager:
 							song_list.append(song['name'])
 			return song_list
 
-		def conn_arup_players(self):
+		def conn_arup_players(self, client=None):
 			players_list = [0]
 			lobby = self.server.area_manager.default_area()
 			players_list.append(len(lobby.clients))
@@ -633,7 +633,7 @@ class AreaManager:
 						players_list.append(-1)
 					else:
 						players_list.append(len(link.clients))
-			self.server.send_conn_arup(players_list, self)	
+			self.server.send_conn_arup(players_list, self, client)	
 
 		def conn_arup_status(self, client=None):
 			"""Broadcast ARUP packet containing area statuses."""
@@ -683,7 +683,7 @@ class AreaManager:
 					lock_list.append(link.is_locked.name)
 			self.server.send_hub_arup(lock_list, self, client)
 
-		def sub_arup_players(self):
+		def sub_arup_players(self, client=None):
 			"""Broadcast ARUP packet containing player counts."""
 			players_list = [0]
 			lobby = self.server.area_manager.default_area()
@@ -698,7 +698,7 @@ class AreaManager:
 						if not client.ghost and not client.hidden:
 							index += 1
 					players_list.append(index)
-			self.server.send_hub_arup(players_list, self)
+			self.server.send_hub_arup(players_list, self, client)
 
 		def sub_arup_status(self, client=None):
 			"""Broadcast ARUP packet containing area statuses."""
@@ -857,7 +857,7 @@ class AreaManager:
 			area.send_command(cmd, *args)
 			area.send_owner_command(cmd, *args)
 
-	def send_arup_players(self):
+	def send_arup_players(self, client=None):
 		"""Broadcast ARUP packet containing player counts."""
 		players_list = [0]
 		for area in self.areas:
@@ -874,7 +874,7 @@ class AreaManager:
 							if not client.ghost and not client.hidden:
 								index += 1
 				players_list.append(index)
-		self.server.send_arup(players_list)
+		self.server.send_arup(players_list, client)
 
 	def send_arup_status(self, client=None):
 		"""Broadcast ARUP packet containing area statuses."""

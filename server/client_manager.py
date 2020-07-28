@@ -83,11 +83,12 @@ class ClientManager:
 			self.voted = False
 			self.visible = True
 			self.narrator = False
-			self.offset = 0
 			self.clientscon = 0
 			self.friendlist = None
 			self.friendrequests = set()
 			self.areapair = 'middle'
+			self.hubview = False
+			
 
 			# Pairing stuff
 			self.charid_pair = -1
@@ -412,6 +413,8 @@ class ClientManager:
 				self.change_character(new_char_id)
 				self.send_ooc(
 					f'Character taken, switched to {self.char_name}.')
+
+			self.hubview = False
 
 			self.area.remove_client(self)
 			self.area = area
