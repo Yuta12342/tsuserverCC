@@ -496,7 +496,7 @@ class ClientManager:
 			self.area.send_command('CharsCheck', *self.get_available_char_list())
 			self.send_command('HP', 1, self.area.hp_def)
 			self.send_command('HP', 2, self.area.hp_pro)
-			self.send_command('BN', self.area.background)
+			self.send_command('BN', self.area.background, self.pos)
 			self.send_command('LE', *self.area.get_evidence_list(self))
 
 		def send_area_list(self):

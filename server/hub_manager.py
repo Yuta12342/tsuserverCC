@@ -205,9 +205,9 @@ class HubManager:
 			new_id = client.area.hub.cur_subid
 			client.area.hub.cur_subid += 1
 		if len(arg) == 0:
-			newsub = client.server.area_manager.Area(new_id, client.server, name=f'Area {new_id}', background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
+			newsub = client.server.area_manager.Area(new_id, client.server, name=f'Area {new_id}', background='', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
 		else:
-			newsub = client.server.area_manager.Area(new_id, client.server, name=arg, background='MeetingRoom', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
+			newsub = client.server.area_manager.Area(new_id, client.server, name=arg, background='', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
 		newsub.sub = True
 		if client.area.is_hub:
 			newsub.hub = client.area
@@ -215,6 +215,7 @@ class HubManager:
 		else:
 			newsub.hub = client.area.hub
 			client.area.hub.subareas.append(newsub)
+		newsub.background = newsub.hub.background
 		newsub.cmusic_list = newsub.hub.cmusic_list
 		newsub.cmusic_listname = newsub.hub.cmusic_listname
 		if newsub.hub.name.startswith('Arcade'):
