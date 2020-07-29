@@ -86,10 +86,7 @@ def ooc_cmd_pos(client, arg):
 		client.change_position()
 		client.send_ooc('Position reset.')
 	else:
-		try:
-			client.change_position(arg)
-		except ClientError:
-			raise
+		client.change_position(arg)
 		client.area.broadcast_evidence_list()
 		client.send_ooc('Position changed.')
 

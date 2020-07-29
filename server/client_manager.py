@@ -749,10 +749,10 @@ class ClientManager:
 			Change the character's current position in the area.
 			:param pos: position in area (Default value = '')
 			"""
-			if pos == '':
-				raise ClientError(
-					'Invalid position.')
 			self.pos = pos
+			self.send_ooc(f'Position set to {pos}.')
+            self.send_command('SP', self.pos) #Send a "Set Position" packet
+            self.area.update_evidence_list(self) #Receive evidence
 
 		def set_mod_call_delay(self):
 			"""Begin the mod call cooldown."""
