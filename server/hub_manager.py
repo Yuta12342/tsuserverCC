@@ -217,9 +217,9 @@ class HubManager:
 		newsub.cmusic_list = newsub.hub.cmusic_list
 		newsub.cmusic_listname = newsub.hub.cmusic_listname
 		if newsub.hub.name.startswith('Arcade'):
-			newsub.abbreviation = f'HAS{new_id}'
+			newsub.abbreviation = f'AHS{new_id}'
 		elif newsub.hub.name.startswith('User'):
-			newsub.abbreviation = f'HUS{new_id}'
+			newsub.abbreviation = f'UHS{new_id}'
 		elif newsub.hub.name.startswith('Courtroom'):
 			newsub.abbreviation = f'CR{new_id}'
 			if len(arg) == 0:
