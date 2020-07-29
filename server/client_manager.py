@@ -251,7 +251,9 @@ class ClientManager:
 			self.char_id = char_id
 			self.pos = ''
 			self.send_command('PV', self.id, 'CID', self.char_id, switch)
+			self.send_command('SP', self.pos) #Send a "Set Position" packet
 			self.area.send_command('CharsCheck', *self.get_available_char_list())
+			self.area.update_evidence_list(self) #Receive evidence
 			new_char = self.char_name
 			database.log_room('char.change', self, self.area,
 				message={'from': old_char, 'to': new_char})
@@ -751,8 +753,8 @@ class ClientManager:
 			"""
 			self.pos = pos
 			self.send_ooc(f'Position set to {pos}.')
-            self.send_command('SP', self.pos) #Send a "Set Position" packet
-            self.area.update_evidence_list(self) #Receive evidence
+			self.send_command('SP', self.pos) #Send a "Set Position" packet
+			self.area.update_evidence_list(self) #Receive evidence
 
 		def set_mod_call_delay(self):
 			"""Begin the mod call cooldown."""
