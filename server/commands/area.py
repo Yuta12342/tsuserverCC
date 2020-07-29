@@ -46,6 +46,7 @@ __all__ = [
 	'ooc_cmd_savehub',
 	'ooc_cmd_loadhub',
 	'ooc_cmd_hubstatus',
+	'ooc_cmd_gethubs',
 	'ooc_cmd_hubview'
 ]
 
@@ -630,14 +631,19 @@ def ooc_cmd_getarea(client, arg):
 	"""
 	client.send_area_info(client.area, False)
 
-
 def ooc_cmd_getareas(client, arg):
 	"""
 	Show information about all areas.
 	Usage: /getareas
 	"""
 	client.send_area_info(client.area, True)
-
+	
+def ooc_cmd_gethubs(client, arg):
+	"""
+	Show information about all areas.
+	Usage: /getareas
+	"""
+	client.send_area_info(client.area, True, True)
 
 def ooc_cmd_lock(client, arg):
 	"""

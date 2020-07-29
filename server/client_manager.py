@@ -602,7 +602,7 @@ class ClientManager:
 			return info
 			
 
-		def send_area_info(self, area, all):
+		def send_area_info(self, area, all, hubs=False):
 			"""
 			Send information over OOC about a specific area.
 			:param area_id: area ID
@@ -635,8 +635,9 @@ class ClientManager:
 										cnt += 1
 									elif not client.ghost and not client.hidden:
 										cnt += 1
-					info += f'{self.get_area_info(a)}'
-				if area.is_hub or area.sub:
+					if not area.is_hub and not area.sub or hubs:
+						info += f'{self.get_area_info(a)}'
+				if area.is_hub and not hubs or area.sub and not hubs:
 					if area.is_hub:
 						info += f'{self.get_area_info(self.server.area_manager.default_area())}'
 						info += f'{self.get_area_info(area)}'

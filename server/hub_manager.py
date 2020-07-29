@@ -48,10 +48,11 @@ class HubManager:
 				client.send_ooc('Cannot have more than 100 areas in a hub!')
 				return
 			for item in areas:
-				if 'hub' in items:
+				if 'hub' in item:
 					client.area.background = item['background']
 					client.area.doc = item['doc']
-					client.area.cmusic_listname = item['musiclist']
+					if item['musiclist'] != '':
+						self.server.music_manager.loadlist(client.area, item['musiclist'])
 				else:
 					newsub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
 							  item['background'], bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, 
@@ -62,7 +63,7 @@ class HubManager:
 					newsub.hub = client.area
 					if 'doc' in item:
 						newsub.doc = item['doc']
-					if 'musiclist' in item:
+					if item['musiclist'] != '':
 						self.server.music_manager.loadsublist(newsub, item['musiclist'])
 					newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
 					client.area.cur_subid += 1
