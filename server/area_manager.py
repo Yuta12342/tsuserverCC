@@ -47,7 +47,14 @@ class AreaManager:
 					 shouts_allowed=True,
 					 jukebox=False,
 					 abbreviation='',
-					 non_int_pres_only=False):
+					 non_int_pres_only=False,
+					 is_hub=False):
+			self.is_hub = is_hub
+			self.hubid = 0
+			self.hub = None
+			self.subareas = []
+			self.sub = False
+			self.cur_subid = 1
 			self.iniswap_allowed = iniswap_allowed
 			self.clients = set()
 			self.invite_list = {}
@@ -79,26 +86,15 @@ class AreaManager:
 			self.music_looper = None
 			self.cards = dict()
 			self.custom_list = dict()
-			self.cmusic_list = dict()
+			self.cmusic_list = []
+			self.cmusic_listname = ''
 			self.hidden = False
 			self.password = ''
 			self.allowmusic = True
-			self.leftwit = None
-			self.rightwit = None
-			self.leftdef = None
-			self.rightdef = None
-			self.leftpro = None
-			self.rightpro = None
-			self.leftjud = None
-			self.rightjud = None
-			self.leftjur = None
-			self.rightjur = None
-			self.lefthld = None
-			self.righthld = None
-			self.lefthlp = None
-			self.righthlp = None
+			self.areapair = dict()
 			self.poslock = []
 			self.last_speaker = None
+			self.last_ooc = ''
 			
 			"""
 			#debug
@@ -125,15 +121,28 @@ class AreaManager:
 		def new_client(self, client):
 			"""Add a client to the area."""
 			self.clients.add(client)
-			self.server.area_manager.send_arup_players()
+			if self.sub:
+				if self.is_restricted:
+					self.conn_arup_players()
+				else:
+					self.hub.sub_arup_players()
+			elif self.is_hub:
+				self.sub_arup_players()
+				self.server.area_manager.send_arup_players()
+			else:
+				self.server.area_manager.send_arup_players()
 			if client.char_id != -1:
 				database.log_room('area.join', client, self)
 
 		def remove_client(self, client):
 			"""Remove a disconnected client from the area."""
 			self.clients.remove(client)
+			ap = self.areapair.copy()
+			for x in ap:
+				if ap[x].client == client:
+					self.areapair.pop(x)
 			if len(self.clients) == 0:
-				if len(self.owners) == 0:
+				if len(self.owners) == 0 and not self.is_hub:
 					self.change_status('IDLE')
 			if client.char_id != -1:
 				database.log_room('area.leave', client, self)
@@ -143,7 +152,16 @@ class AreaManager:
 			self.is_locked = self.Locked.FREE
 			self.blankposting_allowed = True
 			self.invite_list = {}
-			self.server.area_manager.send_arup_lock()
+			if self.sub:
+				if self.is_restricted:
+					self.conn_arup_lock()
+				else:
+					self.hub.sub_arup_lock()
+			elif self.is_hub:
+				self.sub_arup_lock()
+				self.server.area_manager.send_arup_lock()
+			else:
+				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is open now.')
 
 		def spectator(self):
@@ -153,7 +171,16 @@ class AreaManager:
 				self.invite_list[i.id] = None
 			for i in self.owners:
 				self.invite_list[i.id] = None
-			self.server.area_manager.send_arup_lock()
+			if self.sub:
+				if self.is_restricted:
+					self.conn_arup_lock()
+				else:
+					self.hub.sub_arup_lock()
+			elif self.is_hub:
+				self.sub_arup_lock()
+				self.server.area_manager.send_arup_lock()
+			else:
+				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is spectatable now.')
 
 		def lock(self):
@@ -163,7 +190,16 @@ class AreaManager:
 				self.invite_list[i.id] = None
 			for i in self.owners:
 				self.invite_list[i.id] = None
-			self.server.area_manager.send_arup_lock()
+			if self.sub:
+				if self.is_restricted:
+					self.conn_arup_lock()
+				else:
+					self.hub.sub_arup_lock()
+			elif self.is_hub:
+				self.sub_arup_lock()
+				self.server.area_manager.send_arup_lock()
+			else:
+				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is locked now.')
 
 		def is_char_available(self, char_id):
@@ -429,14 +465,58 @@ class AreaManager:
 			if value.lower() == 'lfp':
 				value = 'looking-for-players'
 			self.status = value.upper()
-			self.server.area_manager.send_arup_status()
-
-		def custom_status(self, value):
+			if self.sub:
+				if self.hub.name.startswith('Arcade') or self.hub.name.startswith('Courtroom'):
+					if value == 'looking-for-players':
+						self.hub.status = value.upper()
+					else:
+						lfp = False
+						idle = True
+						recess = True
+						for area in self.hub.subareas:
+							if area.status == 'LOOKING-FOR-PLAYERS':
+								lfp = True
+							if area.status != 'IDLE':
+								idle = False
+							if area.status == 'RP' or area.status == 'CASING' or area.status == 'GAMING':
+								recess = False
+						if lfp == False and not value.lower() == 'idle' and not value.lower() == 'recess':
+							self.hub.status = value.upper()
+						if value.lower() == 'idle' and idle == True:
+							self.hub.status = value.upper()
+						if value.lower() == 'recess' and recess == True:
+							self.hub.status = value.upper()
+					self.server.area_manager.send_arup_status()
+				if self.is_restricted:
+					self.conn_arup_status()
+				else:
+					self.hub.sub_arup_status()
+				
+			elif self.is_hub:
+				self.sub_arup_status()
+				self.server.area_manager.send_arup_status()
+			else:
+				self.server.area_manager.send_arup_status()
+		
+		def hub_status(self, value):
 			"""
-			Set the status of the room.
+			Set the status of all areas in a hub.
 			:param value: status code
 			"""
+			allowed_values = ('idle', 'rp', 'casing', 'looking-for-players',
+							  'lfp', 'recess', 'gaming')
+			if value.lower() not in allowed_values:
+				raise AreaError(
+					f'Invalid status. Possible values: {", ".join(allowed_values)}'
+				)
+			if value.lower() == 'lfp':
+				value = 'looking-for-players'
 			self.status = value.upper()
+			for area in self.subareas:
+				area.status = value.upper()
+				if area.is_restricted:
+					self.conn_arup_status()
+			self.sub_arup_status()
 			self.server.area_manager.send_arup_status()
 
 		def change_doc(self, doc='No document.'):
@@ -506,13 +586,171 @@ class AreaManager:
 			if len(msg) > 2:
 				msg = msg[:-2]
 			return msg
+
 		def get_mods(self):
-			mods = []
+			mods = set()
 			for client in self.clients:
 				if client.is_mod:
-					mods.append(client)
+					mods.add(client)
 			return mods
+	
+		def get_sub(self, name):
+			for area in self.subareas:
+				if area.name == name:
+					return area
+			raise AreaError('Area not found.')
+			
+		def get_music(self, client):
+			song_list = []
+			music_list = self.server.music_list
+			for item in music_list:
+				song_list.append(item['category'])
+				for song in item['songs']:
+					song_list.append(song['name'])
+			if len(self.cmusic_list) != 0:
+				for item in self.cmusic_list:
+					song_list.append(item['category'])
+					if len(item['songs']) != 0:
+						for song in item['songs']:
+							song_list.append(song['name'])
+			return song_list
 
+		def conn_arup_players(self):
+			players_list = [0]
+			lobby = self.server.area_manager.default_area()
+			players_list.append(len(lobby.clients))
+			if self.hub.hidden:
+				players_list.append(-1)
+			else:
+				players_list.append(len(self.hub.clients))
+			if self.hidden:
+				players_list.append(-1)
+			else:
+				players_list.append(len(self.clients))
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					if link.hidden:
+						players_list.append(-1)
+					else:
+						players_list.append(len(link.clients))
+			self.server.send_conn_arup(players_list, self)	
+
+		def conn_arup_status(self):
+			"""Broadcast ARUP packet containing area statuses."""
+			status_list = [1]
+			lobby = self.server.area_manager.default_area()
+			status_list.append(lobby.status)
+			status_list.append(self.hub.status)
+			status_list.append(self.status)
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					status_list.append(link.status)
+			self.server.send_conn_arup(status_list, self)
+			
+		def conn_arup_cms(self):
+			"""Broadcast ARUP packet containing area CMs."""
+			cms_list = [2]
+			lobby = self.server.area_manager.default_area()
+			if len(lobby.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(lobby.get_cms())
+			if len(self.hub.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(self.hub.get_cms())
+			if len(self.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(self.get_cms())
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					cm = 'FREE'
+					if len(link.owners) > 0:
+						cm = link.get_cms()
+					cms_list.append(cm)
+			self.server.send_conn_arup(cms_list, self)
+			
+		def conn_arup_lock(self):
+			"""Broadcast ARUP packet containing the lock status of each area."""
+			lock_list = [3]
+			lobby = self.server.area_manager.default_area()
+			lock_list.append(lobby.is_locked.name)
+			lock_list.append(self.hub.is_locked.name)
+			lock_list.append(self.is_locked.name)
+			for link in self.connections:
+				if link != lobby and link != self.hub:
+					lock_list.append(link.is_locked.name)
+			self.server.send_hub_arup(lock_list, self)
+
+		def sub_arup_players(self):
+			"""Broadcast ARUP packet containing player counts."""
+			players_list = [0]
+			lobby = self.server.area_manager.default_area()
+			players_list.append(len(lobby.clients))
+			players_list.append(len(self.clients))
+			for area in self.subareas:
+				if area.hidden == True:
+					players_list.append(-1)
+				else:
+					index = 0
+					for client in area.clients:
+						if not client.ghost and not client.hidden:
+							index += 1
+					players_list.append(index)
+			self.server.send_hub_arup(players_list, self)
+
+		def sub_arup_status(self):
+			"""Broadcast ARUP packet containing area statuses."""
+			status_list = [1]
+			lobby = self.server.area_manager.default_area()
+			status_list.append(lobby.status)
+			status_list.append(self.status)
+			for area in self.subareas:
+				status_list.append(area.status)
+			self.server.send_hub_arup(status_list, self)
+
+		def sub_arup_cms(self):
+			"""Broadcast ARUP packet containing area CMs."""
+			cms_list = [2]
+			lobby = self.server.area_manager.default_area()
+			if len(lobby.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(lobby.get_cms())
+			if len(self.owners) == 0:
+				cms_list.append('FREE')
+			else:
+				cms_list.append(self.get_cms())
+			for area in self.subareas:
+				cm = 'FREE'
+				if len(area.owners) > 0:
+					cm = area.get_cms()
+				cms_list.append(cm)
+			self.server.send_hub_arup(cms_list, self)
+
+		def sub_arup_lock(self):
+			"""Broadcast ARUP packet containing the lock status of each area."""
+			lock_list = [3]
+			lobby = self.server.area_manager.default_area()
+			lock_list.append(lobby.is_locked.name)
+			lock_list.append(self.is_locked.name)
+			for area in self.subareas:
+				lock_list.append(area.is_locked.name)
+			self.server.send_hub_arup(lock_list, self)
+
+		def broadcast_hub(self, client, msg):
+			char_name = client.char_name
+			ooc_name = '{}[{}][{}]'.format('<dollar>H', client.area.abbreviation, char_name)
+			if client.area.sub:
+				if client in client.area.hub.owners:
+					ooc_name += '[CM]'
+				self.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area.hub.subareas)
+			else:
+				if client in client.area.owners:
+					ooc_name += '[CM]'
+				self.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area.subareas)
+		
 		class JukeboxVote:
 			"""Represents a single vote cast for the jukebox."""
 			def __init__(self, client, name, length, showname):
@@ -549,6 +787,8 @@ class AreaManager:
 				item['noninterrupting_pres'] = False
 			if 'abbreviation' not in item:
 				item['abbreviation'] = self.abbreviate(item['area'])
+			if 'is_hub' not in item:
+				item['is_hub'] = False
 			self.areas.append(
 				self.Area(self.cur_id, self.server, item['area'],
 						  item['background'], item['bglock'],
@@ -556,7 +796,7 @@ class AreaManager:
 						  item['iniswap_allowed'],
 						  item['showname_changes_allowed'],
 						  item['shouts_allowed'], item['jukebox'],
-						  item['abbreviation'], item['noninterrupting_pres']))
+						  item['abbreviation'], item['noninterrupting_pres'], item['is_hub']))
 			self.cur_id += 1
 
 	def default_area(self):
@@ -568,6 +808,21 @@ class AreaManager:
 		for area in self.areas:
 			if area.name == name:
 				return area
+			if area.is_hub:
+				for sub in area.subareas:
+					if sub.name == name:
+						return sub
+		raise AreaError('Area not found.')
+	
+	def get_area_by_abbreviation(self, abbreviation):
+		"""Get an area by name."""
+		for area in self.areas:
+			if area.abbreviation == abbreviation:
+				return area
+			if area.is_hub:
+				for sub in area.subareas:
+					if sub.abbreviation == abbreviation:
+						return sub
 		raise AreaError('Area not found.')
 
 	def get_area_by_id(self, num):
@@ -590,7 +845,7 @@ class AreaManager:
 		else:
 			return name.upper()
 
-	def send_remote_command(self, area_ids, cmd, *args):
+	def send_remote_command(self, areas, cmd, *args):
 		"""
 		Broadcast an AO-compatible command to a specified
 		list of areas and their owners.
@@ -598,11 +853,11 @@ class AreaManager:
 		:param cmd: command name
 		:param *args: command arguments
 		"""
-		for a_id in area_ids:
-			self.get_area_by_id(a_id).send_command(cmd, *args)
-			self.get_area_by_id(a_id).send_owner_command(cmd, *args)
+		for area in areas:
+			area.send_command(cmd, *args)
+			area.send_owner_command(cmd, *args)
 
-	def send_arup_players(self):
+	def send_arup_players(self, client=None):
 		"""Broadcast ARUP packet containing player counts."""
 		players_list = [0]
 		for area in self.areas:
@@ -613,17 +868,22 @@ class AreaManager:
 				for client in area.clients:
 					if not client.ghost and not client.hidden:
 						index += 1
+				if area.is_hub:
+					for sub in area.subareas:
+						for client in sub.clients:
+							if not client.ghost and not client.hidden:
+								index += 1
 				players_list.append(index)
-		self.server.send_arup(players_list)
+		self.server.send_arup(players_list, client)
 
-	def send_arup_status(self):
+	def send_arup_status(self, client=None):
 		"""Broadcast ARUP packet containing area statuses."""
 		status_list = [1]
 		for area in self.areas:
 			status_list.append(area.status)
-		self.server.send_arup(status_list)
+		self.server.send_arup(status_list, client)
 
-	def send_arup_cms(self):
+	def send_arup_cms(self, client=None):
 		"""Broadcast ARUP packet containing area CMs."""
 		cms_list = [2]
 		for area in self.areas:
@@ -631,17 +891,20 @@ class AreaManager:
 			if len(area.owners) > 0:
 				cm = area.get_cms()
 			cms_list.append(cm)
-		self.server.send_arup(cms_list)
+		self.server.send_arup(cms_list, client)
 
-	def send_arup_lock(self):
+	def send_arup_lock(self, client=None):
 		"""Broadcast ARUP packet containing the lock status of each area."""
 		lock_list = [3]
 		for area in self.areas:
 			lock_list.append(area.is_locked.name)
-		self.server.send_arup(lock_list)
+		self.server.send_arup(lock_list, client)
 		
 	def mods_online(self):
 		num = 0
 		for area in self.areas:
 			num += len(area.get_mods())
+			if area.hub and len(area.subareas) > 0:
+				for sub in area.subareas:
+					num += len(area.get_mods())
 		return num

@@ -491,16 +491,19 @@ class AOProtocol(asyncio.Protocol):
 					return
 				text = ' '.join(part[2:])
 			except ValueError:
-				self.client.send_ooc(
-					"That does not look like a valid area ID!")
+				self.client.send_ooc("That does not look like a valid area ID!")
 				return
 		elif text.startswith('/s '):
 			part = text.split(' ')
 			for a in self.server.area_manager.areas:
+				if a.is_hub:
+					for sub in a.subareas:
+						if self.client in sub.owners:
+							target_area.append(sub)
 				if self.client in a.owners:
-					target_area.append(a.id)
+					target_area.append(a)
 			if not target_area:
-				self.client.send_ooc('You don\'t any areas!')
+				self.client.send_ooc('You aren\'t CMing any areas!')
 				return
 			text = ' '.join(part[1:])
 		if msg_type not in ('chat', '0', '1'):
@@ -549,25 +552,12 @@ class AOProtocol(asyncio.Protocol):
 		if color == 2 and not (self.client.is_mod
 							   or self.client in self.client.area.owners):
 			color = 0
-		if color == 6:
-			text = re.sub(r'[^\x00-\x7F]+', ' ',
-						  text)	 # remove all unicode to prevent redtext abuse
-			if len(text.strip(' ')) == 1:
-				color = 0
-			else:
-				if text.strip(' ') in ('<num>', '<percent>', '<dollar>',
-									   '<and>'):
-					color = 0
-		if self.client.pos:
-			pos = self.client.pos
-		else:
-			if pos not in ('def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur',
-						   'sea'):
-				return
+		if pos != self.client.pos:
+			self.client.pos = pos
 		if not len(self.client.area.poslock) == 0:
 			if pos not in self.client.area.poslock:
-				self.client.send_ooc('Your current position is locked, try using a different one. Check /poslock for available positions')
-				return
+				pos = self.client.area.poslock[0]
+				self.client.send_ooc(f'Your pos isn\'t in /poslock, falling back on {pos}. Please switch to a pos in /poslock!')
 		msg = self.dezalgo(text)[:256]
 		if self.client.shaken:
 			msg = self.client.shake_message(msg)
@@ -575,13 +565,24 @@ class AOProtocol(asyncio.Protocol):
 			msg = self.client.gimp_message(msg)
 		if self.client.disemvowel:
 			msg = self.client.disemvowel_message(msg)
-		self.client.pos = pos
 		if evidence:
 			if self.client.area.evi_list.evidences[
 					self.client.evi_list[evidence] - 1].pos != 'all':
 				self.client.area.evi_list.evidences[
 					self.client.evi_list[evidence] - 1].pos = 'all'
 				self.client.area.broadcast_evidence_list()
+		if msg.lstrip().startswith('(('):
+			msg = msg.lstrip()
+			msg = msg.replace('((', '')
+			msg = msg.replace('))', '')
+			name = self.client.name
+			if name == '':
+				name = self.client.char_name
+			if not msg == self.client.area.last_ooc:
+				self.client.area.send_command('CT', name, msg)
+				self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + name, msg)
+				self.client.area.last_ooc = msg
+			return
 
 		# Here, we check the pair stuff, and save info about it to the client.
 		# Notably, while we only get a charid_pair and an offset, we send back a chair_pair, an emote, a talker offset
@@ -733,801 +734,41 @@ class AOProtocol(asyncio.Protocol):
 	#	   msg = msg[1:]
 		if msg == '	 ':
 			msg = msg[2:]
-		if self.client.offset != 0 and not confirmed and self.client.areapair == 'middle':
-			offset_pair = self.client.offset
-			other_offset = 0
-			other_emote = '../../background/AADetentionCenter/defensedesk'
-			other_flip = flip
-			other_folder = folder
-			charid_pair = cid
 		if self.client.areapair != 'middle' and not confirmed:
+			ap = self.client.area.areapair
+			apdupe = ap.copy()
 			if self.client.areapair == 'left':
-				if pos == 'wit':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.leftwit = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.rightwit is None:
-						offset_pair = -25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = -25
-						other_offset = 25
-						other_emote = self.client.area.rightwit.anim
-						other_flip = self.client.area.rightwit.flip
-						other_folder = self.client.area.rightwit.folder
-						charid_pair = self.client.area.rightwit.cid
-				elif pos == 'def':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.leftdef = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.rightdef is None:
-						offset_pair = -25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = -25
-						other_offset = 25
-						other_emote = self.client.area.rightdef.anim
-						other_flip = self.client.area.rightdef.flip
-						other_folder = self.client.area.rightdef.folder
-						charid_pair = self.client.area.rightdef.cid
-				elif pos == 'pro':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.leftpro = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.rightpro is None:
-						offset_pair = -25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = -25
-						other_offset = 25
-						other_emote = self.client.area.rightpro.anim
-						other_flip = self.client.area.rightpro.flip
-						other_folder = self.client.area.rightpro.folder
-						charid_pair = self.client.area.rightpro.cid
-				elif pos == 'jud':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.leftjud = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.rightjud is None:
-						offset_pair = -25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = -25
-						other_offset = 25
-						other_emote = self.client.area.rightjud.anim
-						other_flip = self.client.area.rightjud.flip
-						other_folder = self.client.area.rightjud.folder
-						charid_pair = self.client.area.rightjud.cid
-				elif pos == 'jur':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.leftjur = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.rightjur is None:
-						offset_pair = -25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = -25
-						other_offset = 25
-						other_emote = self.client.area.rightjur.anim
-						other_flip = self.client.area.rightjur.flip
-						other_folder = self.client.area.rightjur.folder
-						charid_pair = self.client.area.rightjur.cid
-				elif pos == 'hlp':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					self.client.area.lefthlp = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.righthlp is None:
-						offset_pair = -25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = -25
-						other_offset = 25
-						other_emote = self.client.area.righthlp.anim
-						other_flip = self.client.area.righthlp.flip
-						other_folder = self.client.area.righthlp.folder
-						charid_pair = self.client.area.righthlp.cid
-				elif pos == 'hld':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.lefthld = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.righthld is None:
-						offset_pair = -25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = -25
-						other_offset = 25
-						other_emote = self.client.area.righthld.anim
-						other_flip = self.client.area.righthld.flip
-						other_folder = self.client.area.righthld.folder
-						charid_pair = self.client.area.righthld.cid
+				ap[f'left-{pos}'] = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
+				if f'right-{pos}' in ap:
+					right = ap[f'right-{pos}']
+					offset_pair = -25
+					other_offset = 25
+					other_emote = right.anim
+					other_flip = right.flip
+					other_folder = right.folder
+					charid_pair = right.cid
+				else:
+					offset_pair = -25
+				for x in apdupe:
+					if apdupe[x].client == self.client:
+						ap.pop(x)
 			else:
-				if pos == 'wit':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
+				ap[f'right-{pos}'] = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
+				if f'left-{pos}' in ap:
+					left = ap[f'left-{pos}']
+					offset_pair = 25
+					other_offset = -25
+					other_emote = left.anim
+					other_flip = left.flip
+					other_folder = left.folder
+					charid_pair = left.cid
+				else:
+					offset_pair = 25
+				for x in apdupe:
+					if apdupe[x].client == self.client:
+						ap.pop(x)
+				
 
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.rightwit = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.leftwit is None:
-						offset_pair = 25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = 25
-						other_offset = -25
-						other_emote = self.client.area.leftwit.anim
-						other_flip = self.client.area.leftwit.flip
-						other_folder = self.client.area.leftwit.folder
-						charid_pair = self.client.area.leftwit.cid
-				elif pos == 'def':
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.rightdef = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.leftdef is None:
-						offset_pair = 25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = 25
-						other_offset = -25
-						other_emote = self.client.area.leftdef.anim
-						other_flip = self.client.area.leftdef.flip
-						other_folder = self.client.area.leftdef.folder
-						charid_pair = self.client.area.leftdef.cid
-				elif pos == 'pro':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.rightpro = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.leftpro is None:
-						offset_pair = 25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = 25
-						other_offset = -25
-						other_emote = self.client.area.leftpro.anim
-						other_flip = self.client.area.leftpro.flip
-						other_folder = self.client.area.leftpro.folder
-						charid_pair = self.client.area.leftpro.cid
-				elif pos == 'jud':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.rightjud = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.leftjud is None:
-						offset_pair = 25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = 25
-						other_offset = -25
-						other_emote = self.client.area.leftjud.anim
-						other_flip = self.client.area.leftjud.flip
-						other_folder = self.client.area.leftjud.folder
-						charid_pair = self.client.area.leftjud.cid
-				elif pos == 'jur':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.rightjur = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.leftjur is None:
-						offset_pair = 25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = 25
-						other_offset = -25
-						other_emote = self.client.area.leftjur.anim
-						other_flip = self.client.area.leftjur.flip
-						other_folder = self.client.area.leftjur.folder
-						charid_pair = self.client.area.leftjur.cid
-				elif pos == 'hlp':
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthld != None:
-						if self.client.area.righthld.client == self.client:
-							self.client.area.righthld = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-					self.client.area.righthlp = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.lefthlp is None:
-						offset_pair = 25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = 25
-						other_offset = -25
-						other_emote = self.client.area.lefthlp.anim
-						other_flip = self.client.area.lefthlp.flip
-						other_folder = self.client.area.lefthlp.folder
-						charid_pair = self.client.area.lefthlp.cid
-				elif pos == 'hld':
-					self.client.area.righthld = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if self.client.area.lefthld is None:
-						offset_pair = 25
-						other_offset = 0
-						other_emote = '../../background/AADetentionCenter/defensedesk'
-						other_flip = flip
-						other_folder = folder
-						charid_pair = cid
-					else:
-						offset_pair = 25
-						other_offset = -25
-						other_emote = self.client.area.lefthld.anim
-						other_flip = self.client.area.lefthld.flip
-						other_folder = self.client.area.lefthld.folder
-						charid_pair = self.client.area.lefthld.cid
-					if self.client.area.rightdef != None:
-						if self.client.area.rightdef.client == self.client:
-							self.client.area.rightdef = None
-					if self.client.area.rightwit != None:
-						if self.client.area.rightwit.client == self.client:
-							self.client.area.rightwit = None
-					if self.client.area.rightpro != None:
-						if self.client.area.rightpro.client == self.client:
-							self.client.area.rightpro = None
-					if self.client.area.rightjud != None:
-						if self.client.area.rightjud.client == self.client:
-							self.client.area.rightjud = None
-					if self.client.area.rightjur != None:
-						if self.client.area.rightjur.client == self.client:
-							self.client.area.rightjur = None
-					if self.client.area.righthlp != None:
-						if self.client.area.righthlp.client == self.client:
-							self.client.area.righthlp = None
-
-					if self.client.area.leftdef != None:
-						if self.client.area.leftdef.client == self.client:
-							self.client.area.leftdef = None
-					if self.client.area.leftwit != None:
-						if self.client.area.leftwit.client == self.client:
-							self.client.area.leftwit = None
-					if self.client.area.leftpro != None:
-						if self.client.area.leftpro.client == self.client:
-							self.client.area.leftpro = None
-					if self.client.area.leftjud != None:
-						if self.client.area.leftjud.client == self.client:
-							self.client.area.leftjud = None
-					if self.client.area.leftjur != None:
-						if self.client.area.leftjur.client == self.client:
-							self.client.area.leftjur = None
-					if self.client.area.lefthld != None:
-						if self.client.area.lefthld.client == self.client:
-							self.client.area.lefthld = None
-					if self.client.area.lefthlp != None:
-						if self.client.area.lefthlp.client == self.client:
-							self.client.area.lefthlp = None
-		
 		playback = False
 		if msg == '>':
 			if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
@@ -1696,8 +937,6 @@ class AOProtocol(asyncio.Protocol):
 					if msg != '' and msg != ' ':
 						database.log_ic(self.client, self.client.area, showname, msg)
 
-				self.client.area.set_next_msg_delay(len(msg))
-
 	def net_cmd_ct(self, args):
 		"""OOC Message
 		
@@ -1730,9 +969,7 @@ class AOProtocol(asyncio.Protocol):
 				self.client.send_ooc(
 					'You cannot use format characters in your name!')
 				return
-		if self.client.name.startswith(
-				self.server.config['hostname']) or self.client.name.startswith(
-					'<dollar>G') or self.client.name.startswith('<dollar>M'):
+		if self.client.name.startswith(self.server.config['hostname']) or self.client.name.startswith('<dollar>G') or self.client.name.startswith('<dollar>M'):
 			self.client.send_ooc('That name is reserved!')
 			return
 		if args[1].startswith(' /'):
@@ -1777,10 +1014,7 @@ class AOProtocol(asyncio.Protocol):
 			if self.client.disemvowel:
 				args[1] = self.client.disemvowel_message(args[1])
 			self.client.area.send_command('CT', self.client.name, args[1])
-			self.client.area.send_owner_command(
-				'CT',
-				'[' + self.client.area.abbreviation + ']' + self.client.name,
-				args[1])
+			self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + self.client.name, args[1])
 			database.log_room('ooc', self.client, self.client.area, message=args[1])
 
 	def net_cmd_mc(self, args):
@@ -1795,76 +1029,96 @@ class AOProtocol(asyncio.Protocol):
 			area = self.server.area_manager.get_area_by_name(args[0])
 			self.client.change_area(area)
 		except AreaError:
-			if self.client.is_muted:  # Checks to see if the client has been muted by a mod
-				self.client.send_ooc(
-					'You are muted by a moderator.')
-				return
-			if not self.client.is_dj:
-				self.client.send_ooc(
-					"You were blockdj'd by a moderator.")
-				return
-			if self.client.area.cannot_ic_interact(self.client):
-				self.client.send_ooc("You are not on the area's invite list, and thus, you cannot change music!")
-				return
-			if not self.client.area.allowmusic and self.client not in self.client.area.owners:
-				self.client.send_ooc('The CM has disallowed music changes, ask them to change the music.')
-				return
-			if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT):
-				if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
-					if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT):
-						if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, self.ArgType.INT):
-							return
-			if args[1] != self.client.char_id:
-				return
-			if self.client.change_music_cd():
-				self.client.send_ooc(
-					'You changed song too many times. Please try again after {} seconds.'
-					.format(int(self.client.change_music_cd())))
-				return
 			try:
-				name, length, mod = self.server.get_song_data(args[0])
-				if not mod == -1:
-					if not self.client.is_mod:
-						self.client.send_host_message("This song is reserved for moderators.")
-						return
-
-				if self.client.area.jukebox:
-					showname = ''
-					if len(args) > 2:
-						showname = args[2]
-						if len(
-								showname
-						) > 0 and not self.client.area.showname_changes_allowed:
-							self.client.send_ooc(
-								"Showname changes are forbidden in this area!")
-							return
-					self.client.area.add_jukebox_vote(self.client, name,
-													  length, showname)
-					database.log_room('jukebox.vote', self.client, self.client.area, message=name)
-				else:
-					if len(args) > 2:
-						showname = args[2]
-						if len(
-								showname
-						) > 0 and not self.client.area.showname_changes_allowed:
-							self.client.send_ooc(
-								"Showname changes are forbidden in this area!")
-							return
-					# Effects info
-					effects = 0
-					if len(args) > 3:
-						effects = int(args[3])
-						self.client.area.play_music_shownamed(
-							name, self.client.char_id, showname, length, effects)
-						self.client.area.add_music_playing_shownamed(
-							self.client, showname, name)
+				area = self.client.area.get_sub(args[0])
+				self.client.change_area(area)
+			except AreaError:
+				try:
+					if self.client.area.sub:
+						area = self.client.area.hub.get_sub(args[0])
+						self.client.change_area(area)
 					else:
-						self.client.area.play_music(name, self.client.char_id,
-													length)
-						self.client.area.add_music_playing(self.client, name)
-					database.log_room('music', self.client, self.client.area, message=name)
-			except ServerError:
-				return
+						area = self.server.area_manager.get_area_by_name(args[0])
+						self.client.change_area(area)
+				except AreaError:
+					if self.client.is_muted:  # Checks to see if the client has been muted by a mod
+						self.client.send_ooc(
+							'You are muted by a moderator.')
+						return
+					if not self.client.is_dj:
+						self.client.send_ooc(
+							"You were blockdj'd by a moderator.")
+						return
+					if self.client.area.cannot_ic_interact(self.client):
+						self.client.send_ooc("You are not on the area's invite list, and thus, you cannot change music!")
+						return
+					if not self.client.area.allowmusic and self.client not in self.client.area.owners:
+						self.client.send_ooc('The CM has disallowed music changes, ask them to change the music.')
+						return
+					if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT):
+						if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY):
+							if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT):
+								if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, self.ArgType.INT, self.ArgType.INT):
+									return
+					if args[1] != self.client.char_id:
+						return
+					if self.client.change_music_cd():
+						self.client.send_ooc(
+							'You changed song too many times. Please try again after {} seconds.'
+							.format(int(self.client.change_music_cd())))
+						return
+					try:
+						name, length, mod, custom = self.server.get_song_data(args[0], self.client.area)
+						if not mod == -1:
+							if not self.client.is_mod:
+								self.client.send_host_message("This song is reserved for moderators.")
+								return
+
+						if self.client.area.jukebox:
+							showname = ''
+							if len(args) > 2:
+								showname = args[2]
+								if len(
+										showname
+								) > 0 and not self.client.area.showname_changes_allowed:
+									self.client.send_ooc(
+										"Showname changes are forbidden in this area!")
+									return
+							self.client.area.add_jukebox_vote(self.client, name,
+															  length, showname)
+							database.log_room('jukebox.vote', self.client, self.client.area, message=name)
+						else:
+							if len(args) > 2:
+								showname = args[2]
+								if len(
+										showname
+								) > 0 and not self.client.area.showname_changes_allowed:
+									self.client.send_ooc(
+										"Showname changes are forbidden in this area!")
+									return
+							# Effects info
+							effects = 0
+							if custom:
+								nname = name
+								name = 'custom/'
+								name += nname
+							if len(args) > 3:
+								effects = int(args[3])
+								self.client.area.play_music_shownamed(
+									name, self.client.char_id, showname, length, effects)
+								self.client.area.add_music_playing_shownamed(
+									self.client, showname, name)
+							else:
+								self.client.area.play_music(name, self.client.char_id,
+															length)
+								self.client.area.add_music_playing(self.client, name)
+							database.log_room('music', self.client, self.client.area, message=name)
+					except ServerError:
+						return
+				except ClientError as ex:
+					self.client.send_ooc(ex)
+			except ClientError as ex:
+				self.client.send_ooc(ex)
 		except ClientError as ex:
 			self.client.send_ooc(ex)
 
@@ -2080,24 +1334,24 @@ class AOProtocol(asyncio.Protocol):
 		if len(args) < 1:
 			self.server.send_all_cmd_pred(
 				'ZZ',
-				'[{}] {} ({}) in {} without reason (not using 2.6?)'.format(
+				'[{}] {} ({}) in [{}]{} without reason (not using 2.6?)'.format(
 					current_time, self.client.char_name,
-					self.client.ip, self.client.area.name),
+					self.client.ip, self.client.area.abbreviation, self.client.area.name),
 				pred=lambda c: c.is_mod)
 			self.client.set_mod_call_delay()
 			database.log_room('modcall', self.client, self.client.area)
-			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area.name)
+			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area)
 		else:
 			self.server.send_all_cmd_pred(
 				'ZZ',
-				'[{}] {} ({}) in {} with reason: {}'.format(
+				'[{}] {} ({}) in [{}]{} with reason: {}'.format(
 					current_time, self.client.char_name,
-					self.client.ip, self.client.area.name,
+					self.client.ip, self.client.area.abbreviation, self.client.area.name,
 					args[0][:100]),
 				pred=lambda c: c.is_mod)
 			self.client.set_mod_call_delay()
 			database.log_room('modcall', self.client, self.client.area, message=args[0])
-			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area.name, reason=args[0][:100])
+			w.modcall(char=self.client.char_name, ipid=self.client.ip, area=self.client.area, reason=args[0][:100])
 
 	def net_cmd_opKICK(self, args):
 		"""

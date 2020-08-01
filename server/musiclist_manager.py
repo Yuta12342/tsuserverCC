@@ -22,31 +22,56 @@ import logging
 import yaml
 
 class MusicListManager:
-    """
-    Handles storing and loading custom music lists for areas.
-    """
-    def __init__(self, server):
-        self.server = server
+	"""
+	Handles storing and loading custom music lists for areas.
+	"""
+	def __init__(self, server):
+		self.server = server
 
-    def loadlist(self, client, arg):
-        listname = f'storage/musiclist/{arg}.yaml'
-        new = not os.path.exists(listname)
-        if new:
-            client.send_ooc('No music list with that name found.')
-            return
-        else:
-            client.area.cmusic_list = dict()
-            with open(listname, 'r', encoding='utf-8') as file:
-                list = yaml.safe_load(file)
-                for name, length in list.items():
-                    client.area.cmusic_list[name] = length
-            client.area.broadcast_ooc(f'Music list {arg} loaded!')
+	def loadlist(self, client, arg):
+		listname = f'storage/musiclist/{arg}.yaml'
+		new = not os.path.exists(listname)
+		if new:
+			client.send_ooc('No music list with that name found.')
+			return
+		else:
+			client.area.cmusic_list = []
+			with open(listname, 'r', encoding='utf-8') as chars:
+				list = yaml.safe_load(chars)
+			client.area.broadcast_ooc(f'Music list {arg} loaded!')
+			client.area.cmusic_listname = arg
+			client.area.cmusic_list = list
+			music = client.area.get_music(client)
+			if client.area.is_hub:
+				client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area or x.area.hub == client.area)
+				for sub in client.area.subareas:
+					sub.cmusic_listname = arg
+					sub.cmusic_list = list
+			else:
+				client.server.send_all_cmd_pred('FM', *music, pred=lambda x: x.area == client.area)
 
-    def storelist(self, client, arg):
-        listname = f'storage/musiclist/{arg}.yaml'
-        new = not os.path.exists(listname)
-        if not new:
-            os.remove(listname)
-        with open(listname, 'w', encoding='utf-8') as list:
-            yaml.dump(client.area.cmusic_list, list)
-        client.send_ooc(f'Music list {arg} stored!')
+		
+	def loadsublist(self, area, arg):
+		listname = f'storage/musiclist/{arg}.yaml'
+		new = not os.path.exists(listname)
+		if new:
+			return
+		else:
+			client.area.cmusic_list = []
+			with open(listname, 'r', encoding='utf-8') as chars:
+				list = yaml.safe_load(chars)
+			client.area.cmusic_listname = arg
+			client.area.cmusic_list = list
+
+	def storelist(self, client, arg):
+		listname = f'storage/musiclist/{arg}.yaml'
+		new = not os.path.exists(listname)
+		if not new:
+			os.remove(listname)
+		with open(listname, 'w', encoding='utf-8') as list:
+			yaml.dump(client.area.cmusic_list, list)
+		client.send_ooc(f'Music list {arg} stored!')
+		client.area.cmusic_listname = arg
+		if client.area.is_hub:
+			for sub in client.area.subareas:
+				sub.cmusic_listname = arg
