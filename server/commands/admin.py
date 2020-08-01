@@ -3,6 +3,7 @@ import shlex
 import arrow
 import pytimeparse
 
+from heapq import heappop, heappush
 from server import database
 from server.webhooks import Webhooks
 from server.constants import TargetType
@@ -38,8 +39,20 @@ __all__ = [
 	'ooc_cmd_serverpoll',
 	'ooc_cmd_clearserverpoll',
 	'ooc_cmd_allowmusic',
-	'ooc_cmd_ghost'
+	'ooc_cmd_ghost',
+	'ooc_cmd_remclient'
 ]
+
+def ooc_cmd_remclient(client, arg):
+	if not client.is_mod:
+		raise ArgumentError('You must be authorized to do that.')
+	rem = ''
+	for c in client.server.client_manager.clients:
+		if c.name == arg:
+			rem = c
+	if rem != '':
+		heappush(client.server.client_manager.cur_id, rem.id)
+		client.server.client_manager.clients.remove(rem)
 
 def ooc_cmd_allowmusic(client, arg):
 	if client not in client.area.owners and not client.is_mod:
@@ -501,9 +514,11 @@ def ooc_cmd_mods(client, arg):
 				add += f'\n=== {area.name} ===\n[{area.abbreviation}]: [{len(area.clients)} Users][{area.status}]'
 				for mod in modshere:
 					mods.add(mod)
-					add += f'\n[[{mod.id}] {mod.char_name} ({mod.ipid}): {mod.name}'
-			if area.hub and len(area.subareas) > 0:
+					add += f'\n[{mod.id}] {mod.char_name} ({mod.ipid}): {mod.name}'
+			if area.is_hub and len(area.subareas) > 0:
 				for sub in area.subareas:
+					if len(modshere) == 0 and len(sub.get_mods()) > 0:
+						add += f'\n=== {area.name} ===\n[{area.abbreviation}]: [{len(area.clients)} Users][{area.status}]'
 					mods.add(sub.get_mods())
 		info = f'Mods online: {len(mods)}'
 		info += add

@@ -208,13 +208,15 @@ def ooc_cmd_pm(client, arg):
 	msg = None
 	if len(args) < 2:
 		raise ArgumentError('Not enough arguments. use /pm <target> <message>. Target should be ID, OOC-name or char-name. Use /getarea for getting info like "[ID] char-name".')
-	targets = client.server.client_manager.get_targets(client, TargetType.ID, int(args[0]), False)
-	key = TargetType.ID
-	if len(targets) == 0:
-		targets = client.server.client_manager.get_targets(client, TargetType.OOC_NAME, arg, True)
-		key = TargetType.OOC_NAME
-	if len(targets) == 0:
-		raise ArgumentError('No targets found.')
+	try:
+		targets = client.server.client_manager.get_targets(client, TargetType.ID, int(args[0]), False)
+		key = TargetType.ID
+	except:
+		try:
+			targets = client.server.client_manager.get_targets(client, TargetType.OOC_NAME, args[0], True)
+			key = TargetType.OOC_NAME
+		except:
+			raise ArgumentError('No targets found.')
 	try:
 		if key == TargetType.ID:
 			msg = ' '.join(args[1:])

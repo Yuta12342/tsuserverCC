@@ -866,7 +866,7 @@ class ClientManager:
 			c.followers.remove(client)
 			c.send_ooc(f'{client.char_name} disconnected and is no longer following you.')
 		for b in client.followers:
-			b.following.remove(self)
+			b.following.remove(client)
 			b.is_following = False
 			b.send_ooc(f'{client.char_name} disconnected. Unfollowing.')
 		if client.in_party:
