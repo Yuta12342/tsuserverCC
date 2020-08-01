@@ -408,7 +408,7 @@ def ooc_cmd_area(client, arg):
 		return
 	if len(args) == 1:
 		try:
-			area = client.server.area_manager.get_area_by_name(args)
+			area = client.server.area_manager.get_area_by_name(args, client)
 			client.change_area(area)
 		except:
 			try:
@@ -426,10 +426,10 @@ def ooc_cmd_area(client, arg):
 			fullname += args[index]
 			index += 1
 		try:
-			area = client.server.area_manager.get_area_by_name(args)
+			area = client.server.area_manager.get_area_by_name(args, client)
 		except:
 			try:
-				area = client.server.area_manager.get_area_by_name(fullname)
+				area = client.server.area_manager.get_area_by_name(fullname, client)
 			except:
 				try:
 					area = client.server.area_manager.get_area_by_abbreviation(args[0])

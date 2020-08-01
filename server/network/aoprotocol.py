@@ -1026,7 +1026,7 @@ class AOProtocol(asyncio.Protocol):
 		if not self.client.is_checked:
 			return
 		try:
-			area = self.server.area_manager.get_area_by_name(args[0])
+			area = self.server.area_manager.get_area_by_name(args[0], self.client)
 			self.client.change_area(area)
 		except AreaError:
 			try:
@@ -1038,7 +1038,7 @@ class AOProtocol(asyncio.Protocol):
 						area = self.client.area.hub.get_sub(args[0])
 						self.client.change_area(area)
 					else:
-						area = self.server.area_manager.get_area_by_name(args[0])
+						area = self.server.area_manager.get_area_by_name(args[0], self.client)
 						self.client.change_area(area)
 				except AreaError:
 					if self.client.is_muted:  # Checks to see if the client has been muted by a mod

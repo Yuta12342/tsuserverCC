@@ -806,15 +806,17 @@ class AreaManager:
 		"""Get the default area."""
 		return self.areas[0]
 
-	def get_area_by_name(self, name):
+	def get_area_by_name(self, name, client=None):
 		"""Get an area by name."""
 		for area in self.areas:
 			if area.name == name:
 				return area
 			if area.is_hub:
-				for sub in area.subareas:
-					if sub.name == name:
-						return sub
+				if client != None:
+					if client.area == area or client.area.hub == area:
+						for sub in area.subareas:
+							if sub.name == name:
+								return sub
 		raise AreaError('Area not found.')
 	
 	def get_area_by_abbreviation(self, abbreviation):
