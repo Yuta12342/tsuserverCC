@@ -221,10 +221,7 @@ class TsuServerCC:
 	@property
 	def player_count(self):
 		"""Get the number of non-spectating clients."""
-		cnt = 0
-		for area in self.area_manager.areas:
-			for client in area.clients:
-				cnt += 1
+		cnt = len(self.client_manager.clients)
 		return cnt
 
 	def load_config(self):
