@@ -519,7 +519,9 @@ def ooc_cmd_mods(client, arg):
 				for sub in area.subareas:
 					if len(modshere) == 0 and len(sub.get_mods()) > 0:
 						add += f'\n=== {area.name} ===\n[{area.abbreviation}]: [{len(area.clients)} Users][{area.status}]'
-					mods.add(sub.get_mods())
+					for mod in sub.get_mods():
+						mods.add(mod)
+						add += f'\n[{mod.id}] {mod.char_name} ({mod.ipid}): {mod.name}'
 		info = f'Mods online: {len(mods)}'
 		info += add
 		client.send_ooc(info)
