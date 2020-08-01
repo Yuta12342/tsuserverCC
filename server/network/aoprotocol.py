@@ -1036,7 +1036,10 @@ class AOProtocol(asyncio.Protocol):
 				try:
 					if self.client.area.sub:
 						area = self.client.area.hub.get_sub(args[0])
-					self.client.change_area(area)
+						self.client.change_area(area)
+					else:
+						area = self.server.area_manager.get_area_by_name(args[0])
+						self.client.change_area(area)
 				except AreaError:
 					if self.client.is_muted:  # Checks to see if the client has been muted by a mod
 						self.client.send_ooc(

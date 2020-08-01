@@ -87,7 +87,6 @@ class ClientManager:
 			self.friendlist = None
 			self.friendrequests = set()
 			self.areapair = 'middle'
-			self.hubview = False
 			
 
 			# Pairing stuff
@@ -253,7 +252,6 @@ class ClientManager:
 			self.send_command('PV', self.id, 'CID', self.char_id, switch)
 			self.send_command('SP', self.pos) #Send a "Set Position" packet
 			self.area.send_command('CharsCheck', *self.get_available_char_list())
-			self.area.update_evidence_list(self) #Receive evidence
 			new_char = self.char_name
 			database.log_room('char.change', self, self.area,
 				message={'from': old_char, 'to': new_char})
@@ -416,8 +414,6 @@ class ClientManager:
 				self.send_ooc(
 					f'Character taken, switched to {self.char_name}.')
 
-			self.hubview = False
-
 			self.area.remove_client(self)
 			self.area = area
 
@@ -436,9 +432,9 @@ class ClientManager:
 				area_list.append(area.name)
 				for a in self.area.subareas:
 					area_list.append(a.name)
-				self.area.sub_arup_cms(self)
-				self.area.sub_arup_status(self)
-				self.area.sub_arup_lock(self)
+				self.area.sub_arup_cms()
+				self.area.sub_arup_status()
+				self.area.sub_arup_lock()
 				self.send_command('FA', *area_list)
 			if old_area.is_hub or old_area.sub:
 				if not self.area.sub and not self.area.is_hub:
@@ -446,9 +442,9 @@ class ClientManager:
 					for a in self.server.area_manager.areas:
 						area_list.append(a.name)
 					self.send_command('FA', *area_list)
-					self.server.area_manager.send_arup_cms(self)
-					self.server.area_manager.send_arup_status(self)
-					self.server.area_manager.send_arup_lock(self)
+					self.server.area_manager.send_arup_cms()
+					self.server.area_manager.send_arup_status()
+					self.server.area_manager.send_arup_lock()
 			if self.area.sub and self.area.is_restricted:
 				area_list = []
 				lobby = None
@@ -465,9 +461,9 @@ class ClientManager:
 					if conn != lobby and conn != area.hub:
 						area_list.append(conn.name)
 				self.send_command('FA', *area_list)
-				self.area.conn_arup_cms(self)
-				self.area.conn_arup_status(self)
-				self.area.conn_arup_lock(self)
+				self.area.conn_arup_cms()
+				self.area.conn_arup_status()
+				self.area.conn_arup_lock()
 			if old_area.cmusic_list != area.cmusic_list:
 				music = area.get_music(self)
 				self.send_command('FM', *music)
@@ -755,7 +751,6 @@ class ClientManager:
 			self.pos = pos
 			self.send_ooc(f'Position set to {pos}.')
 			self.send_command('SP', self.pos) #Send a "Set Position" packet
-			self.area.update_evidence_list(self) #Receive evidence
 
 		def set_mod_call_delay(self):
 			"""Begin the mod call cooldown."""

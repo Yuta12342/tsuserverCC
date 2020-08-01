@@ -480,7 +480,7 @@ class TsuServerCC:
 			'1',
 			pred=lambda x: not x.muted_adverts)
 
-	def send_arup(self, args, client=None):
+	def send_arup(self, args, client):
 		"""Update the area properties for 2.6 clients.
 		
 		Playercount:
@@ -514,12 +514,9 @@ class TsuServerCC:
 					_sanitised = str(part_arg)
 				except:
 					return
-		if client == None:
-			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: not x.area.is_hub and not x.area.sub or x.hubview)
-		else:
-			client.send_command('ARUP', *args)
+		self.send_all_cmd_pred('ARUP', *args, pred=lambda x: not x.area.is_hub and not x.area.sub)
 		
-	def send_hub_arup(self, args, mainhub, client=None):
+	def send_hub_arup(self, args, mainhub):
 		"""Update the area properties for 2.6 clients.
 		
 		Playercount:
@@ -553,12 +550,9 @@ class TsuServerCC:
 					_sanitised = str(part_arg)
 				except:
 					return
-		if client == None:
-			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == mainhub and not x.hubview or x.area.hub == mainhub and not x.hubview)
-		else:
-			client.send_command('ARUP', *args)
+		self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == mainhub or x.area.hub == mainhub)
 	
-	def send_conn_arup(self, args, area, client=None):
+	def send_conn_arup(self, args, area):
 		"""Update the area properties for 2.6 clients.
 		
 		Playercount:
@@ -592,10 +586,7 @@ class TsuServerCC:
 					_sanitised = str(part_arg)
 				except:
 					return
-		if client == None:
-			self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == area and not x.hubview)
-		else:
-			client.send_command('ARUP', *args)
+		self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == area)
 
 	def refresh(self):
 		"""

@@ -46,47 +46,8 @@ __all__ = [
 	'ooc_cmd_savehub',
 	'ooc_cmd_loadhub',
 	'ooc_cmd_hubstatus',
-	'ooc_cmd_gethubs',
-	'ooc_cmd_hubview'
+	'ooc_cmd_gethubs'
 ]
-
-def ooc_hubview(client, arg):
-	if not client.area.is_hub and not client.area.sub:
-		raise ClientError('Must be in a hub or sub-area to toggle hubview.')
-	area_list = []
-	lobby = client.server.area_manager.default_area()
-	if not hubview:
-		for a in client.server.area_manager.areas:
-			area_list.append(a.name)
-		client.send_command('FA', *area_list)
-		client.server.area_manager.send_arup_players(client)
-		client.server.area_manager.send_arup_cms(client)
-		client.server.area_manager.send_arup_status(client)
-		client.server.area_manager.send_arup_lock(client)
-		client.hubview = True
-		client.send_ooc('Hubview toggled on.')
-	else:
-		area_list.append(lobby)
-		if client.area.is_hub:
-			area_list.append(client.area)
-			for sub in client.area.subareas:
-				area_list.append(sub)
-			client.send_command('FA', *area_list)
-			client.area.sub_arup_players(client)
-			client.area.sub_arup_cms(client)
-			client.area.sub_arup_status(client)
-			client.area.sub_arup_lock(client)
-		else:
-			area_list.append(client.area.hub)
-			for sub in client.area.hub.subareas:
-				area_list.append(sub)
-			client.send_command('FA', *area_list)
-			client.area.sub_arup_players(client)
-			client.area.sub_arup_cms(client)
-			client.area.sub_arup_status(client)
-			client.area.sub_arup_lock(client)
-		client.hubview = False
-		client.send_ooc('Hubview toggled off.')
 
 def ooc_cmd_poslock(client, arg):
 	if len(arg) == 0:
