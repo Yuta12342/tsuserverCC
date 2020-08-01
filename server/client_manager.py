@@ -512,7 +512,7 @@ class ClientManager:
 					msg += ' [*]'
 			self.send_ooc(msg)
 
-		def get_area_info(self, a):
+		def get_area_info(self, a, hubs=False):
 			"""
 			Get information about a specific area.
 			:param area_id: area ID
@@ -562,7 +562,7 @@ class ClientManager:
 					if not owner in area.clients:
 						if not owner.ghost or self.is_mod:
 							sorted_clients.append(owner)
-				if area.is_hub and not selfarea.is_hub and not selfarea.sub:
+				if area.is_hub and not selfarea.is_hub and not selfarea.sub or hubs:
 					if len(area.subareas) > 0:
 						for sub in area.subareas:
 							for client in sub.clients:
@@ -632,7 +632,7 @@ class ClientManager:
 									elif not client.ghost and not client.hidden:
 										cnt += 1
 					if not area.is_hub and not area.sub or hubs:
-						info += f'{self.get_area_info(a)}'
+						info += f'{self.get_area_info(a, hubs)}'
 				if area.is_hub and not hubs or area.sub and not hubs:
 					if area.is_hub:
 						info += f'{self.get_area_info(self.server.area_manager.default_area())}'

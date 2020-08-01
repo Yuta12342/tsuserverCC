@@ -98,7 +98,7 @@ def ooc_cmd_p(client, arg):
 def ooc_cmd_h(client, arg):
 	if len(arg) == 0:
 		raise ArgumentError('You can\'t send an empty message.')
-	if not area.is_hub and not area.sub:
+	if not client.area.is_hub and not client.area.sub:
 		raise ClientError('Must be in a hub.')
 	client.area.broadcast_hub(client, arg)
 
