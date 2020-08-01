@@ -48,9 +48,10 @@ class AreaManager:
 					 jukebox=False,
 					 abbreviation='',
 					 non_int_pres_only=False,
-					 is_hub=False):
+					 is_hub=False,
+					 hubid=0):
 			self.is_hub = is_hub
-			self.hubid = 0
+			self.hubid = hubid
 			self.hub = None
 			self.subareas = []
 			self.sub = False
@@ -789,6 +790,8 @@ class AreaManager:
 				item['abbreviation'] = self.abbreviate(item['area'])
 			if 'is_hub' not in item:
 				item['is_hub'] = False
+			if 'hub_id' not in item:
+				item['hub_id'] = 0
 			self.areas.append(
 				self.Area(self.cur_id, self.server, item['area'],
 						  item['background'], item['bglock'],
@@ -796,7 +799,7 @@ class AreaManager:
 						  item['iniswap_allowed'],
 						  item['showname_changes_allowed'],
 						  item['shouts_allowed'], item['jukebox'],
-						  item['abbreviation'], item['noninterrupting_pres'], item['is_hub']))
+						  item['abbreviation'], item['noninterrupting_pres'], item['is_hub'], item['hub_id']))
 			self.cur_id += 1
 
 	def default_area(self):

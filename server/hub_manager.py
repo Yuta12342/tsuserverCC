@@ -31,10 +31,6 @@ class HubManager:
 
 	def loadhub(self, client, arg):
 		index = 0
-		for area in client.server.area_manager.areas:
-			if area.is_hub:
-				index += 1
-				area.hubid = index
 		hubname = f'storage/hub/{arg}.yaml'
 		new = not os.path.exists(hubname)
 		if new:
@@ -184,10 +180,6 @@ class HubManager:
 		
 	def addsub(self, client, arg, more=False):
 		index = 0
-		for area in client.server.area_manager.areas:
-			if area.is_hub:
-				index += 1
-				area.hubid = index
 		if client.area.is_hub:
 			if client.area.cur_subid > 101:
 				raise ClientError('You cannot have more than 100 areas in a hub.')
