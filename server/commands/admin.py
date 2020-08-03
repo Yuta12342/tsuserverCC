@@ -518,7 +518,7 @@ def ooc_cmd_mods(client, arg):
 			if area.is_hub and len(area.subareas) > 0:
 				for sub in area.subareas:
 					if len(modshere) == 0 and len(sub.get_mods()) > 0:
-						add += f'\n=== {area.name} ===\n[{area.abbreviation}]: [{len(area.clients)} Users][{area.status}]'
+						add += f'\n=== {sub.name} ===\n[{sub.abbreviation}]: [{len(sub.clients)} Users][{sub.status}]'
 					for mod in sub.get_mods():
 						mods.add(mod)
 						add += f'\n[{mod.id}] {mod.char_name} ({mod.ipid}): {mod.name}'

@@ -921,7 +921,7 @@ class AreaManager:
 		num = 0
 		for area in self.areas:
 			num += len(area.get_mods())
-			if area.hub and len(area.subareas) > 0:
+			if area.is_hub and len(area.subareas) > 0:
 				for sub in area.subareas:
 					num += len(sub.get_mods())
 		return num

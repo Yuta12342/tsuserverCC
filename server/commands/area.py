@@ -192,9 +192,19 @@ def ooc_cmd_rename(client, arg):
 	if len(arg) == 0:
 		if client.area.is_hub:
 			client.area.name = f'Hub {client.area.hubid}'
+			area_list = []
+			lobby = client.server.area_manager.default_area()
+			area_list.append(lobby.name)
+			area_list.append(client.area.name)
+			for a in client.area.subareas:
+				area_list.append(a.name)
+			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
+			
+			area_list = []
+			for area in client.server.area_manager.areas:
+				area_list.append(area.name)
+			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: not x.area.is_hub and not x.area.sub)
 			return
-		else:
-			raise ArgumentError('Not enough arguments, use /rename <name>.')
 	if len(arg) > 30:
 		raise ArgumentError('That name is too long!')
 	# hellish check against special characters
