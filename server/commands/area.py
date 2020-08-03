@@ -365,9 +365,9 @@ def ooc_cmd_status(client, arg):
 	"""
 	if len(arg) == 0:
 		client.send_ooc(f'Current status: {client.area.status}')
-	elif 'CM' not in client.area.evidence_mod:
+	elif 'CM' not in client.area.evidence_mod and not client.is_mod:
 		raise ClientError('You can\'t change the status of this area')
-	if client.area.is_hub and not client in client.area.owners:
+	if client.area.is_hub and not client in client.area.owners and not client.is_mod:
 		raise ClientError('Must be CM.')
 	else:
 		try:
@@ -457,7 +457,7 @@ def ooc_cmd_connect(client, arg):
 	elif len(args) == 0:
 		raise ArgumentError('You must specify at least one area, use /connect <abbreviation>')
 	else:
-		for area in client.area.hub.subarea:
+		for area in client.area.hub.subareas:
 			if area.abbreviation in args:
 				if area in client.area.connections:
 					raise ArgumentError(f'Already connected to {area.name}.')
@@ -468,7 +468,9 @@ def ooc_cmd_connect(client, arg):
 					client.area.connections.append(client.area.hub)
 				client.area.connections.append(area)
 				client.send_ooc('Area connected!')
-				client.area.restricted = True
+				client.area.is_restricted = True
+				return
+	raise ArgumentError('Area not found. Use an area\'s abbreviation')
 
 def ooc_cmd_biconnect(client, arg):
 	"""
@@ -482,8 +484,8 @@ def ooc_cmd_biconnect(client, arg):
 	elif len(args) == 0:
 		raise ArgumentError('You must specify an area, use /connect <area id>')
 	else:
-		for area in client.area.hub.subarea:
-			if area.name in args:
+		for area in client.area.hub.subareas:
+			if area.abbreviation in args:
 				if area in client.area.connections:
 					raise ArgumentError(f'Already connected to {area.name}.')
 				if client.area in area.connections:
@@ -494,13 +496,15 @@ def ooc_cmd_biconnect(client, arg):
 					client.area.connections.append(client.server.area_manager.default_area())
 					client.area.connections.append(client.area.hub)
 				if len(area.connections) == 0:
-					client.area.connections.append(client.server.area_manager.default_area())
-					client.area.connections.append(client.area.hub)
+					area.connections.append(client.server.area_manager.default_area())
+					area.connections.append(client.area.hub)
 				client.area.connections.append(area)
 				area.connections.append(client.area)
 				client.send_ooc('Area connected!')
-				client.area.restricted = True
-				area.restricted = True
+				client.area.is_restricted = True
+				area.is_restricted = True
+				return
+	raise ArgumentError('Area not found. Use an area\'s abbreviation')
 
 def ooc_cmd_connectlist(client, arg):
 	"""
@@ -510,7 +514,7 @@ def ooc_cmd_connectlist(client, arg):
 		raise ArgumentError('This command takes no arguments.')
 	if len(client.area.connections) == 0:
 		raise AreaError('This area has no connections.')
-	msg = f'[{client.area.id}]{client.area.name} is connected to: '
+	msg = f'[{client.area.abbreviation}]{client.area.name} is connected to: '
 	index = 0
 	for connection in client.area.connections:
 		if index > 0:

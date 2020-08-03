@@ -438,7 +438,7 @@ class AOProtocol(asyncio.Protocol):
 		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
 								   self.ArgType.STR,
 								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
-								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.INT,
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT_OR_STR, self.ArgType.INT,
 								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
 								   self.ArgType.STR, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
 								   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
@@ -508,13 +508,14 @@ class AOProtocol(asyncio.Protocol):
 			text = ' '.join(part[1:])
 		if msg_type not in ('chat', '0', '1'):
 			return
-		if anim_type not in (0, 1, 2, 5, 6):
+		if anim_type not in (0, 1, 2, 4, 5, 6):
 			return
 		if cid != self.client.char_id:
 			return
 		if sfx_delay < 0:
 			return
 		if not '4' in str(button) and "<and>" not in str(button):
+			strbutton = str(button)
 			if not button.isdigit():
 				return
 		if evidence < 0:

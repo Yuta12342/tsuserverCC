@@ -189,7 +189,17 @@ def ooc_cmd_cm(client, arg):
 		client.area.owners.append(client)
 		if client.area.evidence_mod == 'HiddenCM':
 			client.area.broadcast_evidence_list()
-		client.server.area_manager.send_arup_cms()
+		if client.area.sub:
+			client.area.hub.sub_arup_cms()
+		elif client.area.is_hub:
+			for sub in client.area.subareas:
+				sub.owners.append(client)
+				if sub.is_restricted:
+					sub.conn_arup_cms()
+			client.area.sub_arup_cms()
+			client.server.area_manager.send_arup_cms()
+		else:
+			client.server.area_manager.send_arup_cms()
 		if not client.ghost:
 			client.area.broadcast_ooc('{} [{}] is CM in this area now.'.format(client.char_name, client.id))
 		else:

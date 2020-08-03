@@ -487,6 +487,18 @@ class AreaManager:
 							self.hub.status = value.upper()
 						if value.lower() == 'recess' and recess == True:
 							self.hub.status = value.upper()
+						if self.hub.status == 'LOOKING-FOR-PLAYERS' and value.lower() == 'recess' or self.hub.status == 'LOOKING-FOR-PLAYERS' and value.lower() == 'idle':
+							if lfp == False:
+								for area in self.hub.subareas:
+									if area.status == 'CASING':
+										self.hub.status = 'CASING'	
+										break
+									elif area.status == 'GAMING':
+										self.hub.status = 'GAMING'
+										break
+									elif area.status == 'RP':
+										self.hub.status = 'RP'
+										break					
 					self.server.area_manager.send_arup_status()
 				if self.is_restricted:
 					self.conn_arup_status()
