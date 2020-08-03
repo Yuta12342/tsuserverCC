@@ -332,6 +332,9 @@ class ClientManager:
 						raise ClientError('You cannot leave as long as you are a hostage!')
 					elif area.is_locked == area.Locked.LOCKED and not self.id in area.invite_list:
 						area.invite_list[self.id] = None
+			#Add id to invite list if they are an area owner so they can actually enter. Why is this a dictionary again?
+			if self in area.owners and not self.id in area.invite_list:
+				area.invite_list[self.id] = None
 			if area.is_locked == area.Locked.LOCKED and not self.is_mod and not self.id in area.invite_list:
 				if area.password != '':
 					self.send_command('AP', area.id)
