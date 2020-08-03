@@ -198,8 +198,10 @@ def ooc_cmd_rename(client, arg):
 	if len(arg) > 30:
 		raise ArgumentError('That name is too long!')
 	# hellish check against special characters
-	if '#' in arg or '@' in arg or '$' in arg or '&' in arg or '*' in arg or "\\" in arg or '~' in arg:
-		raise ArgumentError('Try to exclude special characters while renaming.')
+	for character in arg:
+		if not character.isalnum():
+			if not character == ':' and not character == '!' and not character == '-' and not character == '?':
+				raise ArgumentError('Try to exclude special characters while renaming.')
 	if client.area.is_hub:
 		client.area.name = f'Hub {client.area.hubid}: {arg}'
 		area_list = []
