@@ -13,7 +13,9 @@ __all__ = [
 	'ooc_cmd_status',
 	'ooc_cmd_area',
 	'ooc_cmd_getarea',
+	'ooc_cmd_ga',
 	'ooc_cmd_getareas',
+	'ooc_cmd_gas',
 	'ooc_cmd_lock',
 	'ooc_cmd_unlock',
 	'ooc_cmd_spectatable',
@@ -190,10 +192,14 @@ def ooc_cmd_rename(client, arg):
 	if len(arg) == 0:
 		if client.area.is_hub:
 			client.area.name = f'Hub {client.area.hubid}'
+			return
 		else:
 			raise ArgumentError('Not enough arguments, use /rename <name>.')
 	if len(arg) > 30:
 		raise ArgumentError('That name is too long!')
+	# hellish check against special characters
+	if '#' in arg or '@' in arg or '$' in arg or '&' in arg or '*' in arg or "\\" in arg or '~' in arg:
+		raise ArgumentError('Try to exclude special characters while renaming.')
 	if client.area.is_hub:
 		client.area.name = f'Hub {client.area.hubid}: {arg}'
 		area_list = []
@@ -408,25 +414,26 @@ def ooc_cmd_area(client, arg):
 		return
 	if len(args) == 1:
 		try:
-			area = client.server.area_manager.get_area_by_name(args, client)
+			area = client.server.area_manager.get_area_by_name(arg, client)
 			client.change_area(area)
 		except:
 			try:
-				area = client.server.area_manager.get_area_by_abbreviation(args)
+				area = client.server.area_manager.get_area_by_abbreviation(arg)
 				client.change_area(area)
 			except (AreaError, ClientError):
 				raise
 		client.send_ooc(f'Area changed to {area.name}')
 	if len(args) > 1:
-		fullname = ''
 		index = 0
 		nameceiling = len(args) - 2
 		lastitem = len(args) - 1
 		while index < nameceiling:
+			if index == 0:
+				fullname = args[index]
 			fullname += args[index]
 			index += 1
 		try:
-			area = client.server.area_manager.get_area_by_name(args, client)
+			area = client.server.area_manager.get_area_by_name(arg, client)
 		except:
 			try:
 				area = client.server.area_manager.get_area_by_name(fullname, client)
@@ -595,8 +602,22 @@ def ooc_cmd_getarea(client, arg):
 	Usage: /getarea
 	"""
 	client.send_area_info(client.area, False)
+	
+def ooc_cmd_ga(client, arg):
+	"""
+	Show information about the current area.
+	Usage: /getarea
+	"""
+	client.send_area_info(client.area, False)
 
 def ooc_cmd_getareas(client, arg):
+	"""
+	Show information about all areas.
+	Usage: /getareas
+	"""
+	client.send_area_info(client.area, True)
+	
+def ooc_cmd_gas(client, arg):
 	"""
 	Show information about all areas.
 	Usage: /getareas
