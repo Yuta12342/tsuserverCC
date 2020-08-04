@@ -98,25 +98,16 @@ def ooc_cmd_forcepos(client, arg):
 	"""
 	args = arg.split()
 
-	if client not in client.area.owners:
+	if client not in client.area.owners and not client.is_mod:
 		raise ClientError ('You are not a CM.')
 	elif len(args) < 1:
-		raise ArgumentError(
-			'Not enough arguments. Use /forcepos <pos> <target>. Target should be ID, OOC-name or char-name. Use /getarea for getting info like "[ID] char-name".'
-		)
+		raise ArgumentError('Not enough arguments. Use /forcepos <pos> <target>. Target should be ID. Use /getarea for getting info like "[ID] char-name".')
 
 	targets = []
 
 	pos = args[0]
 	if len(args) > 1:
-		targets = client.server.client_manager.get_targets(
-			client, TargetType.CHAR_NAME, " ".join(args[1:]), True)
-		if len(targets) == 0 and args[1].isdigit():
-			targets = client.server.client_manager.get_targets(
-				client, TargetType.ID, int(args[1]), True)
-		if len(targets) == 0:
-			targets = client.server.client_manager.get_targets(
-				client, TargetType.OOC_NAME, " ".join(args[1:]), True)
+		targets = client.server.client_manager.get_targets(client, TargetType.ID, int(args[1]), True)
 		if len(targets) == 0:
 			raise ArgumentError('No targets found.')
 	else:
@@ -132,9 +123,7 @@ def ooc_cmd_forcepos(client, arg):
 		except ClientError:
 			raise
 
-	client.area.broadcast_ooc(
-		'{} forced {} client(s) into /pos {}.'.format(client.char_name,
-													  len(targets), pos))
+	client.area.broadcast_ooc('{} forced {} client(s) into /pos {}.'.format(client.char_name, len(targets), pos))
 
 
 def ooc_cmd_charselect(client, arg):
