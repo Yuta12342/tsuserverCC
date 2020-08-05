@@ -210,7 +210,7 @@ def ooc_cmd_rename(client, arg):
 	# hellish check against special characters
 	for character in arg:
 		if not character.isalnum():
-			if not character == ':' and not character == '!' and not character == '-' and not character == '?':
+			if not character == ':' and not character == '!' and not character == '-' and not character == '?' and not character == ' ':
 				raise ArgumentError('Try to exclude special characters while renaming.')
 	if client.area.is_hub:
 		client.area.name = f'Hub {client.area.hubid}: {arg}'

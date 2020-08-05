@@ -130,11 +130,15 @@ class HubManager:
 		hub.cur_subid = 1
 		for sub in old_sublist:
 			sub.id = hub.cur_subid
+			if sub.name.startswith('Area'):
+				sub.name = f'Area {sub.id}'
 			if hub.name.startswith('Arcade'):
 				sub.abbreviation = f'AHS{sub.id}'
 			elif hub.name.startswith('User'):
 				sub.abbreviation = f'UHS{sub.id}'
 			elif hub.name.startswith('Courtroom'):
+				if sub.name.startswith('Courtroom'):
+					sub.name = f'Courtroom {sub.id}'
 				sub.abbreviation = f'CR{sub.id}'
 			else:
 				sub.abbreviation = f'H{hub.hubid}S{sub.id}'
