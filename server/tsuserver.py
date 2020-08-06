@@ -547,7 +547,7 @@ class TsuServerCC:
 					_sanitised = str(part_arg)
 				except:
 					return
-		self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == mainhub or x.area.hub == mainhub)
+		self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == mainhub or x.area.hub == mainhub and not x.area.is_restricted or x.area.hub == mainhub and x.area.is_restricted and x in x.area.hub.owners)
 	
 	def send_conn_arup(self, args, area):
 		"""Update the area properties for 2.6 clients.
@@ -583,7 +583,7 @@ class TsuServerCC:
 					_sanitised = str(part_arg)
 				except:
 					return
-		self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == area)
+		self.send_all_cmd_pred('ARUP', *args, pred=lambda x: x.area == area and not x in x.area.hub.owners)
 
 	def refresh(self):
 		"""

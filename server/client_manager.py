@@ -449,21 +449,22 @@ class ClientManager:
 					self.server.area_manager.send_arup_status()
 					self.server.area_manager.send_arup_lock()
 			if self.area.sub and self.area.is_restricted:
-				area_list = []
-				lobby = None
-				for a in self.server.area_manager.areas:
-					if a.id == 0:
-						lobby = a
-						break
-				if lobby == None:
-					raise ClientError('There is no default area.')
-				area_list.append(lobby.name)
-				area_list.append(area.hub.name)
-				area_list.append(area.name)
-				for conn in area.connections:
-					if conn != lobby and conn != area.hub:
-						area_list.append(conn.name)
-				self.send_command('FA', *area_list)
+				if not self in self.area.hub.owners:
+					area_list = []
+					lobby = None
+					for a in self.server.area_manager.areas:
+						if a.id == 0:
+							lobby = a
+							break
+					if lobby == None:
+						raise ClientError('There is no default area.')
+					area_list.append(lobby.name)
+					area_list.append(area.hub.name)
+					area_list.append(area.name)
+					for conn in area.connections:
+						if conn != lobby and conn != area.hub:
+							area_list.append(conn.name)
+					self.send_command('FA', *area_list)
 				self.area.conn_arup_cms()
 				self.area.conn_arup_status()
 				self.area.conn_arup_lock()
