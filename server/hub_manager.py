@@ -129,15 +129,16 @@ class HubManager:
 		hub.subareas.clear()
 		hub.cur_subid = 1
 		for sub in old_sublist:
+			oldid = sub.id
 			sub.id = hub.cur_subid
-			if sub.name.startswith('Area'):
+			if sub.name == f'Area {oldid}':
 				sub.name = f'Area {sub.id}'
 			if hub.name.startswith('Arcade'):
 				sub.abbreviation = f'AHS{sub.id}'
 			elif hub.name.startswith('User'):
 				sub.abbreviation = f'UHS{sub.id}'
 			elif hub.name.startswith('Courtroom'):
-				if sub.name.startswith('Courtroom'):
+				if sub.name == f'Courtroom {oldid}':
 					sub.name = f'Courtroom {sub.id}'
 				sub.abbreviation = f'CR{sub.id}'
 			else:
