@@ -125,8 +125,7 @@ class AreaManager:
 			if self.sub:
 				if self.is_restricted:
 					self.conn_arup_players()
-				else:
-					self.hub.sub_arup_players()
+				self.hub.sub_arup_players()
 			elif self.is_hub:
 				self.sub_arup_players()
 				self.server.area_manager.send_arup_players()
