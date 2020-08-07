@@ -59,8 +59,9 @@ class HubManager:
 					newsub.hub = client.area
 					if 'doc' in item:
 						newsub.doc = item['doc']
-					if item['musiclist'] != '':
-						self.server.music_manager.loadsublist(newsub, item['musiclist'])
+					if 'musiclist' in item:
+						if item['musiclist'] != '':
+							self.server.music_manager.loadsublist(newsub, item['musiclist'])
 					newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
 					client.area.cur_subid += 1
 					if 'reachable_areas' in item:
