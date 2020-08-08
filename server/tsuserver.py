@@ -477,7 +477,7 @@ class TsuServerCC:
 			'1',
 			pred=lambda x: not x.muted_adverts)
 
-	def send_arup(self, args, client):
+	def send_arup(self, args):
 		"""Update the area properties for 2.6 clients.
 		
 		Playercount:

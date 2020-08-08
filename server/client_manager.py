@@ -435,9 +435,9 @@ class ClientManager:
 				area_list.append(area.name)
 				for a in self.area.subareas:
 					area_list.append(a.name)
-				self.area.sub_arup_cms()
-				self.area.sub_arup_status()
-				self.area.sub_arup_lock()
+				self.area.sub_arup_cms(self)
+				self.area.sub_arup_status(self)
+				self.area.sub_arup_lock(self)
 				self.send_command('FA', *area_list)
 			if old_area.is_hub or old_area.sub:
 				if not self.area.sub and not self.area.is_hub:
@@ -445,9 +445,13 @@ class ClientManager:
 					for a in self.server.area_manager.areas:
 						area_list.append(a.name)
 					self.send_command('FA', *area_list)
-					self.server.area_manager.send_arup_cms()
-					self.server.area_manager.send_arup_status()
-					self.server.area_manager.send_arup_lock()
+					self.server.area_manager.send_arup_cms(self)
+					self.server.area_manager.send_arup_status(self)
+					self.server.area_manager.send_arup_lock(self)
+					if old_area.is_hub:
+						old_area.sub_arup_players()
+					else:
+						old_area.hub.sub_arup_players()
 			if self.area.sub and self.area.is_restricted:
 				if not self in self.area.hub.owners:
 					area_list = []
@@ -498,6 +502,42 @@ class ClientManager:
 			self.send_command('HP', 2, self.area.hp_pro)
 			self.send_command('BN', self.area.background, self.pos)
 			self.send_command('LE', *self.area.get_evidence_list(self))
+
+		def send_self_arup(self, args):
+			"""Update the area properties for 2.6 clients.
+			
+			Playercount:
+				ARUP#0#<area1_p: int>#<area2_p: int>#...
+			Status:
+				ARUP#1##<area1_s: string>##<area2_s: string>#...
+			CM:
+				ARUP#2##<area1_cm: string>##<area2_cm: string>#...
+			Lockedness:
+				ARUP#3##<area1_l: string>##<area2_l: string>#...
+
+
+			:param args: 
+
+			"""
+			if len(args) < 2:
+				# An argument count smaller than 2 means we only got the identifier of ARUP.
+				return
+			if args[0] not in (0, 1, 2, 3):
+				return
+
+			if args[0] == 0:
+				for part_arg in args[1:]:
+					try:
+						_sanitised = int(part_arg)
+					except:
+						return
+			elif args[0] in (1, 2, 3, 4):
+				for part_arg in args[1:]:
+					try:
+						_sanitised = str(part_arg)
+					except:
+						return
+			self.send_command('ARUP', *args)
 
 		def send_area_list(self):
 			"""Send a list of areas over OOC."""

@@ -188,6 +188,18 @@ class HubManager:
 		while index < arg:
 			self.addsub(client, '', True)
 			index += 1
+		
+		area_list = []
+		lobby = client.server.area_manager.default_area()
+		area_list.append(lobby.name)
+		area_list.append(client.area.name)
+		for a in client.area.subareas:
+			area_list.append(a.name)
+		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
+		
+		client.area.sub_arup_cms()
+		client.area.sub_arup_status()
+		client.area.sub_arup_lock()
 		client.send_ooc('Areas created!')
 		
 		
@@ -236,22 +248,22 @@ class HubManager:
 			newsub.abbreviation = f'H{newsub.hub.hubid}S{new_id}'
 		
 		#client.server.send_all_cmd_pred('CT', '{}'.format(client.server.config['hostname']),f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
-		area_list = []
-		lobby = client.server.area_manager.default_area()
-		area_list.append(lobby.name)
-		if client.area.is_hub:
-			area_list.append(client.area.name)
-			for a in client.area.subareas:
-				area_list.append(a.name)
-		else:
-			area_list.append(client.area.hub.name)
-			for a in client.area.hub.subareas:
-				area_list.append(a.name)
 		newsub.owners.append(client)
 		newsub.status = client.area.status
-		newsub.hub.sub_arup_cms()
-		newsub.hub.sub_arup_status()
-		newsub.hub.sub_arup_lock()
-		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
-		if more == False:
+		if not more:
+			area_list = []
+			lobby = client.server.area_manager.default_area()
+			area_list.append(lobby.name)
+			if client.area.is_hub:
+				area_list.append(client.area.name)
+				for a in client.area.subareas:
+					area_list.append(a.name)
+			else:
+				area_list.append(client.area.hub.name)
+				for a in client.area.hub.subareas:
+					area_list.append(a.name)
+			newsub.hub.sub_arup_cms()
+			newsub.hub.sub_arup_status()
+			newsub.hub.sub_arup_lock()
+			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
 			client.send_ooc('Area created!')

@@ -695,7 +695,7 @@ class AreaManager:
 					lock_list.append(link.is_locked.name)
 			self.server.send_hub_arup(lock_list, self)
 
-		def sub_arup_players(self):
+		def sub_arup_players(self, client=None):
 			"""Broadcast ARUP packet containing player counts."""
 			players_list = [0]
 			lobby = self.server.area_manager.default_area()
@@ -706,13 +706,16 @@ class AreaManager:
 					players_list.append(-1)
 				else:
 					index = 0
-					for client in area.clients:
-						if not client.ghost and not client.hidden:
+					for c in area.clients:
+						if not c.ghost and not c.hidden:
 							index += 1
 					players_list.append(index)
-			self.server.send_hub_arup(players_list, self)
+			if client != None:
+				client.send_self_arup(players_list)
+			else:
+				self.server.send_hub_arup(players_list, self)
 
-		def sub_arup_status(self):
+		def sub_arup_status(self, client=None):
 			"""Broadcast ARUP packet containing area statuses."""
 			status_list = [1]
 			lobby = self.server.area_manager.default_area()
@@ -720,9 +723,12 @@ class AreaManager:
 			status_list.append(self.status)
 			for area in self.subareas:
 				status_list.append(area.status)
-			self.server.send_hub_arup(status_list, self)
+			if client != None:
+				client.send_self_arup(status_list)
+			else:
+				self.server.send_hub_arup(status_list, self)
 
-		def sub_arup_cms(self):
+		def sub_arup_cms(self, client=None):
 			"""Broadcast ARUP packet containing area CMs."""
 			cms_list = [2]
 			lobby = self.server.area_manager.default_area()
@@ -739,9 +745,12 @@ class AreaManager:
 				if len(area.owners) > 0:
 					cm = area.get_cms()
 				cms_list.append(cm)
-			self.server.send_hub_arup(cms_list, self)
+			if client != None:
+				client.send_self_arup(cms_list)
+			else:
+				self.server.send_hub_arup(cms_list, self)
 
-		def sub_arup_lock(self):
+		def sub_arup_lock(self, client=None):
 			"""Broadcast ARUP packet containing the lock status of each area."""
 			lock_list = [3]
 			lobby = self.server.area_manager.default_area()
@@ -749,7 +758,10 @@ class AreaManager:
 			lock_list.append(self.is_locked.name)
 			for area in self.subareas:
 				lock_list.append(area.is_locked.name)
-			self.server.send_hub_arup(lock_list, self)
+			if client != None:
+				client.send_self_arup(lock_list)
+			else:
+				self.server.send_hub_arup(lock_list, self)
 
 		def broadcast_hub(self, client, msg):
 			char_name = client.char_name
@@ -873,7 +885,7 @@ class AreaManager:
 			area.send_command(cmd, *args)
 			area.send_owner_command(cmd, *args)
 
-	def send_arup_players(self, client=None):
+	def send_arup_players(self):
 		"""Broadcast ARUP packet containing player counts."""
 		players_list = [0]
 		for area in self.areas:
@@ -890,14 +902,17 @@ class AreaManager:
 							if not client.ghost and not client.hidden:
 								index += 1
 				players_list.append(index)
-		self.server.send_arup(players_list, client)
+		self.server.send_arup(players_list)
 
 	def send_arup_status(self, client=None):
 		"""Broadcast ARUP packet containing area statuses."""
 		status_list = [1]
 		for area in self.areas:
 			status_list.append(area.status)
-		self.server.send_arup(status_list, client)
+		if client != None:
+			client.send_self_arup(status_list)
+		else:
+			self.server.send_arup(status_list)
 
 	def send_arup_cms(self, client=None):
 		"""Broadcast ARUP packet containing area CMs."""
@@ -907,14 +922,20 @@ class AreaManager:
 			if len(area.owners) > 0:
 				cm = area.get_cms()
 			cms_list.append(cm)
-		self.server.send_arup(cms_list, client)
+		if client != None:
+			client.send_self_arup(cms_list)
+		else:
+			self.server.send_arup(cms_list)
 
 	def send_arup_lock(self, client=None):
 		"""Broadcast ARUP packet containing the lock status of each area."""
 		lock_list = [3]
 		for area in self.areas:
 			lock_list.append(area.is_locked.name)
-		self.server.send_arup(lock_list, client)
+		if client != None:
+			client.send_self_arup(lock_list)
+		else:
+			self.server.send_arup(lock_list)
 		
 	def mods_online(self):
 		num = 0
