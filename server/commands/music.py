@@ -17,6 +17,7 @@ __all__ = [
 	'ooc_cmd_jukeboxskip',
 	'ooc_cmd_jukebox',
 	'ooc_cmd_play',
+	'ooc_cmd_hubplay',
 	'ooc_cmd_playrandom',
 	'ooc_cmd_shuffle',
 	'ooc_cmd_blockdj',
@@ -132,9 +133,8 @@ def ooc_cmd_play(client, arg):
 	Play a track.
 	Usage: /play <name>
 	"""
-	if not client.area.name.startswith('Custom'):
-		if client not in client.area.owners and not client.is_mod:
-			raise ClientError('You must be a CM.')
+	if client not in client.area.owners and not client.is_mod:
+		raise ClientError('You must be a CM.')
 	args = shlex.split(arg)
 	if len(args) < 1:
 		raise ArgumentError('Not enough arguments. Use /play "name" "length in seconds".')
@@ -163,6 +163,44 @@ def ooc_cmd_play(client, arg):
 	client.area.play_music(name, client.char_id, length)
 	client.area.add_music_playing(client, args[0])
 	database.log_room('play', client, client.area, message=name)
+	
+def ooc_cmd_hubplay(client, arg):
+	"""
+	Play a track.
+	Usage: /play <name>
+	"""
+	if client not in client.area.owners and not client.is_mod:
+		if client.area.sub:
+			if not client in client.area.hub.owners:
+				raise ClientError('You must be a CM.')
+		else:
+			raise ClientError('You must be a CM.')
+	if not client.area.is_hub and not client.area.sub:
+		raise ClientError('Must be in hub.')
+	if len(arg) == 0:
+		raise ArgumentError('Not enough arguments. Use /hubplay <name>.')
+	elif len(arg) > 0:
+		custom = False
+		try:
+			name, length, mod, custom = self.server.get_song_data(arg, self.client.area)
+		except:
+			name = arg
+			length = -1
+			client.send_ooc('Track not found in area\'s music list, playing directly without length.')
+		if custom:
+			name = f'custom/{arg}'
+	if client.area.is_hub:
+		for sub in client.area.subareas:
+			sub.play_music(name, client.char_id, length)
+			sub.add_music_playing(client, arg)
+			database.log_room('hubplay', client, sub, message=name)
+		return
+	elif client.area.sub:
+		for sub in client.area.hub.subareas:
+			sub.play_music(name, client.char_id, length)
+			sub.add_music_playing(client, arg)
+			database.log_room('hubplay', client, sub, message=name)
+		return
 
 def ooc_cmd_currentmusic(client, arg):
 	"""

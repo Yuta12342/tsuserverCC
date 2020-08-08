@@ -406,7 +406,7 @@ class TsuServerCC:
 					for song in item['songs']:
 						if song['name'] == music:
 							try:
-								return song['name'], song['length'], song['mod']
+								return song['name'], song['length'], song['mod'], True
 							except KeyError:
 								return song['name'], song['length'], -1, True
 		raise ServerError('Music not found.')

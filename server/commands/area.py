@@ -652,7 +652,7 @@ def ooc_cmd_lock(client, arg):
 		client.send_ooc('Area locking is disabled in this area.')
 	elif client.area.is_locked == client.area.Locked.LOCKED:
 		client.send_ooc('Area is already locked.')
-	elif client in client.area.owners or client.is_mod:
+	elif client in client.area.owners or client.is_mod or client.area.sub and client.area.hub.name.startswith('Hub'):
 		args = arg.split()
 		if len(args) == 0:
 			client.area.lock()
@@ -690,7 +690,7 @@ def ooc_cmd_unlock(client, arg):
 	"""
 	if client.area.is_locked == client.area.Locked.FREE:
 		raise ClientError('Area is already unlocked.')
-	elif client in client.area.owners or client.is_mod:
+	elif client in client.area.owners or client.is_mod or client.area.sub and client.area.hub.name.startswith('Hub'):
 		client.area.unlock()
 		client.area.password = ''
 		client.send_ooc('Area is unlocked.')
