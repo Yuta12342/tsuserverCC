@@ -66,16 +66,16 @@ class HubManager:
 					client.area.cur_subid += 1
 					if 'reachable_areas' in item:
 						if item['reachable_areas'] != '':
-							r_areas = item['reachable_areas']
-							r_areas.split(', ')
+							r_areas = item['reachable_areas'].split(', ')
 							newsub.connections = r_areas
 							newsub.is_restricted = True
 			lobby = client.server.area_manager.default_area()
 			for area in client.area.subareas:
 				tempcon = []
 				for area2 in client.area.subareas:
-					if area2.name in area.connections:
-						tempcon.append(area2)
+					for conn in area.connections:
+						if area2.name == conn:
+							tempcon.append(area2)
 				area.connections = tempcon
 				if client.area not in area.connections:
 					area.connections.append(client.area)
@@ -165,10 +165,10 @@ class HubManager:
 				if c in sub.owners:
 					sub.owners.remove(c)
 				destroyedclients.add(c)
-		for c in destroyedclients:
-			if c in destroyed.clients:
-				c.change_area(hub)
-				c.send_ooc(f'You were moved to {hub.name} because the hub was cleared.')
+			for dc in destroyedclients:
+				if dc in sub.clients:
+					dc.change_area(hub)
+					dc.send_ooc(f'You were moved to {hub.name} because the hub was cleared.')
 		hub.subareas.clear()
 		hub.cur_subid = 1
 		area_list = []
