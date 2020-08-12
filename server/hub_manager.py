@@ -214,8 +214,8 @@ class HubManager:
 			new_id = client.area.cur_subid
 			client.area.cur_subid += 1
 		else:
-			if client.area.hub.cur_subid > 51:
-				raise ClientError('You cannot have more than 50 areas in a hub.')
+			if client.area.hub.cur_subid > 101:
+				raise ClientError('You cannot have more than 100 areas in a hub.')
 			elif client.area.hub.name.startswith('Arcade') or client.area.hub.name.startswith('User') or client.area.name.startswith('Courtroom'):
 				if client.area.hub.cur_subid > 16:
 					raise ClientError('Cannot have more than 15 areas in this hub.')

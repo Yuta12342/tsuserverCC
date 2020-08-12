@@ -2,20 +2,23 @@
 
 A Python-based server for Attorney Online, forked from [AttorneyOnline/tsuserver3](https://github.com/AttorneyOnline/tsuserver3)
 
-Requires Python 3.6+ and PyYAML.
+Requires Python 3.7+ and PyYAML.
 
 ### Changes/additions from tsuserver3
-* Fully-functional party system with Main Game features inbuilt,
 * Testimony recording/playback system,
 * Greatly extended support for custom content,
 * More options for area management, including:
+  - Accessible hub system, hubs with subareas without need for seperate area lists.
+  - Storing/loading hubs to a 100 areas, complete with connections and music lists,
   - On-the-fly area renaming, creation, and destruction,
   - Password locks,
   - Ability to connect areas via 'exits,'
   - and playercount hiding.
 * Serverside notepads,
 * Additional moderation features,
-* and a category-based music shuffle system.
+* Add music on the fly, and have it appear on the server's music list, (per area/hub basis)
+* A category-based music shuffle system,
+* Fully-functional(?) party system with Main Game features inbuilt.
 
 ## How to use
 
@@ -51,13 +54,15 @@ Requires Python 3.6+ and PyYAML.
     - Sends a serverwide advert
 * **toggleadverts** 
     - Toggles adverts on and off
-* **area** "area ID" "password"
-    - Displays all areas when blank, swaps to area with ID
+* **area** "area name/abbreviation" "password"
+    - Displays all hubs when blank, swaps to area with specified name/abbreviation
     - Specify a password to join a password locked area. (If the password matches. Obviously.)
 * **getarea** 
     - Shows the current characters in your area
 * **getareas** 
-    - Shows all characters in all areas
+    - Shows all characters in all areas, does not show a hub's subareas. If in hub, will only show lobby and the current hub.
+* **gethubs**
+	- Same as **getareas**, but will always show as if not currently in hub.
 * **mods**
     - Same as **getareas**, but only shows moderators
 * **doc** "url" 
@@ -67,10 +72,8 @@ Requires Python 3.6+ and PyYAML.
 * **status** "status" 
     - Shows current areas status if blank, updates the status
     - Statuses: 'idle', 'rp', 'casing', 'looking-for-players'/'lfp', 'recess', 'gaming'
-* **customstatus** "status"
-    - Same as /status, but uses user-defined status. Will use the same color as 'idle' as defined by client theme.
 * **pm** "target" "Message" 
-    - PMs the target. Targets client ID.
+    - Currently non-functional
 * **pmmute**
     - Disables all incoming PMs
 * **charselect** 
@@ -82,12 +85,10 @@ Requires Python 3.6+ and PyYAML.
 * **randomchar** 
     - Randomly chooses a character
 * **pos** "position" 
-    - Changes your position in the court
-    - Positions: 'def', 'pro', 'hld', 'hlp', 'jud', 'wit', 'jur' 'sea'
+    - Changes your position in the area
+    - Positions: Any (provided the background has it, otherwise will default to 'wit')
 * **bg** "background" 
-    - Changes the current background
-* **custombg** "background"
-    - Changes the current background to a defined bg located in `backgrounds/custom`.
+    - Changes the current background, if not an official background, server will look for it in background/custom
 * **currentbg**
     - Gives user the name of the area's current background.
 * **roll** "max" 
@@ -140,10 +141,6 @@ Requires Python 3.6+ and PyYAML.
 * **timer** "start/stop/continue"
     - A stopwatch. Use without arguments to check current timer without stopping it.
     - "start" will start a new timer, "stop" will stop the timer, and "continue" will start the timer where it was last stopped.
-* **create** "name"
-    - Create a new area with specified name.
-    - Area will be appended after Area 25 or any other custom area.
-    - Requires permission from staff.
 * **serverpoll** "yay/nay"
     - View or vote on the current server poll.
 * **digitalroot** "number"
@@ -154,14 +151,13 @@ Requires Python 3.6+ and PyYAML.
     - Makes you a CM of the current area.
 * **visible**
     - Toggles whether you will speak with a 'blank' emote.
-* **nopairoffset** "-100 to 100"
-    - Sets offset without pairing
 * **areapair** "left/right/middle"
     - Area-pairs you. If you are to the right, you will "pair" with anyone on the left in your position.
 * **friend** "id or no argument"
     - Sends a friend request, accepts a friend request, or shows current friend requests if no arguments are given.
 * **friendlist**
     - Shows current friends.
+
 ### Party Commands
 * **party**
     - Shows the user's current party.
@@ -186,6 +182,7 @@ Requires Python 3.6+ and PyYAML.
 * **mgvote** "subject"
     - Vote on a subject. If user has extra 'voting power,' they may vote more than once.
     - If used by party leader, show current vote tally.
+
 #### Party Leader-only Commands
 * **addrole "id" "role"**
     - Adds a role a party member.
@@ -213,6 +210,7 @@ Requires Python 3.6+ and PyYAML.
 * **mgvp** "id" "+/-"
     - Check a party member's 'voting power' or increase/decrease it.
     - Default voting power is 0 (one vote) except for the Sacrifice role, which is 1 (two votes).
+
 ### CM Commands
 * **hide** "ID/*"
     - Hides the target from /getarea and playercount.
@@ -253,8 +251,10 @@ Requires Python 3.6+ and PyYAML.
 * **play** "song file name incl. extension" "length in seconds"
     - Plays a song from `music/custom`.
     - Optionally, specify the length in seconds for the song to loop server-side.
-* **addmlist** "song file name incl. extension" "length in seconds"
-    - Adds tracks to the area music list that can be played with **playl**. Tracks must be located in `music/custom`.
+* **addmusic** "song file name incl. extension" "length in seconds"
+    - Adds tracks to the area music list. Tracks must be located in `music/custom`.
+* **addcategory** "name"
+	- Adds a category to the area's music list.
 * **clearmusiclist**
     - Clear the current area's music list.
 * **storemlist** "name"
@@ -267,12 +267,17 @@ Requires Python 3.6+ and PyYAML.
     - Hides the playercount for the current area.
     - Note: player count is only hidden from clients outside the area.
 * **rename** "new name"
-    - Rename the current area. Will only be visible/joinable to clients after a relog.
-    - New name will be announced globally in OOC.
-* **destroy**
-    - Destroy the current area.
-    - Requires area to have been created with **create**.
-    - Requires permission from staff.
+    - Rename the current area, must be a subarea in a hub.
+* **removearea**
+    - Destroy the current area, must be a subarea in a hub.
+* **savehub** "name"
+	- Saves a hub with the specified name.
+* **loadhub** "name"
+	- Loads a previously saved hub with the specified name.
+* **clearhub**
+	- Clears a hub of all it's areas.
+* **hubstatus* "status"
+	- Same as status, but affects all areas in a hub.
 * **shouts**
     - Toggle shouts in the current area.
 * **hide** "id"
@@ -286,6 +291,7 @@ Requires Python 3.6+ and PyYAML.
     - Allow only the specified position(s) to be used.
 	- Use with no arguments to what positions the area is locked.
     - Using "clear" as an argument clears the poslock.
+
 #### Testimony Recording
 * A new feature in tsuserverCC - you can now record testimonies and play them back with automatic formatting!
 * You can now record your testimonies by putting in IC `//[Your Testimony Title]`. Formatting works just as normal, and this will automatically do the WT woosh.
