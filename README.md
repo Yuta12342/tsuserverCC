@@ -9,7 +9,7 @@ Requires Python 3.7+ and PyYAML.
 * Greatly extended support for custom content,
 * More options for area management, including:
   - Accessible hub system, hubs with subareas without need for seperate area lists.
-  - Storing/loading hubs to a 100 areas, complete with connections and music lists,
+  - Storing/loading hubs up to a 100 areas, complete with connections and music lists,
   - On-the-fly area renaming, creation, and destruction,
   - Password locks,
   - Ability to connect areas via 'exits,'
@@ -59,8 +59,10 @@ Requires Python 3.7+ and PyYAML.
     - Specify a password to join a password locked area. (If the password matches. Obviously.)
 * **getarea** 
     - Shows the current characters in your area
+	- Also works as /ga.
 * **getareas** 
     - Shows all characters in all areas, does not show a hub's subareas. If in hub, will only show lobby and the current hub.
+	- Also works as /gas.
 * **gethubs**
 	- Same as **getareas**, but will always show as if not currently in hub.
 * **mods**
