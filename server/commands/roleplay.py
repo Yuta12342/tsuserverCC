@@ -100,9 +100,17 @@ def ooc_cmd_rolesvisible(client, arg):
 def ooc_cmd_hide(client, arg):
     if client not in client.area.owners and not client.is_mod:
         raise ClientError('You must be a CM.')
-    elif not arg:
+    if not arg:
         raise ClientError('You must specify a target. Use /hide <id>.')
-    elif arg[0] == '*':
+	if not client.area.is_hub and not client.area.sub:
+		raise ClientError('Must be in a hub to hide.')
+	if client.area.is_hub:
+		if client.area.name.startswith('User'):
+			raise ClientError('Cannot hide in this hub.')
+	if client.area.sub:
+		if client.area.hub.name.startswith('User'):
+			raise ClientError('Cannot hide in this hub.')
+    if arg == '*':
         targets = [c for c in client.area.clients if c != client and c != client.area.owners]
     else:
         targets = None

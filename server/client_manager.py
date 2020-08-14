@@ -475,6 +475,28 @@ class ClientManager:
 			if old_area.cmusic_list != area.cmusic_list:
 				music = area.get_music(self)
 				self.send_command('FM', *music)
+			if not self.area.is_hub and not self.area.sub:
+				if self.hidden:
+					self.hidden = False
+					self.send_ooc('You are no longer hidden.')
+			elif old_area.sub:
+				if self.area.sub and self.area.hub != old_area.hub:
+					if self.hidden:
+						self.hidden = False
+						self.send_ooc('You are no longer hidden.')
+				if self.area.is_hub and old_area.hub != self.area:
+					if self.hidden:
+						self.hidden = False
+						self.send_ooc('You are no longer hidden.')
+			elif old_area.is_hub:
+				if self.area.sub and self.area.hub != old_area:
+					if self.hidden:
+						self.hidden = False
+						self.send_ooc('You are no longer hidden.')
+				if self.area.is_hub and self.area != old_area:
+					if self.hidden:
+						self.hidden = False
+						self.send_ooc('You are no longer hidden.')
 
 			self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')
 			if self.autopass == True:
