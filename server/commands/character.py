@@ -273,12 +273,12 @@ def ooc_cmd_kickother(client, arg):
 	for target in targets:
 		if target != client:
 			target.disconnect()
-	if targets == None:
+	if len(targets) == 1:
 		targets = client.server.client_manager.get_targets(client, TargetType.HDID, client.hdid, False)
 		for target in targets:
 			if target != client:
 				target.disconnect()
-	if targets == None or len(targets) < 2:
+	if len(targets) < 2:
 		client.send_ooc('No other instances of clients found.')
 		return
 	temp = set()

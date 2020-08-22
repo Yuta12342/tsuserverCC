@@ -330,7 +330,7 @@ class ClientManager:
 				for c in self.following:
 					if not c in area.clients:
 						raise ClientError('You cannot leave as long as you are a hostage!')
-					elif area.is_locked == area.Locked.LOCKED and not self.id in area.invite_list:
+					if area.is_locked == area.Locked.LOCKED and not self.id in area.invite_list:
 						area.invite_list[self.id] = None
 			#Add id to invite list if they are an area owner so they can actually enter. Why is this a dictionary again?
 			if self in area.owners and not self.id in area.invite_list:
