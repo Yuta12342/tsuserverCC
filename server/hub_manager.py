@@ -99,9 +99,9 @@ class HubManager:
 		if not new:
 			os.remove(hubname)
 		hub = []
-		connections = ''
-		hub.append({'area': client.area.name, 'background': client.area.background, 'doc': client.area.doc, 'musiclist': client.area.cmusic_listname, 'reachable_areas': connections, 'hub': 'true'})
+		hub.append({'area': client.area.name, 'background': client.area.background, 'doc': client.area.doc, 'musiclist': client.area.cmusic_listname, 'reachable_areas': client.area.connections, 'hub': 'true'})
 		for area in client.area.subareas:
+			connections = ''
 			if len(area.connections) > 0:
 				for connection in area.connections:
 					connections += f'{connection.name}, '
