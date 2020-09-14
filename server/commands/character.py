@@ -269,16 +269,18 @@ def ooc_cmd_reload(client, arg):
 	client.send_ooc('Character reloaded.')
 
 def ooc_cmd_kickother(client, arg):
+	other = False
 	targets = client.server.client_manager.get_targets(client, TargetType.IPID, client.ipid, False)
 	for target in targets:
 		if target != client:
+			other = True
 			target.disconnect()
-	if len(targets) == 1:
-		targets = client.server.client_manager.get_targets(client, TargetType.HDID, client.hdid, False)
-		for target in targets:
-			if target != client:
-				target.disconnect()
-	if len(targets) < 2:
+	targets = client.server.client_manager.get_targets(client, TargetType.HDID, client.hdid, False)
+	for target in targets:
+		if target != client:
+			other = True
+			target.disconnect()
+	if not other:
 		client.send_ooc('No other instances of clients found.')
 		return
 	temp = set()
