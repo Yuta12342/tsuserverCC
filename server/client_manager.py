@@ -1004,6 +1004,9 @@ class ClientManager:
 				elif key == TargetType.IPID:
 					if client.ipid == value:
 						targets.append(client)
+				elif key == TargetType.HDID:
+					if client.hdid == value:
+						targets.append(client)
 				elif key == TargetType.AFK:
 					if client in area.afkers:
 						targets.append(client)
