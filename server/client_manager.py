@@ -216,7 +216,7 @@ class ClientManager:
 			if not name_ws or name_ws.isdigit():
 				return False
 			for client in self.server.client_manager.clients:
-				if client.name == name:
+				if client.name == name and self.ipid != client.ipid:
 					return False
 			return True
 
