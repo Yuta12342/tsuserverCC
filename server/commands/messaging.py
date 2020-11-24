@@ -50,7 +50,7 @@ def ooc_cmd_s(client, arg):
 		if client in a.owners:
 			areas.append(a)
 		if a.is_hub:
-			for sub in area.subareas:
+			for sub in a.subareas:
 				if client in sub.owners:
 					areas.append(sub)
 	if not areas:
