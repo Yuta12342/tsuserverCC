@@ -422,6 +422,11 @@ class ClientManager:
 
 			area.new_client(self)
 			
+			if old_area.sub and len(old_area.clients) == 0 and len(old_area.owners) == 0:
+				if old_area.hub.name.startswith('User'):
+					self.server.hub_manager.removesub(self, old_area)
+					self.send_ooc('Old area was destroyed')
+			
 			if self.area.is_hub and not old_area.sub or self.area.is_hub and old_area.is_restricted:
 				area_list = []
 				lobby = None
@@ -897,37 +902,33 @@ class ClientManager:
 				a.owners.remove(client)
 				#if client.area.sub:
 				#	client.area.hub.sub_arup_cms()
-				if client.area.is_hub:
-					client.area.sub_arup_cms()
+				if a.is_hub:
+					a.sub_arup_cms()
 					client.server.area_manager.send_arup_cms()
 				else:
 					client.server.area_manager.send_arup_cms()
 				if len(a.owners) == 0:
 					if a.is_locked != a.Locked.FREE:
 						a.unlock()
-					if client.area.is_restricted:
-						client.area.is_restricted = False
-						client.area.connections.clear()
+					if a.is_restricted:
+						a.is_restricted = False
+						a.connections.clear()
 			if a.is_hub:
 				for sub in a.subareas:
 					if client in sub.owners:
 						sub.owners.remove(client)
-						if client.area.sub:
-							client.area.hub.sub_arup_cms()
-						elif client.area.is_hub:
-							client.area.sub_arup_cms()
-							client.server.area_manager.send_arup_cms()
-						else:
-							client.server.area_manager.send_arup_cms()
+						sub.hub.sub_arup_cms()
 					if len(sub.owners) == 0:
 						if sub.is_locked != sub.Locked.FREE:
 							sub.unlock()
-						if client.area.is_restricted:
-							client.area.is_restricted = False
-							client.area.connections.clear()
-		if len(client.area.clients) < 1:
-			if client.area.is_locked != client.area.Locked.FREE:
-				client.area.unlock()
+						if sub.is_restricted:
+							sub.is_restricted = False
+							sub.connections.clear()
+						if len(sub.clients) == 0 and a.name.startswith('User'):
+							client.server.hub_manager.removesub(self, sub)
+		#if len(client.area.clients) < 1:
+		#	if client.area.is_locked != client.area.Locked.FREE:
+		#		client.area.unlock()
 		for c in client.following:
 			c.followers.remove(client)
 			c.send_ooc(f'{client.char_name} disconnected and is no longer following you.')

@@ -111,8 +111,11 @@ class HubManager:
 			yaml.dump(hub, hubfile)
 		client.send_ooc(f'Hub {arg} saved!')
 	
-	def removesub(self, client):
-		destroyed = client.area
+	def removesub(self, client, area=None):
+		if area != None:
+			destroyed = area
+		else:
+			destroyed = client.area
 		hub = destroyed.hub
 		destroyedclients = set()
 		for c in destroyed.clients:
