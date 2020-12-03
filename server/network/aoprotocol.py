@@ -375,7 +375,7 @@ class AOProtocol(asyncio.Protocol):
 		target_area = []
 		showname = ""
 		charid_pair = -1
-		offset_pair = 0
+		offset_pair = ""
 		nonint_pre = 0
 		looping_sfx = 0
 		screenshake = 0
@@ -439,12 +439,12 @@ class AOProtocol(asyncio.Protocol):
 			if len(showname) > 0 and not self.client.area.showname_changes_allowed:
 				self.client.send_host_message("Showname changes are forbidden in this area!")
 				return
-		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR,
-								   self.ArgType.STR,
-								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT,
-								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT_OR_STR, self.ArgType.INT,
-								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY,
-								   self.ArgType.STR, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR,
+		elif self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR_OR_EMPTY, self.ArgType.STR, #msg_type, pre, folder
+								   self.ArgType.STR, #anim
+								   self.ArgType.STR, self.ArgType.STR, self.ArgType.STR, self.ArgType.INT, #text, pos, sfx, anim_type
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT_OR_STR, self.ArgType.INT, #cid, sfx_delay, button, evidence
+								   self.ArgType.INT, self.ArgType.INT, self.ArgType.INT, self.ArgType.STR_OR_EMPTY, #flip, ding, color, showname
+								   self.ArgType.STR, self.ArgType.STR, self.ArgType.INT, self.ArgType.STR, #charid_pair, offset_pair
 								   self.ArgType.INT, self.ArgType.STR, self.ArgType.STR, self.ArgType.STR,
 								   self.ArgType.INT, self.ArgType.STR):
 			msg_type, pre, folder, anim, text, pos, sfx, anim_type, cid, sfx_delay, button, evidence, flip, ding, color, showname, charid_pair, offset_pair, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect = args
@@ -598,7 +598,7 @@ class AOProtocol(asyncio.Protocol):
 			self.client.last_sprite = anim
 		self.client.flip = flip
 		self.client.claimed_folder = folder
-		other_offset = 0
+		other_offset = '0'
 		other_emote = ''
 		other_flip = 0
 		other_folder = ''
@@ -746,14 +746,14 @@ class AOProtocol(asyncio.Protocol):
 				ap[f'left-{pos}'] = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
 				if f'right-{pos}' in ap:
 					right = ap[f'right-{pos}']
-					offset_pair = -25
-					other_offset = 25
+					offset_pair = '-25'
+					other_offset = '25'
 					other_emote = right.anim
 					other_flip = right.flip
 					other_folder = right.folder
 					charid_pair = right.cid
 				else:
-					offset_pair = -25
+					offset_pair = '-25'
 				for x in apdupe:
 					if apdupe[x].client == self.client:
 						ap.pop(x)
@@ -761,14 +761,14 @@ class AOProtocol(asyncio.Protocol):
 				ap[f'right-{pos}'] = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
 				if f'left-{pos}' in ap:
 					left = ap[f'left-{pos}']
-					offset_pair = 25
-					other_offset = -25
+					offset_pair = '25'
+					other_offset = '-25'
 					other_emote = left.anim
 					other_flip = left.flip
 					other_folder = left.folder
 					charid_pair = left.cid
 				else:
-					offset_pair = 25
+					offset_pair = '25'
 				for x in apdupe:
 					if apdupe[x].client == self.client:
 						ap.pop(x)
