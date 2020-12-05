@@ -459,7 +459,7 @@ def ooc_cmd_login(client, arg):
 	"""
 	Login as a moderator.
 	Usage: /login <password>
-	"""
+	
 	if len(arg) == 0:
 		raise ArgumentError('You must specify the password.')
 	login_name = None
@@ -470,6 +470,17 @@ def ooc_cmd_login(client, arg):
 		raise
 	if client.area.evidence_mod == 'HiddenCM':
 		client.area.broadcast_evidence_list()
+	client.send_ooc('Logged in as a moderator.')
+	database.log_misc('login', client, data={'profile': login_name})
+	"""
+	if len(arg) > 0:
+		raise ArgumentError('This command doesn\'t take arguments.')
+	login_name = None
+	try:
+		login_name = client.auth_mod()
+	except ClientError:
+		database.log_misc('login.invalid', client)
+		raise
 	client.send_ooc('Logged in as a moderator.')
 	database.log_misc('login', client, data={'profile': login_name})
 

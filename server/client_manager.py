@@ -47,6 +47,7 @@ class ClientManager:
 			self.name = ''
 			self.showname = ''
 			self.fake_name = ''
+			self.is_admin = False
 			self.is_mod = False
 			self.mod_profile_name = None
 			self.is_dj = True
@@ -775,14 +776,14 @@ class ClientManager:
 				char_list[x] = 0
 			return char_list
 
-		def auth_mod(self, password):
+		def auth_mod(self):
 			"""
 			Attempt to log in as a moderator.
 			:param password: password string
 			:returns: name of profile which the password belongs to, if login
 			was successful
 			:raises: ClientError if password is incorrect
-			"""
+			
 			modpasses = self.server.config['modpass']
 			if isinstance(modpasses, dict):
 				matches = [k for k in modpasses
@@ -801,6 +802,42 @@ class ClientManager:
 			else:
 				self.send_command("FAILEDLOGIN");
 				raise ClientError('Invalid password.')
+			"""
+			modfile = 'config/moderation.yaml'
+			new = not os.path.exists(modfile)
+			if new:
+				raise ClientError('There is no moderation file!')
+				return
+			if self.is_mod:
+				raise ClientError('Already logged in.') 
+			else:
+				with open(modfile, 'r') as chars:
+					mods = yaml.safe_load(chars)
+				for item in mods:
+					hdids = item['hdid'].split(', ')
+					ipids = item['ipid'].split(', ')
+					if self.hdid in hdids:
+						self.mod_profile_name = item['name']
+						self.is_mod = True
+						if item['status'] == 'admin':
+							self.is_admin = True
+						if self.ipid not in ipids:
+							item['ipid'] = f"{item['ipid']}, {self.ipid}"
+						
+					if self.ipid in ipids:
+						self.mod_profile_name = item['name']
+						self.is_mod = True
+						if item['status'] == 'admin':
+							self.is_admin = True
+						if self.hdid not in hdids:
+							item['hdid'] = f"{item['hdid']}, {self.hdid}"
+				with open(modfile, 'w', encoding='utf-8') as dump:
+					yaml.dump(mods, dump)
+				if not self.is_mod:
+					self.send_command("FAILEDLOGIN");
+					raise ClientError('Login failed.')
+				return self.mod_profile_name
+				
 
 		@property
 		def ip(self):
