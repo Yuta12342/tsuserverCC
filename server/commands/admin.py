@@ -70,9 +70,8 @@ def ooc_cmd_setserverpoll(client, arg):
 	client.server.poll = f'=== Server Poll ===\n{arg}\n===================\nVote "yay" or "nay" with /serverpoll.'
 	client.server.pollyay = []
 	client.server.pollnay = []
-	for a in client.server.area_manager.areas:
-		for c in a.clients:
-			c.send_ooc('A new server poll has been set. Check /serverpoll.')
+	for c in client.server.client_manager.clients:
+		c.send_ooc('A new server poll has been set. Check /serverpoll.')
 
 def ooc_cmd_serverpoll(client, arg):
 	poll = client.server.poll
@@ -484,6 +483,68 @@ def ooc_cmd_login(client, arg):
 	client.send_ooc('Logged in as a moderator.')
 	database.log_misc('login', client, data={'profile': login_name})
 
+def ooc_cmd_addmod(client, arg):
+	"""
+	Registers target as a moderator, allowing them to login.
+	"""
+	args = arg.split(' ')
+	if not client.is_admin:
+		raise ClientError('You are not authorized.')
+	if len(arg) == 0:
+		raise ArgumentError('This command requires arguments.')
+	if len(args) < 2:
+		raise ArgumentError('This command requires ID and a set name as arguments.')
+	for id in args[0]:
+		try:
+			id = int(id)
+			c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
+			check = c.auth_mod(test)
+			if check == True:
+				client.send_ooc('This person is already a mod.')
+				return
+			else:
+				modfile = 'config/moderation.yaml'
+				new = not os.path.exists(modfile)
+				if not new:
+					with open(modfile, 'r') as chars:
+					mods = yaml.safe_load(chars)
+				else:
+					mods = []
+				status = 'mod'
+				if len(args) > 2:
+					if args[2].lower() == 'admin':
+						status = 'admin'
+				mods.append({'name': args[1], 'status': status, 'hdid': c.hdid, 'ipid': c.ipid})
+				if not new:
+					os.remove(modfile)
+				with open(modfile, 'w', encoding='utf-8') as dump:
+					yaml.dump(mods, dump)
+		except:
+			client.send_ooc(f'{id} does not look like a valid ID.')
+			
+def ooc_cmd_removemod(client, arg):
+	if not client.is_admin:
+		raise ClientError('You are not authorized.')
+	if len(arg) == 0:
+		raise ArgumentError('This command requires arguments.')
+	modfile = 'config/moderation.yaml'
+	new = not os.path.exists(modfile)
+	rem = None
+	if not new:
+		with open(modfile, 'r') as chars:
+		mods = yaml.safe_load(chars)
+		for item in mods:
+			if item['name'].lower() == arg.lower():
+				rem = item
+		if rem != None:
+			mods.remove(rem)
+			os.remove(modfile)
+			with open(modfile, 'w', encoding='utf-8') as dump:
+				yaml.dump(mods, dump)
+		else:
+			raise ArgumentError('No mod found by that name.')
+	else:
+		raise ArgumentError('There is no moderation file!')
 
 @mod_only()
 def ooc_cmd_refresh(client, arg):

@@ -776,7 +776,7 @@ class ClientManager:
 				char_list[x] = 0
 			return char_list
 
-		def auth_mod(self):
+		def auth_mod(self, test=False):
 			"""
 			Attempt to log in as a moderator.
 			:param password: password string
@@ -831,11 +831,16 @@ class ClientManager:
 							self.is_admin = True
 						if self.hdid not in hdids:
 							item['hdid'] = f"{item['hdid']}, {self.hdid}"
+				if not self.is_mod:
+					if test:
+						return False
+					else:
+						self.send_command("FAILEDLOGIN");
+						raise ClientError('Login failed.')
+				elif test:
+					return True
 				with open(modfile, 'w', encoding='utf-8') as dump:
 					yaml.dump(mods, dump)
-				if not self.is_mod:
-					self.send_command("FAILEDLOGIN");
-					raise ClientError('Login failed.')
 				return self.mod_profile_name
 				
 
