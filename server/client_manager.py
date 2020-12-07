@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
+import yaml
+import os
 import re
 import time
 import random
@@ -776,7 +777,7 @@ class ClientManager:
 				char_list[x] = 0
 			return char_list
 
-		def auth_mod(self, test=False):
+		def auth_mod(self):
 			"""
 			Attempt to log in as a moderator.
 			:param password: password string
@@ -807,38 +808,45 @@ class ClientManager:
 			new = not os.path.exists(modfile)
 			if new:
 				raise ClientError('There is no moderation file!')
-				return
 			if self.is_mod:
 				raise ClientError('Already logged in.') 
 			else:
 				with open(modfile, 'r') as chars:
 					mods = yaml.safe_load(chars)
 				for item in mods:
-					hdids = item['hdid'].split(', ')
-					ipids = item['ipid'].split(', ')
+					hdids = []
+					ipids = []
+					try:
+						hdids = item['hdid'].split()
+					except:
+						hdids.append(item['hdid'])
+					try:
+						ipids = item['ipid'].split()
+					except:
+						ipids.append(item['ipid'])
 					if self.hdid in hdids:
 						self.mod_profile_name = item['name']
 						self.is_mod = True
 						if item['status'] == 'admin':
 							self.is_admin = True
 						if self.ipid not in ipids:
-							item['ipid'] = f"{item['ipid']}, {self.ipid}"
-						
+							if item['ipid'] != '':
+								item['ipid'] = f"{item['ipid']} {self.ipid}"
+							else:
+								item['ipid'] = f"{self.ipid}"	
 					if self.ipid in ipids:
 						self.mod_profile_name = item['name']
 						self.is_mod = True
 						if item['status'] == 'admin':
 							self.is_admin = True
 						if self.hdid not in hdids:
-							item['hdid'] = f"{item['hdid']}, {self.hdid}"
+							if item['hdid'] != None and item['hdid'] != '':
+								item['hdid'] = f"{item['hdid']} {self.hdid}"
+							else:
+								item['hdid'] = f"{self.hdid}"
 				if not self.is_mod:
-					if test:
-						return False
-					else:
-						self.send_command("FAILEDLOGIN");
-						raise ClientError('Login failed.')
-				elif test:
-					return True
+					self.send_command("FAILEDLOGIN");
+					raise ClientError('Login failed.')
 				with open(modfile, 'w', encoding='utf-8') as dump:
 					yaml.dump(mods, dump)
 				return self.mod_profile_name

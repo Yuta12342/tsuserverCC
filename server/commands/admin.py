@@ -1,7 +1,8 @@
 import shlex
-
+import os
 import arrow
 import pytimeparse
+import yaml
 
 from heapq import heappop, heappush
 from server import database
@@ -40,6 +41,8 @@ __all__ = [
 	'ooc_cmd_clearserverpoll',
 	'ooc_cmd_allowmusic',
 	'ooc_cmd_ghost',
+	'ooc_cmd_addmod',
+	'ooc_cmd_removemod',
 	'ooc_cmd_remclient'
 ]
 
@@ -480,7 +483,10 @@ def ooc_cmd_login(client, arg):
 	except ClientError:
 		database.log_misc('login.invalid', client)
 		raise
-	client.send_ooc('Logged in as a moderator.')
+	if not client.is_admin:
+		client.send_ooc('Logged in as a moderator.')
+	else:
+		client.send_ooc('Logged in as an admin.')
 	database.log_misc('login', client, data={'profile': login_name})
 
 def ooc_cmd_addmod(client, arg):
@@ -498,16 +504,12 @@ def ooc_cmd_addmod(client, arg):
 		try:
 			id = int(id)
 			c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
-			check = c.auth_mod(test)
-			if check == True:
-				client.send_ooc('This person is already a mod.')
-				return
 			else:
 				modfile = 'config/moderation.yaml'
 				new = not os.path.exists(modfile)
 				if not new:
 					with open(modfile, 'r') as chars:
-					mods = yaml.safe_load(chars)
+						mods = yaml.safe_load(chars)
 				else:
 					mods = []
 				status = 'mod'
@@ -532,7 +534,7 @@ def ooc_cmd_removemod(client, arg):
 	rem = None
 	if not new:
 		with open(modfile, 'r') as chars:
-		mods = yaml.safe_load(chars)
+			mods = yaml.safe_load(chars)
 		for item in mods:
 			if item['name'].lower() == arg.lower():
 				rem = item

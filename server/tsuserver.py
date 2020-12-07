@@ -602,19 +602,22 @@ class TsuServerCC:
 
 			# Reload moderator passwords list and unmod any moderator affected by
 			# credential changes or removals
-		with open(modfile, 'r') as chars:
-			mods = yaml.safe_load(chars)
-		for client in self.client_manager.clients:
-			if client.is_mod:
-				check = False
-				for item in mods:
-					if item['name'] == client.mod_profile_name:
-						check = True
-				if check == False:
-					client.is_mod = False
-					client.mod_profile_name = None
-					database.log_misc('unmod.modpass', client)
-					client.send_ooc('Your moderator credentials have been revoked.')
+		modfile = 'config/moderation.yaml'
+		new = not os.path.exists(modfile)
+		if not new:
+			with open(modfile, 'r') as chars:
+				mods = yaml.safe_load(chars)
+			for client in self.client_manager.clients:
+				if client.is_mod:
+					check = False
+					for item in mods:
+						if item['name'] == client.mod_profile_name:
+							check = True
+					if check == False:
+						client.is_mod = False
+						client.mod_profile_name = None
+						database.log_misc('unmod.modpass', client)
+						client.send_ooc('Your moderator credentials have been revoked.')
 			"""if isinstance(self.config['modpass'], str):
 				self.config['modpass'] = {'default': {'password': self.config['modpass']}}
 			if isinstance(cfg_yaml['modpass'], str):
