@@ -504,25 +504,25 @@ def ooc_cmd_addmod(client, arg):
 		try:
 			id = int(id)
 			c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
-			else:
-				modfile = 'config/moderation.yaml'
-				new = not os.path.exists(modfile)
-				if not new:
-					with open(modfile, 'r') as chars:
-						mods = yaml.safe_load(chars)
-				else:
-					mods = []
-				status = 'mod'
-				if len(args) > 2:
-					if args[2].lower() == 'admin':
-						status = 'admin'
-				mods.append({'name': args[1], 'status': status, 'hdid': c.hdid, 'ipid': c.ipid})
-				if not new:
-					os.remove(modfile)
-				with open(modfile, 'w', encoding='utf-8') as dump:
-					yaml.dump(mods, dump)
+			modfile = 'config/moderation.yaml'
 		except:
 			client.send_ooc(f'{id} does not look like a valid ID.')
+	new = not os.path.exists(modfile)
+	if not new:
+		with open(modfile, 'r') as chars:
+			mods = yaml.safe_load(chars)
+	else:
+		mods = []
+	status = 'mod'
+	if len(args) > 2:
+		if args[2].lower() == 'admin':
+			status = 'admin'
+	mods.append({'name': args[1], 'status': status, 'hdid': c.hdid, 'ipid': c.ipid})
+	if not new:
+		os.remove(modfile)
+	with open(modfile, 'w', encoding='utf-8') as dump:
+		yaml.dump(mods, dump)
+	
 			
 def ooc_cmd_removemod(client, arg):
 	if not client.is_admin:
