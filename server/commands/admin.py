@@ -500,13 +500,12 @@ def ooc_cmd_addmod(client, arg):
 		raise ArgumentError('This command requires arguments.')
 	if len(args) < 2:
 		raise ArgumentError('This command requires ID and a set name as arguments.')
-	for id in args[0]:
-		try:
-			id = int(id)
-			c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
-			modfile = 'config/moderation.yaml'
-		except:
-			client.send_ooc(f'{id} does not look like a valid ID.')
+	try:
+		id = int(args[0])
+		c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
+		modfile = 'config/moderation.yaml'
+	except:
+		client.send_ooc(f'{id} does not look like a valid ID.')
 	new = not os.path.exists(modfile)
 	if not new:
 		with open(modfile, 'r') as chars:
