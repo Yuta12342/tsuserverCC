@@ -49,7 +49,7 @@ class AreaManager:
 					 abbreviation='',
 					 non_int_pres_only=False,
 					 is_hub=False,
-					 hubid=0
+					 hubid=0,
 					 hubtype='default'):
 			self.is_hub = is_hub
 			self.hubid = hubid
