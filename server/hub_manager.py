@@ -137,11 +137,11 @@ class HubManager:
 			sub.id = hub.cur_subid
 			if sub.name == f'Area {oldid}':
 				sub.name = f'Area {sub.id}'
-			if hub.name.startswith('Arcade'):
+			if hub.hubtype == 'arcade':
 				sub.abbreviation = f'AHS{sub.id}'
-			elif hub.name.startswith('User'):
+			elif hub.hubtype == 'user':
 				sub.abbreviation = f'UHS{sub.id}'
-			elif hub.name.startswith('Courtroom'):
+			elif hub.hubtype == 'courtroom':
 				if sub.name == f'Courtroom {oldid}':
 					sub.name = f'Courtroom {sub.id}'
 				sub.abbreviation = f'CR{sub.id}'
@@ -211,7 +211,7 @@ class HubManager:
 		if client.area.is_hub:
 			if client.area.cur_subid > 101:
 				raise ClientError('You cannot have more than 100 areas in a hub.')
-			elif client.area.name.startswith('Arcade') or client.area.name.startswith('User') or client.area.name.startswith('Courtroom'):
+			elif client.area.hubtype == 'arcade' or client.area.hubtype == 'user' or client.area.hubtype == 'courtroom':
 				if client.area.cur_subid > 16:
 					raise ClientError('Cannot have more than 15 areas in this hub.')
 			new_id = client.area.cur_subid
@@ -219,7 +219,7 @@ class HubManager:
 		else:
 			if client.area.hub.cur_subid > 101:
 				raise ClientError('You cannot have more than 100 areas in a hub.')
-			elif client.area.hub.name.startswith('Arcade') or client.area.hub.name.startswith('User') or client.area.name.startswith('Courtroom'):
+			elif client.area.hub.hubtype == 'arcade' or client.area.hub.hubtype == 'user' or client.area.hubtype == 'courtroom':
 				if client.area.hub.cur_subid > 16:
 					raise ClientError('Cannot have more than 15 areas in this hub.')
 			new_id = client.area.hub.cur_subid
@@ -238,11 +238,11 @@ class HubManager:
 		newsub.background = newsub.hub.background
 		newsub.cmusic_list = newsub.hub.cmusic_list
 		newsub.cmusic_listname = newsub.hub.cmusic_listname
-		if newsub.hub.name.startswith('Arcade'):
+		if newsub.hub.hubtype == 'arcade':
 			newsub.abbreviation = f'AHS{new_id}'
-		elif newsub.hub.name.startswith('User'):
+		elif newsub.hub.hubtype == 'user':
 			newsub.abbreviation = f'UHS{new_id}'
-		elif newsub.hub.name.startswith('Courtroom'):
+		elif newsub.hub.hubtype == 'courtroom':
 			newsub.abbreviation = f'CR{new_id}'
 			if len(arg) == 0:
 				newsub.name = f'Courtroom {new_id}'

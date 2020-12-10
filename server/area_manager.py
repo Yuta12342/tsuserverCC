@@ -49,9 +49,11 @@ class AreaManager:
 					 abbreviation='',
 					 non_int_pres_only=False,
 					 is_hub=False,
-					 hubid=0):
+					 hubid=0
+					 hubtype='default'):
 			self.is_hub = is_hub
 			self.hubid = hubid
+			self.hubtype = hubtype
 			self.hub = None
 			self.subareas = []
 			self.sub = False
@@ -466,7 +468,7 @@ class AreaManager:
 				value = 'looking-for-players'
 			self.status = value.upper()
 			if self.sub:
-				if self.hub.name.startswith('Arcade') or self.hub.name.startswith('Courtroom'):
+				if self.hub.hubtype == 'arcade' or self.hub.hubtype == 'courtroom':
 					if value == 'looking-for-players':
 						self.hub.status = value.upper()
 					else:
@@ -815,6 +817,8 @@ class AreaManager:
 				item['is_hub'] = False
 			if 'hub_id' not in item:
 				item['hub_id'] = 0
+			if 'hubtype' not in item:
+				item['hubtype'] = 'default'
 			self.areas.append(
 				self.Area(self.cur_id, self.server, item['area'],
 						  item['background'], item['bglock'],
@@ -822,7 +826,7 @@ class AreaManager:
 						  item['iniswap_allowed'],
 						  item['showname_changes_allowed'],
 						  item['shouts_allowed'], item['jukebox'],
-						  item['abbreviation'], item['noninterrupting_pres'], item['is_hub'], item['hub_id']))
+						  item['abbreviation'], item['noninterrupting_pres'], item['is_hub'], item['hub_id'], item['hubtype']))
 			self.cur_id += 1
 
 	def default_area(self):

@@ -105,10 +105,10 @@ def ooc_cmd_hide(client, arg):
 	if not client.area.is_hub and not client.area.sub:
 		raise ClientError('Must be in a hub to hide.')
 	if client.area.is_hub:
-		if client.area.name.startswith('User'):
+		if client.area.hubtype == 'user':
 			raise ClientError('Cannot hide in this hub.')
 	if client.area.sub:
-		if client.area.hub.name.startswith('User'):
+		if client.area.hub.hubtype == 'user':
 			raise ClientError('Cannot hide in this hub.')
 	if arg == '*':
 		targets = [c for c in client.area.clients if c != client and c != client.area.owners]
@@ -799,8 +799,10 @@ def ooc_cmd_roll(client, arg):
 	roll = roll[:-2]
 	if val[1] > 1:
 		roll = '(' + roll + ')'
-	client.area.broadcast_ooc('{} rolled {} out of {}.'.format(
-		client.char_name, roll, val[0]))
+	if client.char_name.startswith('custom') and client.showname != 0:
+		client.area.broadcast_ooc('{} rolled {} out of {}.'.format(client.showname, roll, val[0]))
+	else:
+		client.area.broadcast_ooc('{} rolled {} out of {}.'.format(client.char_name, roll, val[0]))
 	database.log_room('roll', client, client.area, message=f'{roll} out of {val[0]}')
 
 
@@ -834,14 +836,15 @@ def ooc_cmd_rollp(client, arg):
 	roll = roll[:-2]
 	if val[1] > 1:
 		roll = '(' + roll + ')'
-	client.send_ooc('{} rolled {} out of {}.'.format(
-		client.char_name, roll, val[0]))
-
-	client.area.broadcast_ooc('{} rolled in secret.'.format(
-		client.char_name))
+	if client.char_name.startswith('custom') and client.showname != 0:
+		client.send_ooc('{} rolled {} out of {}.'.format(client.showname, roll, val[0]))
+		client.area.broadcast_ooc('{} rolled in secret.'.format(client.showname))
+	else:
+		client.send_ooc('{} rolled {} out of {}.'.format(client.char_name, roll, val[0]))
+		client.area.broadcast_ooc('{} rolled in secret.'.format(client.char_name))
+	
 	for c in client.area.owners:
-		c.send_ooc('[{}]{} secretly rolled {} out of {}.'.format(
-			client.area.abbreviation, client.char_name, roll, val[0]))
+		c.send_ooc('[{}]{} secretly rolled {} out of {}.'.format(client.area.abbreviation, client.char_name, roll, val[0]))
 
 	database.log_room('rollp', client, client.area, message=f'{roll} out of {val[0]}')
 
@@ -946,8 +949,10 @@ def ooc_cmd_rolla(client, arg):
 	max_roll = ability_dice['max'] if 'max' in ability_dice else 6
 	roll = random.randint(1, max_roll)
 	ability = ability_dice[roll] if roll in ability_dice else "Nothing happens"
-	client.area.broadcast_ooc('{} rolled a {} (out of {}): {}.'.format(
-		client.char_name, roll, max_roll, ability))
+	if client.char_name.startswith('custom') and client.showname != 0:
+		client.area.broadcast_ooc('{} rolled a {} (out of {}): {}.'.format(client.showname, roll, max_roll, ability))
+	else:
+		client.area.broadcast_ooc('{} rolled a {} (out of {}): {}.'.format(client.char_name, roll, max_roll, ability))
 	database.log_room('rolla', client, client.area,
 						message=f'{roll} out of {max_roll}: {ability}')
 

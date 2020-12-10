@@ -425,7 +425,7 @@ class ClientManager:
 			area.new_client(self)
 			
 			if old_area.sub and len(old_area.clients) == 0 and len(old_area.owners) == 0:
-				if old_area.hub.name.startswith('User'):
+				if old_area.hub.hubtype == 'user':
 					self.server.hub_manager.removesub(self, old_area)
 					self.send_ooc('Old area was destroyed')
 			
@@ -974,7 +974,7 @@ class ClientManager:
 						if sub.is_restricted:
 							sub.is_restricted = False
 							sub.connections.clear()
-						if len(sub.clients) == 0 and a.name.startswith('User'):
+						if len(sub.clients) == 0 and a.hubtype == 'user':
 							client.server.hub_manager.removesub(self, sub)
 		#if len(client.area.clients) < 1:
 		#	if client.area.is_locked != client.area.Locked.FREE:
