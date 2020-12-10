@@ -98,6 +98,7 @@ class AreaManager:
 			self.poslock = []
 			self.last_speaker = None
 			self.last_ooc = ''
+			self.spies = set()
 			
 			"""
 			#debug
@@ -235,6 +236,9 @@ class AreaManager:
 			for c in self.owners:
 				if c not in self.clients:
 					c.send_command(cmd, *args)
+			for spy in self.spies:
+				if spy not in self.spies:
+					spy.send_command(cmd, *args)
 
 		def broadcast_ooc(self, msg):
 			"""
@@ -289,12 +293,12 @@ class AreaManager:
 			:param cid: origin character ID
 			:param length: track length (Default value = -1)
 			"""
-			self.send_command('MC', name, cid)
 			if self.music_looper:
 				self.music_looper.cancel()
-			if length > 0:
-				self.music_looper = asyncio.get_event_loop().call_later(
-					length, lambda: self.play_music(name, -1, length))
+			if length != 0:
+				#self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length))
+				length = 1
+			self.send_command('MC', name, cid)
 
 		def play_music_shownamed(self, name, cid, showname, length=-1, effects=0):
 			"""
@@ -305,21 +309,16 @@ class AreaManager:
 			:param showname: showname of origin user
 			:param length: track length (Default value = -1)
 			"""
-			self.send_command('MC', name, cid, showname, length, 0, effects)
 			if self.music_looper:
 				self.music_looper.cancel()
-			if length > 0:
-				self.music_looper = asyncio.get_event_loop().call_later(
-					length, lambda: self.play_music(name, -1, length))
+			if length != 0:
+				#self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length))
+				length = 1
+			self.send_command('MC', name, cid, showname, length, 0, effects)
 
 		def music_shuffle(self, arg, client, track=-1):
 			"""
-			Play a track, but show showname as the player instead of character
-			ID.
-			:param name: track name
-			:param cid: origin character ID
-			:param showname: showname of origin user
-			:param length: track length (Default value = -1)
+			Shuffles through tracks randomly, either from entire music list or specific category.
 			"""
 			arg = arg
 			client = client
