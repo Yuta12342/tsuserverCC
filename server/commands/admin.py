@@ -43,19 +43,37 @@ __all__ = [
 	'ooc_cmd_ghost',
 	'ooc_cmd_addmod',
 	'ooc_cmd_removemod',
-	'ooc_cmd_remclient'
 ]
 
-def ooc_cmd_remclient(client, arg):
+def ooc_cmd_spy(client, arg):
 	if not client.is_mod:
 		raise ArgumentError('You must be authorized to do that.')
-	rem = ''
-	for c in client.server.client_manager.clients:
-		if c.name == arg:
-			rem = c
-	if rem != '':
-		heappush(client.server.client_manager.cur_id, rem.id)
-		client.server.client_manager.clients.remove(rem)
+	if len(arg) == 0:
+		msg = 'Spying on:'
+		for a in client.spying:
+			msg += f'\n[{a.abbreviation}]'
+		return client.send_ooc(msg)
+	elif arg == 'here':
+		if client not in client.area.spies:
+			client.area.spies.add(client)
+			client.spying.append(client.area)
+		return client.send_ooc('You are now spying on this area.')
+	elif arg == 'clear':
+		spyl = []
+		for a in client.spying:
+			spyl.append(a)
+		for b in spyl:
+			b.spies.remove(client)
+			client.spying.remove(b)
+		return client.send_ooc('All spying cleared.')
+	else:
+		try:
+			spyhere = client.server.area_manager.get_area_by_abbreviation(arg)
+		except:
+			raise ArgumentError('Area not recognized.')
+		spyhere.spies.add(client)
+		client.spying.append(spyhere)
+		return send_ooc(f'You are now spying in {spyhere.name}.')
 
 def ooc_cmd_allowmusic(client, arg):
 	if client not in client.area.owners and not client.is_mod:

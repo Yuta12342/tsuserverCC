@@ -84,13 +84,6 @@ def ooc_cmd_allclients(client, arg):
 def ooc_cmd_shouts(client, arg):
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
-	if len(arg) == 0:
-		client.area.poslock = []
-		client.send_ooc('Area poslock cleared.')
-
-def ooc_cmd_shouts(client, arg):
-	if client not in client.area.owners and not client.is_mod:
-		raise ClientError('You must be a CM.')
 	if client.area.shouts_allowed:
 		client.area.shouts_allowed = False
 		client.area.broadcast_ooc('Shouts have been disallowed in this area.')

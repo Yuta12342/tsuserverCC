@@ -1073,6 +1073,8 @@ class AOProtocol(asyncio.Protocol):
 							.format(int(self.client.change_music_cd())))
 						return
 					try:
+						if args[0] == "~stop.mp3":
+							name, length, mod, custom = args[0], 0, -1, False
 						name, length, mod, custom = self.server.get_song_data(args[0], self.client.area)
 						if not mod == -1:
 							if not self.client.is_mod:

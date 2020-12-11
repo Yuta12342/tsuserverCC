@@ -89,6 +89,7 @@ class ClientManager:
 			self.friendlist = None
 			self.friendrequests = set()
 			self.areapair = 'middle'
+			self.spying = []
 			
 
 			# Pairing stuff
