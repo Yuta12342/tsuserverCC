@@ -1075,7 +1075,8 @@ class AOProtocol(asyncio.Protocol):
 					try:
 						if args[0] == "~stop.mp3":
 							name, length, mod, custom = args[0], 0, -1, False
-						name, length, mod, custom = self.server.get_song_data(args[0], self.client.area)
+						else:
+							name, length, mod, custom = self.server.get_song_data(args[0], self.client.area)
 						if not mod == -1:
 							if not self.client.is_mod:
 								self.client.send_host_message("This song is reserved for moderators.")

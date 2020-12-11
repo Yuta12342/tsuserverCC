@@ -43,6 +43,7 @@ __all__ = [
 	'ooc_cmd_ghost',
 	'ooc_cmd_addmod',
 	'ooc_cmd_removemod',
+	'ooc_cmd_spy'
 ]
 
 def ooc_cmd_spy(client, arg):
