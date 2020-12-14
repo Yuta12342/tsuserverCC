@@ -68,29 +68,36 @@ class ClientManager:
 			self.ipid = ipid
 			self.notepad = ''
 			self.autopass = False
-			self.followers = []
-			self.following = []
-			self.is_following = False
-			self.followable = True
-			self.is_hostage = False
 			self.timer = Timer()
 			self.old_char_name = ''
 			self.permission = False
 			self.ghost = False
 			self.hidden = False
-			self.in_party = False
-			self.party = None
-			self.partyrole = ''
-			self.votepower = 0
-			self.voted = False
 			self.visible = True
 			self.narrator = False
-			self.clientscon = 0
 			self.friendlist = None
 			self.friendrequests = set()
 			self.areapair = 'middle'
 			self.spying = []
 			
+			# Call stuff
+			self.call = None
+			self.calling = []
+			self.incall = False
+			
+			# Party stuff
+			self.in_party = False
+			self.party = None
+			self.partyrole = ''
+			self.votepower = 0
+			self.voted = False
+			
+			# Following stuff
+			self.followers = []
+			self.following = []
+			self.is_following = False
+			self.followable = True
+			self.is_hostage = False
 
 			# Pairing stuff
 			self.charid_pair = -1

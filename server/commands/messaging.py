@@ -23,6 +23,49 @@ __all__ = [
 ]
 
 
+def ooc_cmd_call(client, arg):
+	if len(arg) == 0:
+		if len(client.calling) > 0 and self.incall:
+			msg = 'You are calling with:'
+			for c in client.calling:
+				msg += f'\n[{c.id}] {c.name}'
+			#msg += '\nUse /call to allow users to see your messages.'
+			return client.send_ooc(msg)
+		else:
+			raise ArgumentError('Requires arguments. Try /call <id>.')
+	if len(client.calling) > 0:
+		raise ArgumentError('You are already calling or attempting a call, end it with /endcall before attempting again.')
+	try:
+		targets = client.server.client_manager.get_targets(client, TargetType.ID, int(arg), False)
+	except:
+		raise ArgumentError('That doesn\'t seem like a valid ID.')
+	caller = targets[0]
+	if len(caller.calling) > 0:
+		raise ArgumentError('This person is already calling someone.')
+	caller.calling.append(client)
+	caller.send_ooc(f'[{client.id}] {client.char_name}: {client.name} is calling you, use /acceptcall to take call.')
+	client.send_ooc(f'Calling [{caller.id}] {caller.char_name}, use /endcall to cancel.')
+	
+def ooc_cmd_acceptcall(client, arg):
+	if len(arg) > 0:
+		raise ArgumentError('This command does not take arguments.')
+	if len(client.calling) == 0:
+		raise ArgumentError('No call to accept.')
+	if client.incall:
+		raise ArgumentError('You are already in a call.')
+	caller = client.calling[0]
+	caller.calling.append(client)
+	client.incall = True
+	caller.incall = True
+	callarea = client.server.area_manager.Area(caller.ipid, client.server, name=f'{caller.name}\'s Call', background='', bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation=f'C{caller.ipid}', non_int_pres_only=False)
+	client.call = callarea
+	caller.call = callarea
+	callarea.owners.append(client)
+	callarea.owners.append(caller)
+	
+	client.send_ooc(f'Started call with {caller.name}. Use /endcall to end.')
+	caller.send_ooc(f'Started call with {client.name}. Use /endcall to end.')
+	
 def ooc_cmd_a(client, arg):
 	"""
 	Send a message to an area that you are a CM in.
