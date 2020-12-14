@@ -104,17 +104,12 @@ def ooc_cmd_tutturu(client, arg):
     client.area.broadcast_ooc(f'Tutturu♪ {client.name}!')
 
 def ooc_cmd_knock(client, arg):
-    args = arg.split()
-    if len(args) == 0:
-        client.send_area_list()
-    elif len(args) == 1:
-        try:
-            area = client.server.area_manager.get_area_by_id(int(args[0]))
-        except ValueError:
-            raise ArgumentError('Area ID must be a number.')
-        except (AreaError, ClientError):
-            raise
-        area.broadcast_ooc(f'{client.name} knocked on the area\'s door!')
+	args = arg.split()
+	try:
+		area = client.server.area_manager.get_area_by_abbreviation(args[0])
+	except ValueError:
+		raise ArgumentError('Argument must be an area\'s abbreviation.')
+    area.broadcast_ooc(f'{client.name} knocked on the area\'s door!')
 
 def ooc_cmd_digitalroot(client, arg):
     num = int(arg)

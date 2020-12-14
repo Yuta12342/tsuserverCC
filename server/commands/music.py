@@ -27,10 +27,31 @@ __all__ = [
 	'ooc_cmd_musiclist',
 	'ooc_cmd_storemlist',
 	'ooc_cmd_loadmlist',
-	'ooc_cmd_clearmusiclist'
+	'ooc_cmd_clearmusiclist',
+	'ooc_cmd_ambiance'
 ]
 
 
+def ooc_cmd_ambiance(client, arg):
+	if not client.is_mod and client not in client.area.owners:
+		raise ClientError('You must be a CM.')
+	area = client.area
+	if area.ambiance:
+		area.ambiance = False
+		area.broadcast_ooc('Ambiance for this area has been disabled, music played will loop client-side.')
+		if area.is_hub:
+			for sub in area.subs:
+				sub.ambiance = False
+				sub.broadcast_ooc('Ambiance for this area has been disabled, music played will loop client-side.')
+	else:
+		area.ambiance = True
+		area.broadcast_ooc('Ambiance for this area has been enabled, music played will loop server-side.')
+		if area.is_hub:
+			for sub in area.subs:
+				sub.ambiance = True
+				sub.broadcast_ooc('Ambiance for this area has been enabled, music played will loop server-side.')
+		
+		
 def ooc_cmd_addmusic(client, arg):
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')

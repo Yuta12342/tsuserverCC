@@ -99,6 +99,7 @@ class AreaManager:
 			self.last_speaker = None
 			self.last_ooc = ''
 			self.spies = set()
+			self.ambiance = False
 			
 			"""
 			#debug
@@ -237,7 +238,7 @@ class AreaManager:
 				if c not in self.clients:
 					c.send_command(cmd, *args)
 			for spy in self.spies:
-				if spy not in self.spies:
+				if spy not in self.clients and spy not in self.owners:
 					spy.send_command(cmd, *args)
 
 		def broadcast_ooc(self, msg):
@@ -286,7 +287,7 @@ class AreaManager:
 			self.music_looper = asyncio.get_event_loop().call_later(
 				vote_picked.length, lambda: self.start_jukebox())
 
-		def play_music(self, name, cid, length=-1):
+		def play_music(self, name, cid, length=-1, effects=0):
 			"""
 			Play a track.
 			:param name: track name
@@ -295,10 +296,13 @@ class AreaManager:
 			"""
 			if self.music_looper:
 				self.music_looper.cancel()
-			if length != 0:
-				#self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length))
-				length = 1
-			self.send_command('MC', name, cid)
+			if self.ambiance or name.startswith('/custom'):
+				if length != 0:
+					self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length, effects))
+			else:
+				if length != 0:
+					length = 1
+			self.send_command('MC', name, cid, '', length, 0, effects)
 
 		def play_music_shownamed(self, name, cid, showname, length=-1, effects=0):
 			"""
@@ -311,9 +315,12 @@ class AreaManager:
 			"""
 			if self.music_looper:
 				self.music_looper.cancel()
-			if length != 0:
-				#self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length))
-				length = 1
+			if self.ambiance or name.startswith('/custom'):
+				if length != 0:
+					self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length, effects))
+			else:
+				if length != 0:
+					length = 1
 			self.send_command('MC', name, cid, showname, length, 0, effects)
 
 		def music_shuffle(self, arg, client, track=-1):

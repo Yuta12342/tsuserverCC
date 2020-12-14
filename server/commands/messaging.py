@@ -33,7 +33,7 @@ def ooc_cmd_a(client, arg):
 	arg = arg.split(' ')
 
 	try:
-		area = get_area_by_abbreviation(arg[0])
+		area = client.server.area_manager.get_area_by_abbreviation(arg[0])
 	except AreaError:
 		raise
 
