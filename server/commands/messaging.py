@@ -19,7 +19,9 @@ __all__ = [
 	'ooc_cmd_toggleadverts',
 	'ooc_cmd_pm',
 	'ooc_cmd_ppm',
-	'ooc_cmd_mutepm'
+	'ooc_cmd_mutepm',
+	'ooc_cmd_call',
+	'ooc_cmd_acceptcall'
 ]
 
 
@@ -43,8 +45,8 @@ def ooc_cmd_call(client, arg):
 	if len(caller.calling) > 0:
 		raise ArgumentError('This person is already calling someone.')
 	caller.calling.append(client)
-	caller.send_ooc(f'[{client.id}] {client.char_name}: {client.name} is calling you, use /acceptcall to take call.')
-	client.send_ooc(f'Calling [{caller.id}] {caller.char_name}, use /endcall to cancel.')
+	caller.send_ooc(f'[{client.id}] {client.char_name}: {client.name} is calling you, use /acceptcall to take call or /endcall to reject.')
+	client.send_ooc(f'Calling [{caller.id}] {caller.char_name}.')
 	
 def ooc_cmd_acceptcall(client, arg):
 	if len(arg) > 0:
@@ -54,6 +56,9 @@ def ooc_cmd_acceptcall(client, arg):
 	if client.incall:
 		raise ArgumentError('You are already in a call.')
 	caller = client.calling[0]
+	if caller.incall:
+		client.calling.clear()
+		raise ArgumentError('They are already in a call.')
 	caller.calling.append(client)
 	client.incall = True
 	caller.incall = True
@@ -65,6 +70,11 @@ def ooc_cmd_acceptcall(client, arg):
 	
 	client.send_ooc(f'Started call with {caller.name}. Use /endcall to end.')
 	caller.send_ooc(f'Started call with {client.name}. Use /endcall to end.')
+	
+def def ooc_cmd_endcall(client, arg):
+	if len(arg) > 0:
+		raise ArgumentError('This command does not take arguments.')
+	if not client.incall:
 	
 def ooc_cmd_a(client, arg):
 	"""

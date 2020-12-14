@@ -287,7 +287,7 @@ class AreaManager:
 			self.music_looper = asyncio.get_event_loop().call_later(
 				vote_picked.length, lambda: self.start_jukebox())
 
-		def play_music(self, name, cid, length=-1, effects=0):
+		def play_music(self, name, cid, length=0, effects=0):
 			"""
 			Play a track.
 			:param name: track name
@@ -297,14 +297,14 @@ class AreaManager:
 			if self.music_looper:
 				self.music_looper.cancel()
 			if self.ambiance or name.startswith('/custom'):
-				if length != 0:
+				if length != 0
 					self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length, effects))
 			else:
 				if length != 0:
 					length = 1
 			self.send_command('MC', name, cid, '', length, 0, effects)
 
-		def play_music_shownamed(self, name, cid, showname, length=-1, effects=0):
+		def play_music_shownamed(self, name, cid, showname, length=0, effects=0):
 			"""
 			Play a track, but show showname as the player instead of character
 			ID.
