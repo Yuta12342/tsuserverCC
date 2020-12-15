@@ -1012,6 +1012,17 @@ class ClientManager:
 				client.server.parties.remove(party)
 		if client.friendlist != None:
 			self.server.friend_manager.friendlists.remove(client.friendlist)
+		if len(client.calling) > 0:
+			caller = client.calling[0]
+			client.calling.clear()
+			if caller.calling[0] == client:
+				caller.calling.clear()
+				caller.incall = False
+				if client.call != None:
+					callarea = client.call
+					callarea.owners.clear()
+					client.call = None
+					caller.call = None
 		for c in self.server.client_manager.clients:
 			if c.ipid == client.ipid:
 				c.clientscon -= 1

@@ -21,7 +21,9 @@ __all__ = [
 	'ooc_cmd_ppm',
 	'ooc_cmd_mutepm',
 	'ooc_cmd_call',
-	'ooc_cmd_acceptcall'
+	'ooc_cmd_acceptcall',
+	'ooc_cmd_endcall',
+	'ooc_cmd_holdcall'
 ]
 
 
@@ -71,11 +73,40 @@ def ooc_cmd_acceptcall(client, arg):
 	client.send_ooc(f'Started call with {caller.name}. Use /endcall to end.')
 	caller.send_ooc(f'Started call with {client.name}. Use /endcall to end.')
 	
-def def ooc_cmd_endcall(client, arg):
+def ooc_cmd_endcall(client, arg):
 	if len(arg) > 0:
 		raise ArgumentError('This command does not take arguments.')
-	if not client.incall:
+	if len(client.calling) == 0:
+		raise ArgumentError('No call to end.') 
+	caller = client.calling[0]
+	client.calling.clear()
+	client.incall = False
+	if caller.calling[0] == client:
+		caller.incall = False
+		caller.calling.clear()
+		if client.call != None:
+			callarea = client.call
+			callarea.owners.clear()
+			client.call = None
+			caller.call = None
 	
+	
+	client.send_ooc(f'Call with {caller.name} was ended/rejected.')
+	caller.send_ooc(f'Call with {client.name} was ended/rejected.')
+	
+def ooc_cmd_holdcall(client, arg):
+	if len(arg) > 0:
+		raise ArgumentError('This command does not take arguments.')
+	if client.call == None:
+		raise ArgumentError('No call to hold.')
+	if client.incall:
+		client.incall = False
+		client.send_ooc('Call put on hold, you now speaking outside of call.')
+	else:
+		client.incall = True
+		client.send_ooc('Call resumed, you now speaking in the call.')
+
+
 def ooc_cmd_a(client, arg):
 	"""
 	Send a message to an area that you are a CM in.
