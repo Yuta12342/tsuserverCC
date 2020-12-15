@@ -55,7 +55,7 @@ Requires Python 3.7+ and PyYAML.
 * **toggleadverts** 
     - Toggles adverts on and off
 * **area** "area name/abbreviation" "password"
-    - Displays all hubs when blank, swaps to area with specified name/abbreviation
+    - Displays all hubs when blank, swaps to area with the specified abbreviation
     - Specify a password to join a password locked area. (If the password matches. Obviously.)
 * **getarea** 
     - Shows the current characters in your area
@@ -147,7 +147,7 @@ Requires Python 3.7+ and PyYAML.
     - View or vote on the current server poll.
 * **digitalroot** "number"
     - Calculate the digital root of a given number.
-* **knock** "area ID"
+* **knock** "area abbreviation"
     - Broadcast a message in the selected area that the user is knocking on their door.
 * **cm**
     - Makes you a CM of the current area.
@@ -159,6 +159,14 @@ Requires Python 3.7+ and PyYAML.
     - Sends a friend request, accepts a friend request, or shows current friend requests if no arguments are given.
 * **friendlist**
     - Shows current friends.
+* **call** "id or no argument"
+    - Try to call someone or check who you're calling with.
+* **acceptcall**
+    - Accept an incoming call.
+* **endcall**
+    - End an ongoing call or reject an incoming one.
+* **holdcall**
+    - Holds your end of the ongoing call so you can speak to people outside the call.
 
 ### Party Commands
 * **party**
@@ -293,6 +301,8 @@ Requires Python 3.7+ and PyYAML.
     - Allow only the specified position(s) to be used.
 	- Use with no arguments to what positions the area is locked.
     - Using "clear" as an argument clears the poslock.
+* **ambiance**
+	- Toggles 'ambiance' or server-side looping. While on, allows new clients joining an area to hear a set song once it loops without needing to play it themselves.
 
 #### Testimony Recording
 * A new feature in tsuserverCC - you can now record testimonies and play them back with automatic formatting!
@@ -306,8 +316,8 @@ Requires Python 3.7+ and PyYAML.
 * If you want to clear the testimony, use /cleartestimony in OOC. For viewing the current testimony, simply do /testimony in OOC.
 
 ### Mod Commands
-* **login** "Password"
-    - Grants the Guard checkbox, then checks if password is correct. If so, logs user in as a moderator.
+* **login**
+    - Logs in as a mod or admin depending on set privileges with /addmod.
 * **gm** "Message" 
     - Sends a serverwide message with mod tag
 * **lm** "Message" 
@@ -379,6 +389,12 @@ Requires Python 3.7+ and PyYAML.
     - Toggles whether the moderator is visible in /getarea and playercount.
 * **unmod**
     - Revokes moderator credentials from the user.
+
+### Admin Commands
+* **addmod** "ID" "name" "admin (optional for admin status)"
+    - Adds a mod/admin's credentials so they can use /login.
+* **removemod** "name"
+    - Revokes a mod/admin's credentials based on the name they were added with.
 
 ## License
 
