@@ -297,8 +297,8 @@ class AreaManager:
 			if self.music_looper:
 				self.music_looper.cancel()
 			if self.ambiance or name.startswith('/custom'):
-				if length != 0
-					self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, 0, effects))
+				if length != 0:
+					self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length, effects))
 			else:
 				if length != 0:
 					length = 1
@@ -317,7 +317,7 @@ class AreaManager:
 				self.music_looper.cancel()
 			if self.ambiance or name.startswith('/custom'):
 				if length != 0:
-					self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, 0, effects))
+					self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.play_music(name, -1, length, effects))
 			else:
 				if length != 0:
 					length = 1
