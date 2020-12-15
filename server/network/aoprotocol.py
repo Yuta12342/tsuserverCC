@@ -486,10 +486,10 @@ class AOProtocol(asyncio.Protocol):
 		if text.startswith('/a '):
 			part = text.split(' ')
 			try:
-				aid = int(part[1])
-				area = self.server.area_manager.get_area_by_id(aid)
+				abbr = part[1]
+				area = self.server.area_manager.get_area_by_abbreviation(abbr)
 				if self.client in area.owners:
-					target_area.append(aid)
+					target_area.append(area)
 				if not target_area:
 					self.client.send_ooc(f'You don\'t own {area.name}!')
 					return
@@ -947,6 +947,7 @@ class AOProtocol(asyncio.Protocol):
 
 			self.client.call.set_next_msg_delay(len(msg))
 			self.client.call.last_speaker = self.client
+			database.log_ic(self.client, self.client.call, showname, msg)
 
 	def net_cmd_ct(self, args):
 		"""OOC Message
