@@ -55,8 +55,8 @@ def ooc_cmd_poslock(client, arg):
 	if len(arg) == 0:
 		if len(client.area.poslock) > 0:
 			msg = 'This area is poslocked to:'
-			for pos in client.area.poslock:
-				msg += f' {pos}'
+			pos = ' '.join(str(l) for l in client.area.pos_lock)
+			msg += f' {pos}'
 			msg += '.'
 			client.send_ooc(msg)
 			return
@@ -66,12 +66,20 @@ def ooc_cmd_poslock(client, arg):
 		raise ClientError('You must be a CM.')
 	if arg == 'clear':
 		client.area.poslock.clear()
-		client.send_ooc('Poslock cleared.')
+		client.area.broadcast_ooc('Poslock cleared.')
 	else:
+		client.area.poslock.clear()
 		args = arg.split()
+		args = sorted(set(args),key=args.index)
 		for pos in args:
+			pos = pos.lower()
+			if pos == 'none' or pos == 'clear':
+				continue
 			client.area.poslock.append(pos)
-			client.send_ooc(f'{pos} added to area\'s poslock.')
+
+		pos = ' '.join(str(l) for l in client.area.poslock)
+		client.area.broadcast_ooc(f'Locked pos into {pos}.')
+		client.area.send_command('SD', '*'.join(client.area.poslock))
 
 def ooc_cmd_allclients(client, arg):
 	if not client.is_mod:

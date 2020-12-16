@@ -243,6 +243,9 @@ def ooc_cmd_kick(client, arg):
 		if reason == '':
 			reason = 'N/A'
 		for c in targets:
+			if c.is_admin:
+				client.send_ooc(f'{c.charname} is an admin, cannot kick them.')
+				continue
 			database.log_misc('kick', client, target=c, data={'reason': reason})
 			w.kick(char=c.char_name, ipid=c.ipid, reason=reason)
 			client.send_ooc("{} was kicked.".format(
@@ -308,6 +311,20 @@ def kickban(client, arg, ban_hdid):
 		ipid = int(raw_ipid)
 	except ValueError:
 		raise ClientError(f'{raw_ipid} does not look like a valid IPID.')
+	modfile = 'config/moderation.yaml'
+	new = not os.path.exists(modfile)
+	if not new:
+		with open(modfile, 'r') as chars:
+			mods = yaml.safe_load(chars)
+		for item in mods:
+			ipids = []
+			try:
+				ipids = item['ipid'].split()
+			except:
+				ipids.append(item['ipid'])
+			if ipid in ipids:
+				if item['status'] == 'admin'
+					return client.send_ooc('Can\'t ban an admin.')
 
 	ban_id = database.ban(ipid, reason, ban_type='ipid', banned_by=client,
 		ban_id=ban_id, unban_date=unban_date)

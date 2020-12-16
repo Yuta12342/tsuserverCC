@@ -271,9 +271,9 @@ class AreaManager:
 			"""
 			if self.iniswap_allowed:
 				return False
-			if '..' in preanim or '..' in anim or '..' in char:
+			#if '..' in preanim or '..' in anim or '..' in char:
 				# Prohibit relative paths
-				return True
+			#	return True
 			if char.lower() != client.char_name.lower():
 				for char_link in self.server.allowed_iniswaps:
 					# Only allow if both the original character and the
@@ -282,10 +282,10 @@ class AreaManager:
 						return False
 			return not self.server.char_emotes[char].validate(preanim, anim, sfx)
 
-			if self.music_looper:
-				self.music_looper.cancel()
-			self.music_looper = asyncio.get_event_loop().call_later(
-				vote_picked.length, lambda: self.start_jukebox())
+			#if self.music_looper:
+			#	self.music_looper.cancel()
+			#self.music_looper = asyncio.get_event_loop().call_later(
+			#	vote_picked.length, lambda: self.start_jukebox())
 
 		def play_music(self, name, cid, length=0, effects=0):
 			"""

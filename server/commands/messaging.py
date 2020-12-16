@@ -81,14 +81,15 @@ def ooc_cmd_endcall(client, arg):
 	caller = client.calling[0]
 	client.calling.clear()
 	client.incall = False
-	if caller.calling[0] == client:
-		caller.incall = False
-		caller.calling.clear()
-		if client.call != None:
-			callarea = client.call
-			callarea.owners.clear()
-			client.call = None
-			caller.call = None
+	if len(caller.calling) > 0:
+		if caller.calling[0] == client:
+			caller.incall = False
+			caller.calling.clear()
+			if client.call != None:
+				callarea = client.call
+				callarea.owners.clear()
+				client.call = None
+				caller.call = None
 	
 	
 	client.send_ooc(f'Call with {caller.name} was ended/rejected.')
