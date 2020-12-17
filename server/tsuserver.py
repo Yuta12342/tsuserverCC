@@ -388,7 +388,7 @@ class TsuServerCC:
 		"""
 		for item in self.music_list:
 			if item['category'] == music:
-				return item['category'], -1, -1, False
+				return item['category'], 0, -1, False
 			for song in item['songs']:
 				if song['name'] == music:
 					try:
@@ -397,11 +397,11 @@ class TsuServerCC:
 						try:
 							return song['name'], song['length'], -1, False
 						except KeyError:
-							return song['name'], -1, -1, False
+							return song['name'], 0, -1, False
 		if len(area.cmusic_list) != 0:
 			for item in area.cmusic_list:
 				if item['category'] == music:
-					return item['category'], -1, -1, True
+					return item['category'], 0, -1, True
 				if len(item['songs']) != 0:
 					for song in item['songs']:
 						if song['name'] == music:

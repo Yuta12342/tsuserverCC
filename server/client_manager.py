@@ -679,14 +679,14 @@ class ClientManager:
 			return info
 			
 
-		def send_area_info(self, area, all, hubs=False):
+		def send_area_info(self, area, all, hubs=False, multiclients=False):
 			"""
 			Send information over OOC about a specific area.
 			:param area_id: area ID
 			:param mods: limit player list to mods
 			"""
 			info = ''
-			if all:
+			if all and not multiclients:
 				# all areas info
 				cnt = 0
 				info = '\n== Area List =='
@@ -726,7 +726,7 @@ class ClientManager:
 						for sub in area.hub.subareas:
 							info += f'{self.get_area_info(sub)}'
 				info = f'Current online: {cnt}{info}'
-			else:
+			if not all and not multiclients:
 				try:
 					area_client_cnt = 0
 					for client in area.clients:
@@ -743,6 +743,19 @@ class ClientManager:
 
 				except AreaError:
 					raise
+			if not all and multiclients:
+				checked = []
+				cnt = 0
+				for client in self.server.client_manager.clients:
+					if client in checked:
+						continue
+					for client2 in self.server.client_manager.clients:
+						if client != client2 and client.ipid == client2.ipid:
+							cnt += 1
+							checked.append(client2)
+					checked.append(client)
+					checked.append(client2)
+				info = f'Current multiclients: {cnt}'
 			self.send_ooc(info)
 
 		def send_done(self):

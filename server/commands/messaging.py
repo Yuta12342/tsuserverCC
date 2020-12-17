@@ -102,10 +102,10 @@ def ooc_cmd_holdcall(client, arg):
 		raise ArgumentError('No call to hold.')
 	if client.incall:
 		client.incall = False
-		client.send_ooc('Call put on hold, you now speaking outside of call.')
+		client.send_ooc('Call put on hold, you are now speaking outside of call.')
 	else:
 		client.incall = True
-		client.send_ooc('Call resumed, you now speaking in the call.')
+		client.send_ooc('Call resumed, you are now speaking in the call.')
 
 
 def ooc_cmd_a(client, arg):

@@ -323,7 +323,7 @@ def kickban(client, arg, ban_hdid):
 			except:
 				ipids.append(item['ipid'])
 			if ipid in ipids:
-				if item['status'] == 'admin'
+				if item['status'] == 'admin':
 					return client.send_ooc('Can\'t ban an admin.')
 
 	ban_id = database.ban(ipid, reason, ban_type='ipid', banned_by=client,

@@ -51,6 +51,13 @@ __all__ = [
 	'ooc_cmd_gethubs'
 ]
 
+def ooc_cmd_totalmulticlients(client, arg):
+	"""
+	Show information about all areas.
+	Usage: /getareas
+	"""
+	client.send_area_info(client.area, False, False, True)
+
 def ooc_cmd_poslock(client, arg):
 	if len(arg) == 0:
 		if len(client.area.poslock) > 0:
