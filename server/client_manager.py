@@ -437,7 +437,7 @@ class ClientManager:
 					self.server.hub_manager.removesub(self, old_area)
 					self.send_ooc('Old area was destroyed')
 			
-			if self.area.is_hub and not old_area.sub or self.area.is_hub and old_area.is_restricted:
+			if self.area.is_hub and not old_area.sub or self.area.is_hub and old_area.is_restricted or self.area.sub and old_area.is_restricted and not self.area.is_restricted:
 				area_list = []
 				lobby = None
 				for a in self.server.area_manager.areas:
