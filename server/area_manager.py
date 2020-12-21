@@ -348,7 +348,7 @@ class AreaManager:
 						if item['category'] == arg:
 							for song in item['songs']:
 								if index == trackid:
-									self.play_music_shownamed(song['name'], client.char_id, '{} Shuffle'.format(arg), -1)
+									self.play_music_shownamed(song['name'], client.char_id, '{} Shuffle'.format(arg))
 									self.music_looper = asyncio.get_event_loop().call_later(song['length'], lambda: self.music_shuffle(arg, client, trackid))
 									self.add_music_playing(client, song['name'])
 									database.log_room('play', client, self, message=song['name'])
@@ -372,7 +372,7 @@ class AreaManager:
 					for item in self.server.music_list:
 						for song in item['songs']:
 							if index == trackid:
-								self.play_music_shownamed(song['name'], client.char_id, 'Random Shuffle', -1)
+								self.play_music_shownamed(song['name'], client.char_id, 'Random Shuffle')
 								self.music_looper = asyncio.get_event_loop().call_later(song['length'], lambda: self.music_shuffle(arg, client, trackid))
 								self.add_music_playing(client, song['name'])
 								database.log_room('play', client, self, message=song['name'])
@@ -396,7 +396,7 @@ class AreaManager:
 				index = 0
 				for name, length in client.area.cmusic_list.items():
 					if index == trackid:
-						self.play_music_shownamed(name, client.char_id, 'Custom Shuffle', -1)
+						self.play_music_shownamed(name, client.char_id, 'Custom Shuffle')
 						self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.musiclist_shuffle(client, trackid))
 						self.add_music_playing(client, name)
 						database.log_room('play', client, self, message=name)
