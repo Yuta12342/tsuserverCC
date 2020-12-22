@@ -671,7 +671,10 @@ class ClientManager:
 							info += '[RCM]'
 						else:
 							info += '[CM]'
-					info += f'[{c.id}] {c.char_name}'
+					if len(c.hdid) == 32:
+						info += f'[{c.id}][WEB] {c.char_name}'
+					else:
+						info += f'[{c.id}] {c.char_name}'
 					if self.is_mod:
 						info += f' ({c.ipid}): {c.name}'
 					if c.showname != '':

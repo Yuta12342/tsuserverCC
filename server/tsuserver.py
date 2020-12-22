@@ -251,8 +251,8 @@ class TsuServerCC:
 		if 'webhook_url' not in self.config:
 			self.config['webhook_url'] = "example.com"
 
-		if isinstance(self.config['modpass'], str):
-			self.config['modpass'] = {'default': {'password': self.config['modpass']}}
+		#if isinstance(self.config['modpass'], str):
+		#	self.config['modpass'] = {'default': {'password': self.config['modpass']}}
 
 	def load_characters(self):
 		"""Load the character list from a YAML file."""

@@ -77,7 +77,7 @@ class Webhooks:
 				s = 's'
 			message = f"New modcall received ({mods} moderator{s} online)"
 		
-		description = f"[{current_time}] {char} ({ipid}) in [[area.abbreviation]]{area.name} {'without reason (using <2.6?)' if reason is None else f'with reason: {reason}'}"
+		description = f"[{current_time}] {char} ({ipid}) in {[area.abbreviation]}{area.name} {'without reason (using <2.6?)' if reason is None else f'with reason: {reason}'}"
 		
 		self.send_webhook(username=username, avatar_url=avatar_url, message=message, embed=True, title="Modcall", description=description)
 

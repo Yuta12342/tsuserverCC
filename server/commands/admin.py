@@ -43,8 +43,14 @@ __all__ = [
 	'ooc_cmd_ghost',
 	'ooc_cmd_addmod',
 	'ooc_cmd_removemod',
-	'ooc_cmd_spy'
+	'ooc_cmd_spy',
+	'ooc_cmd_geoiprefresh'
 ]
+
+def ooc_cmd_geoiprefresh(client, arg):
+	if not client.is_admin:
+		raise ArgumentError('You must be authorized to do that.')
+	client.server.load_ipranges()
 
 def ooc_cmd_spy(client, arg):
 	if not client.is_mod:
