@@ -957,6 +957,9 @@ class AOProtocol(asyncio.Protocol):
 		"""
 		if not self.client.is_checked:
 			return
+		if self.client.ooc_delay != None:
+			if self.client.ooc_delay > time.perf_counter():
+				self.client.send_ooc('You are trying to send messages too fast!')
 		if self.client.is_ooc_muted:  # Checks to see if the client has been muted by a mod
 			self.client.send_ooc('You are muted by a moderator.')
 			return
@@ -994,9 +997,9 @@ class AOProtocol(asyncio.Protocol):
 				'Your message was not sent for safety reasons: you left a dot before that message.'
 			)
 			return
-		if len(args[1]) > 1000:
+		if len(args[1]) > 300:
 			self.client.send_ooc(
-				'Your message was not sent for safety reasons: you left a dot before that message.'
+				'That message is too long!.'
 			)
 			return
 		if args[1].startswith('/'):
@@ -1025,6 +1028,7 @@ class AOProtocol(asyncio.Protocol):
 				args[1] = self.client.shake_message(args[1])
 			if self.client.disemvowel:
 				args[1] = self.client.disemvowel_message(args[1])
+			self.client.ooc_delay = (time.perf_counter() + 3)
 			self.client.area.send_command('CT', self.client.name, args[1])
 			self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + self.client.name, args[1])
 			database.log_room('ooc', self.client, self.client.area, message=args[1])

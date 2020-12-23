@@ -79,6 +79,7 @@ class ClientManager:
 			self.friendrequests = set()
 			self.areapair = 'middle'
 			self.spying = []
+			self.ooc_delay = None
 			
 			# Call stuff
 			self.call = None
