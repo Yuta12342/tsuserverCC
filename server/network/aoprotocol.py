@@ -958,10 +958,6 @@ class AOProtocol(asyncio.Protocol):
 		"""
 		if not self.client.is_checked:
 			return
-		if self.client.ooc_delay != None:
-			if self.client.ooc_delay > time.perf_counter():
-				self.client.send_ooc('You are trying to send messages too fast!')
-				return
 		if self.client.is_ooc_muted:  # Checks to see if the client has been muted by a mod
 			self.client.send_ooc('You are muted by a moderator.')
 			return
@@ -1024,6 +1020,10 @@ class AOProtocol(asyncio.Protocol):
 			except Exception as ex:
 				self.client.send_ooc('An internal error occurred. Please check the server log.')
 				logger.exception('Exception while running a command')
+		if self.client.ooc_delay != None:
+			if self.client.ooc_delay > time.perf_counter():
+				self.client.send_ooc('You are trying to send messages too fast!')
+				return
 		else:
 			args[1] = self.dezalgo(args[1])
 			if self.client.shaken:
