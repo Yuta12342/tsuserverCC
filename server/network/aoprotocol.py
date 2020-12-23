@@ -18,6 +18,7 @@
 # along with this program.	If not, see <https://www.gnu.org/licenses/>.
 
 
+import time
 import asyncio
 import re
 import unicodedata
@@ -960,6 +961,7 @@ class AOProtocol(asyncio.Protocol):
 		if self.client.ooc_delay != None:
 			if self.client.ooc_delay > time.perf_counter():
 				self.client.send_ooc('You are trying to send messages too fast!')
+				return
 		if self.client.is_ooc_muted:  # Checks to see if the client has been muted by a mod
 			self.client.send_ooc('You are muted by a moderator.')
 			return
