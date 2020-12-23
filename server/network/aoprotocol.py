@@ -1000,6 +1000,10 @@ class AOProtocol(asyncio.Protocol):
 				'That message is too long!.'
 			)
 			return
+		if not args[1].startswith('/') and self.client.ooc_delay != None:
+			if self.client.ooc_delay > time.perf_counter():
+				self.client.send_ooc('You are trying to send messages too fast!')
+				return
 		if args[1].startswith('/'):
 			spl = args[1][1:].split(' ', 1)
 			cmd = spl[0].lower()
@@ -1020,17 +1024,13 @@ class AOProtocol(asyncio.Protocol):
 			except Exception as ex:
 				self.client.send_ooc('An internal error occurred. Please check the server log.')
 				logger.exception('Exception while running a command')
-		if self.client.ooc_delay != None:
-			if self.client.ooc_delay > time.perf_counter():
-				self.client.send_ooc('You are trying to send messages too fast!')
-				return
 		else:
 			args[1] = self.dezalgo(args[1])
 			if self.client.shaken:
 				args[1] = self.client.shake_message(args[1])
 			if self.client.disemvowel:
 				args[1] = self.client.disemvowel_message(args[1])
-			self.client.ooc_delay = (time.perf_counter() + 3)
+			self.client.ooc_delay = (time.perf_counter() + 2)
 			self.client.area.send_command('CT', self.client.name, args[1])
 			self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + self.client.name, args[1])
 			database.log_room('ooc', self.client, self.client.area, message=args[1])

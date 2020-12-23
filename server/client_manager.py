@@ -48,9 +48,6 @@ class ClientManager:
 			self.name = ''
 			self.showname = ''
 			self.fake_name = ''
-			self.is_admin = False
-			self.is_mod = False
-			self.mod_profile_name = None
 			self.is_dj = True
 			self.can_wtce = True
 			self.pos = ''
@@ -70,16 +67,26 @@ class ClientManager:
 			self.autopass = False
 			self.timer = Timer()
 			self.old_char_name = ''
+			self.ooc_delay = None
+			self.afk = False
+			
+			# Mod/Admin stuff
+			self.is_admin = False
+			self.is_mod = False
+			self.mod_profile_name = None
 			self.permission = False
 			self.ghost = False
+			self.spying = []
+			
+			# Misc. IC stuff
 			self.hidden = False
 			self.visible = True
 			self.narrator = False
+			self.areapair = 'middle'
+			
+			# Friend stuff
 			self.friendlist = None
 			self.friendrequests = set()
-			self.areapair = 'middle'
-			self.spying = []
-			self.ooc_delay = None
 			
 			# Call stuff
 			self.call = None
@@ -116,6 +123,9 @@ class ClientManager:
 			self.casing_jur = False
 			self.casing_steno = False
 			self.case_call_time = 0
+			
+			# Security/Multiclient stuff
+			self.clientscon = 0
 
 			# flood-guard stuff
 			self.mus_counter = 0
@@ -133,8 +143,7 @@ class ClientManager:
 				for x in range(self.server.config['wtce_floodguard']
 							   ['times_per_interval'])
 			]
-			# security stuff
-			self.clientscon = 0
+			
 
 		def ann_alarm(self):
 			if alarmtype == 'seconds':
@@ -1095,7 +1104,7 @@ class ClientManager:
 					if client.hdid == value:
 						targets.append(client)
 				elif key == TargetType.AFK:
-					if client in area.afkers:
+					if client.afk:
 						targets.append(client)
 		return targets
 
@@ -1116,11 +1125,11 @@ class ClientManager:
 		return clients
 
 	def toggle_afk(self, client):
-			if client in client.area.afkers:
-				client.area.broadcast_ooc('{} is no longer AFK.'.format(client.char_name))
-				client.send_ooc('You are no longer AFK. Welcome back!')  # Making the server a bit friendly wouldn't hurt, right?
-				client.area.afkers.remove(client)
-			else:
-				client.area.broadcast_ooc('{} is now AFK.'.format(client.char_name))
-				client.send_ooc('You are now AFK. Have a good day!')
-				client.area.afkers.append(client)
+		if client.afk:
+			client.area.broadcast_ooc('{} is no longer AFK.'.format(client.char_name))
+			client.send_ooc('You are no longer AFK. Welcome back!')  # Making the server a bit friendly wouldn't hurt, right?
+			client.afk = False
+		else:
+			client.area.broadcast_ooc('{} is now AFK.'.format(client.char_name))
+			client.send_ooc('You are now AFK. Have a good day!')
+			client.afk = True
