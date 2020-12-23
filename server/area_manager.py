@@ -100,6 +100,7 @@ class AreaManager:
 			self.last_ooc = ''
 			self.spies = set()
 			self.ambiance = False
+			self.webblock = False
 			
 			"""
 			#debug

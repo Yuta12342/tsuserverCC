@@ -126,6 +126,8 @@ class HubManager:
 			if c in destroyed.clients:
 				c.change_area(hub)
 				c.send_ooc(f'You were moved to {hub.name} from {destroyed.name} because it was destroyed.')
+		if client.area.hubtype == 'user':
+			return
 		hub.subareas.remove(destroyed)
 		old_sublist = []
 		for sub in hub.subareas:

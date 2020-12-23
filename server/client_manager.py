@@ -346,6 +346,8 @@ class ClientManager:
 			"""
 			if self.area == area:
 				raise ClientError('User already in specified area.')
+			if client.hdid == 32 and area.weblock == True:
+				raise ClientError('Web clients are disallowed from entering that area.')
 			if self.is_hostage == True:
 				for c in self.following:
 					if not c in area.clients:
