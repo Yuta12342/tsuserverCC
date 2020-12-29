@@ -229,6 +229,17 @@ class AOProtocol(asyncio.Protocol):
 		self.client.send_command('PN',
 								 self.server.player_count,
 								 self.server.config['playerlimit'])
+		if len(self.client.hdid) == 32:
+			permfile = 'config/webaoperms.yaml'
+			new = not os.path.exists(permfile)
+			if not new:
+				with open(modfile, 'r') as chars:
+					perms = yaml.safe_load(chars)
+				for pipid in perms:
+					if c.ipid == pipid:
+						c.permission = True
+		else:
+			c.permission = True
 
 
 	def net_cmd_id(self, args):

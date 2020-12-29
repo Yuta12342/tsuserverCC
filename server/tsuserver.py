@@ -207,17 +207,6 @@ class TsuServerCC:
 		c.server = self
 		c.area = self.area_manager.default_area()
 		c.area.new_client(c)
-		if len(c.hdid) == 32:
-			permfile = 'config/webaoperms.yaml'
-			new = not os.path.exists(permfile)
-			if not new:
-				with open(modfile, 'r') as chars:
-					perms = yaml.safe_load(chars)
-				for pipid in perms:
-					if c.ipid == pipid:
-						c.permission = True
-		else:
-			c.permission = True
 		return c
 
 	def remove_client(self, client):
