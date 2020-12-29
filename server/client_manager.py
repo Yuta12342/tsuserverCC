@@ -75,7 +75,6 @@ class ClientManager:
 			self.is_mod = False
 			self.mod_profile_name = None
 			self.permission = False
-			self.permchecked = False
 			self.ghost = False
 			self.spying = []
 			
@@ -866,7 +865,7 @@ class ClientManager:
 						self.is_mod = True
 						if item['status'] == 'admin':
 							self.is_admin = True
-						if self.ipid not in ipids:
+						if str(self.ipid) not in ipids:
 							if item['ipid'] != '':
 								item['ipid'] = f"{item['ipid']} {self.ipid}"
 							else:
