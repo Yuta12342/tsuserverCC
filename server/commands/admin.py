@@ -179,18 +179,88 @@ def ooc_cmd_permit(client, arg):
 			try:
 				id = int(id)
 				c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
-				if c.permission == False:
-					c.permission = True
-					client.send_ooc(f'{c.char_name} has been granted permission.')
-					c.send_ooc('You have been granted special permissions.')
-					return
-				else:
-					c.permission = False
-					client.send_ooc(f'{c.char_name}\'s permissions have been revoked.')
-					c.send_ooc('Your special permissions have been revoked.')
-					return
 			except:
 				client.send_ooc(f'{id} does not look like a valid ID.')
+			if len(c.hdid) != 32:
+				raise ArgumentError('That does not seem to be a webAO client.')
+			permfile = 'config/webaoperms.yaml'
+			new = not os.path.exists(permfile)
+			if not new:
+				with open(modfile, 'r') as chars:
+					perms = yaml.safe_load(chars)
+			else:
+				perms = []
+			if c.ipid in perms:
+				perms.remove(c.ipid)
+				c.permission = False
+				client.send_ooc('Permission removed.')
+			else:
+				perms.append(c.ipid)
+				c.permission = True
+				client.send_ooc('Permission added.')
+			if not new:
+				os.remove(permfile)
+			with open(permfile, 'w', encoding='utf-8') as dump:
+				yaml.dump(perms, dump)
+			client.server.webperms = perms
+
+def ooc_cmd_addmod(client, arg):
+	"""
+	Registers target as a moderator, allowing them to login.
+	"""
+	args = arg.split(' ')
+	if not client.is_admin:
+		raise ClientError('You are not authorized.')
+	if len(arg) == 0:
+		raise ArgumentError('This command requires arguments.')
+	if len(args) < 2:
+		raise ArgumentError('This command requires ID and a set name as arguments.')
+	try:
+		id = int(args[0])
+		c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
+		modfile = 'config/moderation.yaml'
+	except:
+		client.send_ooc(f'{id} does not look like a valid ID.')
+	new = not os.path.exists(modfile)
+	if not new:
+		with open(modfile, 'r') as chars:
+			mods = yaml.safe_load(chars)
+	else:
+		mods = []
+	status = 'mod'
+	if len(args) > 2:
+		if args[2].lower() == 'admin':
+			status = 'admin'
+	mods.append({'name': args[1], 'status': status, 'hdid': c.hdid, 'ipid': c.ipid})
+	if not new:
+		os.remove(modfile)
+	with open(modfile, 'w', encoding='utf-8') as dump:
+		yaml.dump(mods, dump)
+	
+			
+def ooc_cmd_removemod(client, arg):
+	if not client.is_admin:
+		raise ClientError('You are not authorized.')
+	if len(arg) == 0:
+		raise ArgumentError('This command requires arguments.')
+	modfile = 'config/moderation.yaml'
+	new = not os.path.exists(modfile)
+	rem = None
+	if not new:
+		with open(modfile, 'r') as chars:
+			mods = yaml.safe_load(chars)
+		for item in mods:
+			if item['name'].lower() == arg.lower():
+				rem = item
+		if rem != None:
+			mods.remove(rem)
+			os.remove(modfile)
+			with open(modfile, 'w', encoding='utf-8') as dump:
+				yaml.dump(mods, dump)
+		else:
+			raise ArgumentError('No mod found by that name.')
+	else:
+		raise ArgumentError('There is no moderation file!')
 
 def ooc_cmd_motd(client, arg):
 	"""
@@ -530,64 +600,6 @@ def ooc_cmd_login(client, arg):
 	else:
 		client.send_ooc('Logged in as an admin.')
 	database.log_misc('login', client, data={'profile': login_name})
-
-def ooc_cmd_addmod(client, arg):
-	"""
-	Registers target as a moderator, allowing them to login.
-	"""
-	args = arg.split(' ')
-	if not client.is_admin:
-		raise ClientError('You are not authorized.')
-	if len(arg) == 0:
-		raise ArgumentError('This command requires arguments.')
-	if len(args) < 2:
-		raise ArgumentError('This command requires ID and a set name as arguments.')
-	try:
-		id = int(args[0])
-		c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
-		modfile = 'config/moderation.yaml'
-	except:
-		client.send_ooc(f'{id} does not look like a valid ID.')
-	new = not os.path.exists(modfile)
-	if not new:
-		with open(modfile, 'r') as chars:
-			mods = yaml.safe_load(chars)
-	else:
-		mods = []
-	status = 'mod'
-	if len(args) > 2:
-		if args[2].lower() == 'admin':
-			status = 'admin'
-	mods.append({'name': args[1], 'status': status, 'hdid': c.hdid, 'ipid': c.ipid})
-	if not new:
-		os.remove(modfile)
-	with open(modfile, 'w', encoding='utf-8') as dump:
-		yaml.dump(mods, dump)
-	
-			
-def ooc_cmd_removemod(client, arg):
-	if not client.is_admin:
-		raise ClientError('You are not authorized.')
-	if len(arg) == 0:
-		raise ArgumentError('This command requires arguments.')
-	modfile = 'config/moderation.yaml'
-	new = not os.path.exists(modfile)
-	rem = None
-	if not new:
-		with open(modfile, 'r') as chars:
-			mods = yaml.safe_load(chars)
-		for item in mods:
-			if item['name'].lower() == arg.lower():
-				rem = item
-		if rem != None:
-			mods.remove(rem)
-			os.remove(modfile)
-			with open(modfile, 'w', encoding='utf-8') as dump:
-				yaml.dump(mods, dump)
-		else:
-			raise ArgumentError('No mod found by that name.')
-	else:
-		raise ArgumentError('There is no moderation file!')
 
 @mod_only()
 def ooc_cmd_refresh(client, arg):
