@@ -870,7 +870,7 @@ class ClientManager:
 								item['ipid'] = f"{item['ipid']} {self.ipid}"
 							else:
 								item['ipid'] = f"{self.ipid}"	
-					if self.ipid in ipids:
+					if self.ipid in ipids or str(self.ipid) in ipids:
 						self.mod_profile_name = item['name']
 						self.is_mod = True
 						if item['status'] == 'admin':
