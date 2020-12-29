@@ -236,10 +236,10 @@ class AOProtocol(asyncio.Protocol):
 				with open(modfile, 'r') as chars:
 					perms = yaml.safe_load(chars)
 				for pipid in perms:
-					if c.ipid == pipid:
-						c.permission = True
+					if self.client.ipid == pipid:
+						self.client.permission = True
 		else:
-			c.permission = True
+			self.client.permission = True
 
 
 	def net_cmd_id(self, args):
