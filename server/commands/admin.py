@@ -202,6 +202,7 @@ def ooc_cmd_permit(client, arg):
 				os.remove(permfile)
 			with open(permfile, 'w', encoding='utf-8') as dump:
 				yaml.dump(perms, dump)
+			client.server.webperms = perms
 
 def ooc_cmd_addmod(client, arg):
 	"""

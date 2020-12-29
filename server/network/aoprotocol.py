@@ -222,6 +222,11 @@ class AOProtocol(asyncio.Protocol):
 			return
 		else:
 			self.client.is_checked = True
+			if len(self.client.hdid) == 32:
+				if self.client.ipid in self.server.webperms:
+					self.client.permission = True
+			else:
+				self.client.permission = True
 
 		database.log_connect(self.client, failed=False)
 		self.client.send_command('ID', self.client.id, self.server.software,
@@ -229,18 +234,6 @@ class AOProtocol(asyncio.Protocol):
 		self.client.send_command('PN',
 								 self.server.player_count,
 								 self.server.config['playerlimit'])
-		if len(self.client.hdid) == 32:
-			permfile = 'config/webaoperms.yaml'
-			new = not os.path.exists(permfile)
-			if not new:
-				with open(modfile, 'r') as chars:
-					perms = yaml.safe_load(chars)
-				for pipid in perms:
-					if self.client.ipid == pipid:
-						self.client.permission = True
-		else:
-			self.client.permission = True
-
 
 	def net_cmd_id(self, args):
 		"""Client version and PV

@@ -76,6 +76,7 @@ class TsuServerCC:
 		self.ipRange_bans = []
 		self.geoIpReader = None
 		self.useGeoIp = False
+		self.webperms = []
 
 		try:
 			self.geoIpReader = geoip2.database.Reader('./storage/GeoLite2-ASN.mmdb')
@@ -102,6 +103,7 @@ class TsuServerCC:
 			self.load_music()
 			self.load_backgrounds()
 			self.load_ipranges()
+			self.load_webperms()
 			self.load_gimps()
 		except yaml.YAMLError as exc:
 			print('There was a syntax error parsing a configuration file:')
@@ -271,6 +273,13 @@ class TsuServerCC:
 	def load_gimps(self):
 		with open('config/gimp.yaml', 'r', encoding='utf-8') as cfg:
 			self.gimp_list = yaml.safe_load(cfg)
+	
+	def load_webperms(self):
+		permfile = 'config/webaoperms.yaml'
+		new = not os.path.exists(permfile)
+		if not new:
+			with open('config/webaoperms.yaml', 'r', encoding='utf-8') as cfg:
+				self.webperms = yaml.safe_load(cfg)
 
 	def load_backgrounds(self):
 		"""Load the backgrounds list from a YAML file."""
