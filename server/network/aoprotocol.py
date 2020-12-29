@@ -372,6 +372,9 @@ class AOProtocol(asyncio.Protocol):
 			return
 		elif not self.client.area.can_send_message(self.client):
 			return
+		elif not self.client.permission:
+			self.client.send_ooc('You need permission to use a web client, please ask staff.')
+			return
 
 		target_area = []
 		showname = ""
@@ -495,7 +498,7 @@ class AOProtocol(asyncio.Protocol):
 					self.client.send_ooc(f'You don\'t own {area.name}!')
 					return
 				text = ' '.join(part[2:])
-			except ValueError:
+			except AreaError:
 				self.client.send_ooc("That does not look like a valid area ID!")
 				return
 		elif text.startswith('/s '):
@@ -961,6 +964,9 @@ class AOProtocol(asyncio.Protocol):
 		if self.client.is_ooc_muted:  # Checks to see if the client has been muted by a mod
 			self.client.send_ooc('You are muted by a moderator.')
 			return
+		if not self.client.permission:
+			self.client.send_ooc('You need permission to use a web client, please ask staff.')
+			return
 		if not self.validate_net_cmd(args, self.ArgType.STR, self.ArgType.STR):
 			return
 		if self.client.name != args[0] and self.client.fake_name != args[0]:
@@ -1042,6 +1048,9 @@ class AOProtocol(asyncio.Protocol):
 
 		"""
 		if not self.client.is_checked:
+			return
+		if not self.client.permission:
+			self.client.send_ooc('You need permission to use a web client, please ask staff.')
 			return
 		try:
 			area = self.server.area_manager.get_area_by_name(args[0], self.client)
@@ -1150,6 +1159,9 @@ class AOProtocol(asyncio.Protocol):
 
 		"""
 		if not self.client.is_checked:
+			return
+		if not self.client.permission:
+			self.client.send_ooc('You need permission to use a web client, please ask staff.')
 			return
 		if not self.client.area.shouts_allowed:
 			self.client.send_ooc(
@@ -1261,6 +1273,9 @@ class AOProtocol(asyncio.Protocol):
 		"""
 		if not self.client.is_checked:
 			return
+		if not self.client.permission:
+			self.client.send_ooc('You need permission to use a web client, please ask staff.')
+			return
 		if self.client.is_muted:  # Checks to see if the client has been muted by a mod
 			self.client.send_ooc('You are muted by a moderator.')
 			return
@@ -1334,6 +1349,10 @@ class AOProtocol(asyncio.Protocol):
 		"""
 		from server.webhooks import Webhooks
 		if not self.client.is_checked:
+			return
+		
+		if not self.client.permission:
+			self.client.send_ooc('You need permission to use a web client, please ask staff via our discord.')
 			return
 
 		if self.client.is_muted:  # Checks to see if the client has been muted by a mod
