@@ -155,10 +155,6 @@ Requires Python 3.7+ and PyYAML.
     - Toggles whether you will speak with a 'blank' emote.
 * **areapair** "left/right/middle"
     - Area-pairs you. If you are to the right, you will "pair" with anyone on the left in your position.
-* **friend** "id or no argument"
-    - Sends a friend request, accepts a friend request, or shows current friend requests if no arguments are given.
-* **friendlist**
-    - Shows current friends.
 * **call** "id or no argument"
     - Try to call someone or check who you're calling with.
 * **acceptcall**

@@ -84,10 +84,6 @@ class ClientManager:
 			self.narrator = False
 			self.areapair = 'middle'
 			
-			# Friend stuff
-			self.friendlist = None
-			self.friendrequests = set()
-			
 			# Call stuff
 			self.call = None
 			self.calling = []

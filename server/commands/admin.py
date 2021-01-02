@@ -186,7 +186,7 @@ def ooc_cmd_permit(client, arg):
 			permfile = 'config/webaoperms.yaml'
 			new = not os.path.exists(permfile)
 			if not new:
-				with open(modfile, 'r') as chars:
+				with open(permfile, 'r') as chars:
 					perms = yaml.safe_load(chars)
 			else:
 				perms = []

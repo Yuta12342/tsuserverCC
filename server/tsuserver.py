@@ -36,7 +36,6 @@ from server import database
 from server.area_manager import AreaManager
 from server.client_manager import ClientManager
 from server.musiclist_manager import MusicListManager
-from server.friend_manager import FriendManager
 from server.hub_manager import HubManager
 from server.emotes import Emotes
 from server.exceptions import ClientError,ServerError
@@ -55,7 +54,6 @@ class TsuServerCC:
 		self.client_manager = ClientManager(self)
 		self.area_manager = AreaManager(self)
 		self.musiclist_manager = MusicListManager(self)
-		self.friend_manager = FriendManager(self)
 		self.hub_manager = HubManager(self)
 		self.software = 'tsuservercc'
 
