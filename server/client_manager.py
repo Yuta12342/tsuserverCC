@@ -968,7 +968,6 @@ class ClientManager:
 		for client in self.server.client_manager.clients:
 			if client.ipid == temp_ipid:
 				client.clientscon += 1
-		self.server.friend_manager.new_friendlist(c)
 		return c
 
 	def remove_client(self, client):
@@ -1033,8 +1032,6 @@ class ClientManager:
 						member.send_ooc(f'Party Leader left, {party.leader.name} is the new Party Leader.')
 			if len(party.users) == 0:
 				client.server.parties.remove(party)
-		if client.friendlist != None:
-			self.server.friend_manager.friendlists.remove(client.friendlist)
 		if len(client.calling) > 0:
 			caller = client.calling[0]
 			client.calling.clear()
