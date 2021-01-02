@@ -685,8 +685,9 @@ class ClientManager:
 						info += f'[{c.id}] {c.char_name}'
 					if self.is_mod:
 						info += f' ({c.ipid}): {c.name}'
-					if c.showname != '':
-						info += f' ({c.showname})'
+					if self in area.owners or self in area.clients or self.is_mod or area == server.area_manager.default_area():
+						if c.showname != '':
+							info += f' ({c.showname})'
 			return info
 			
 
