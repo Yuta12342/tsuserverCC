@@ -453,10 +453,10 @@ class ClientManager:
 				area_list.append(area.name)
 				for a in self.area.subareas:
 					area_list.append(a.name)
+				self.send_command('FA', *area_list)
 				self.area.sub_arup_cms(self)
 				self.area.sub_arup_status(self)
 				self.area.sub_arup_lock(self)
-				self.send_command('FA', *area_list)
 			if old_area.is_hub or old_area.sub:
 				if not self.area.sub and not self.area.is_hub:
 					area_list = []
@@ -489,6 +489,7 @@ class ClientManager:
 				area_list.append(area.hub.name)
 				for a in self.area.hub.subareas:
 					area_list.append(a.name)
+				self.send_command('FA', *area_list)
 				self.area.hub.sub_arup_cms(self)
 				self.area.hub.sub_arup_status(self)
 				self.area.hub.sub_arup_lock(self)
