@@ -665,6 +665,7 @@ def ooc_cmd_unmod(client, arg):
 	Usage: /unmod
 	"""
 	client.is_mod = False
+	client.is_admin = False
 	client.mod_profile_name = None
 	if client.area.evidence_mod == 'HiddenCM':
 		client.area.broadcast_evidence_list()

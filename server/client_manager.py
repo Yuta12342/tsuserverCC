@@ -445,15 +445,10 @@ class ClientManager:
 					self.server.hub_manager.removesub(self, old_area)
 					self.send_ooc('Old area was destroyed')
 			
-			if self.area.is_hub and not old_area.sub or self.area.is_hub and old_area.is_restricted or self.area.sub and old_area.is_restricted and not self.area.is_restricted:
+			lobby = self.server.area_manager.default_area()
+			
+			if self.area.is_hub and not old_area.sub or self.area.is_hub and old_area.is_restricted:
 				area_list = []
-				lobby = None
-				for a in self.server.area_manager.areas:
-					if a.id == 0:
-						lobby = a
-						break
-				if lobby == None:
-					raise ClientError('There is no default area.')
 				area_list.append(lobby.name)
 				area_list.append(area.name)
 				for a in self.area.subareas:
@@ -478,13 +473,6 @@ class ClientManager:
 			if self.area.sub and self.area.is_restricted:
 				if not self in self.area.hub.owners:
 					area_list = []
-					lobby = None
-					for a in self.server.area_manager.areas:
-						if a.id == 0:
-							lobby = a
-							break
-					if lobby == None:
-						raise ClientError('There is no default area.')
 					area_list.append(lobby.name)
 					area_list.append(area.hub.name)
 					area_list.append(area.name)
@@ -495,6 +483,15 @@ class ClientManager:
 				self.area.conn_arup_cms()
 				self.area.conn_arup_status()
 				self.area.conn_arup_lock()
+			if self.area.sub and not self.area.is_restricted and old_area.is_restricted:
+				area_list = []
+				area_list.append(lobby.name)
+				area_list.append(area.hub.name)
+				for a in self.area.hub.subareas:
+					area_list.append(a.name)
+				self.area.hub.sub_arup_cms(self)
+				self.area.hub.sub_arup_status(self)
+				self.area.hub.sub_arup_lock(self)
 			if old_area.cmusic_list != area.cmusic_list:
 				music = area.get_music(self)
 				self.send_command('FM', *music)
