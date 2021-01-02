@@ -203,7 +203,7 @@ class ClientManager:
 					if len(nay) < len(yay):
 						majority = len(yay) - len(nay)
 						poll += f'\n===================\nThere are currently {len(yay)} yays and {len(nay)} nays.\nThe yays have a majority of {majority} vote(s).'
-					else:
+					if len(nay) == len(yay):
 						poll += f'\n===================\nThere are currently {len(yay)} yays and {len(nay)} nays.\nThe yays and the nays are tied.'
 				self.send_ooc(poll)
 			else:
