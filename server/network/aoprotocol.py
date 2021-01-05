@@ -34,7 +34,7 @@ import arrow
 from time import localtime, strftime
 
 from server import database
-from server.statements import Statement, AreaPairMessage
+from server.statements import Statement
 from server.exceptions import ClientError, AreaError, ArgumentError, ServerError
 from server.fantacrypt import fanta_decrypt
 from .. import commands
@@ -630,16 +630,16 @@ class AOProtocol(asyncio.Protocol):
 			charid_pair = -1
 			#offset_pair = 0
 		
-		send_args = (msg_type, pre, folder, anim, msg,
+		send_args = [msg_type, pre, folder, anim, msg,
                      pos, sfx, anim_type, cid, sfx_delay,
                      button, self.client.evi_list[evidence],
                      flip, ding, color, showname, charid_pair,
                      other_folder, other_emote, offset_pair,
                      other_offset, other_flip, nonint_pre,
-                     sfx_looping, screenshake, frames_shake,
-                     frames_realization, frames_sfx,
-                     additive, effect)
-			
+                     looping_sfx, screenshake, frame_screenshake,
+                     frame_realization, frame_sfx,
+                     additive, effect]
+
 		if self.client.area.last_speaker != self.client:
 			additive = 0
 		if not self.client.incall:
@@ -652,7 +652,6 @@ class AOProtocol(asyncio.Protocol):
 					if self.client.can_wtce:
 						self.client.area.send_command('RT', 'testimony2')
 					self.client.area.statement = 0
-					statement = None
 			elif msg.startswith('//'):
 				if self.client in self.client.area.owners and not self.client.area.is_recording:
 					self.client.area.is_recording = True
@@ -671,7 +670,6 @@ class AOProtocol(asyncio.Protocol):
 					statement = Statement(send_args)
 					self.client.area.recorded_messages.append(statement)
 					self.client.send_ooc('No longer recording testimony.')
-					self.client.area.statement = 0
 			if msg.startswith('+'):
 				if self.client in self.client.area.owners and self.client.area.is_recording:
 					if self.client.area.statement >= 30:
@@ -704,9 +702,11 @@ class AOProtocol(asyncio.Protocol):
 							statement.args[14] = 1
 							self.client.send_ooc(f'Statement {s.id} amended.')
 
-			if statement != None:
+			if msg != '///' and statement != None:
 				statement.args[4] = msg
 				statement.id = self.client.area.statement
+				if msg == '/end':
+					self.client.area.statement = 0
 
 			playback = False
 			if msg == '>':
