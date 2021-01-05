@@ -40,11 +40,11 @@ def ooc_cmd_testimony(client, arg):
 		statement = statements[index]
 		index += 1
 		if statement.id == 0:
-			testimony += f'\n{statement.msg}'
+			testimony += f'\n{statement.args[4]}'
 		elif statement.id == testimonylength:
-			testimony += f'\n{statement.msg}'
+			testimony += f'\n{statement.args[4]}'
 		else:
-			testimony += f'\n{statement.id}: {statement.msg}'
+			testimony += f'\n{statement.id}: {statement.args[4]}'
 	client.send_ooc(testimony)
 
 def ooc_cmd_woosh(client, arg):
