@@ -721,7 +721,6 @@ class AOProtocol(asyncio.Protocol):
 							statement = s
 							break
 					playback = True
-					self.client.area.send_command('MS', *statement.args)
 			elif msg.startswith('>'):
 				if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 					msg = msg[1:]
@@ -735,7 +734,6 @@ class AOProtocol(asyncio.Protocol):
 							statement = s
 							self.client.area.statement = statementno
 							playback = True
-							self.client.area.send_command('MS', *statement.args)
 							self.client.area.broadcast_ooc(f'{self.client.char_name} skipped to statement {self.client.area.statement}.')
 							break
 					if not playback:
@@ -755,7 +753,6 @@ class AOProtocol(asyncio.Protocol):
 								playback = True
 								break
 						self.client.area.broadcast_ooc(f'{self.client.char_name} went to the previous statement of the testimony.')
-						self.client.area.send_command('MS', *statement.args)
 			if msg == '=':
 				if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 					if self.client.area.statement <= 0:
@@ -766,7 +763,9 @@ class AOProtocol(asyncio.Protocol):
 							playback = True
 							break
 					self.client.area.broadcast_ooc(f'{self.client.char_name} repeated the current statement.')
-					self.client.area.send_command('MS', *statement.args)
+
+			if playback:
+				self.client.area.send_command('MS', *statement.args)
 
 			if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
 				if not playback:
