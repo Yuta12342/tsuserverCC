@@ -778,14 +778,16 @@ class AOProtocol(asyncio.Protocol):
 						send_args[3] = '../../background/AADetentionCenter/defensedesk'
 
 					self.client.area.send_command('MS', *send_args)
-					self.client.area.send_owner_command('MS', *send_args[:5], '[' + self.client.area.abbreviation + ']' + msg, *send_args[5:])
 					self.server.area_manager.send_remote_command(target_area, 'MS', *send_args)
+					send_args[4] = f'[{self.client.area.abbreviation}]{msg}'
+					self.client.area.send_owner_command('MS', *send_args)
 					self.client.area.set_next_msg_delay(len(msg))
 					self.client.area.last_speaker = self.client
 					if msg != '' and msg != ' ':
 							database.log_ic(self.client, self.client.area, showname, msg)
 		else:
-			self.client.area.send_owner_command('MS', *send_args[:5], '[' + self.client.area.abbreviation + ']' + msg, *send_args[5:])
+			send_args[4] = f'[{self.client.area.abbreviation}]{msg}'
+			self.client.call.send_owner_command('MS', *send_args)
 			self.client.call.set_next_msg_delay(len(msg))
 			self.client.call.last_speaker = self.client
 			if msg != '' and msg != ' ':
