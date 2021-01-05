@@ -379,6 +379,8 @@ class AOProtocol(asyncio.Protocol):
 		elif not self.client.permission:
 			self.client.send_ooc('You need permission to use a web client, please ask staff.')
 			return
+			
+		statement = None
 
 		target_area = []
 		showname = ""
@@ -627,6 +629,16 @@ class AOProtocol(asyncio.Protocol):
 		if not confirmed:
 			charid_pair = -1
 			#offset_pair = 0
+		
+		send_args = (msg_type, pre, folder, anim, msg,
+                     pos, sfx, anim_type, cid, sfx_delay,
+                     button, self.client.evi_list[evidence],
+                     flip, ding, color, showname, charid_pair,
+                     other_folder, other_emote, offset_pair,
+                     other_offset, other_flip, nonint_pre,
+                     sfx_looping, screenshake, frames_shake,
+                     frames_realization, frames_sfx,
+                     additive, effect)
 			
 		if self.client.area.last_speaker != self.client:
 			additive = 0
@@ -636,30 +648,18 @@ class AOProtocol(asyncio.Protocol):
 					for statements in self.client.area.recorded_messages:
 						if statements.id == 0:
 							statement = statements
-					self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
-										  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
-										  statement.button, self.client.evi_list[statement.evidence],
-										  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
-										  statement.other_folder, statement.other_emote, statement.offset_pair,
-										  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-										  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
+					self.client.area.send_command('MS', *statement.args)
 					if self.client.can_wtce:
 						self.client.area.send_command('RT', 'testimony2')
 					self.client.area.statement = 0
+					statement = None
 			elif msg.startswith('//'):
 				if self.client in self.client.area.owners and not self.client.area.is_recording:
 					self.client.area.is_recording = True
 					self.client.area.recorded_messages.clear()
 					self.client.area.statement = 0
 					msg = msg[2:]
-					statement = Statement(msg_type, pre, folder, anim, msg,
-										  pos, sfx, anim_type, cid, sfx_delay,
-										  button, evidence,
-										  flip, ding, color, showname, charid_pair,
-										  other_folder, other_emote, offset_pair,
-										  other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-					statement.id = self.client.area.statement
+					statement = Statement(send_args)
 					self.client.area.recorded_messages.append(statement)
 					self.client.send_ooc('Recording testimony!')
 					if self.client.can_wtce:
@@ -668,43 +668,28 @@ class AOProtocol(asyncio.Protocol):
 				if self.client in self.client.area.owners and self.client.area.is_recording:
 					self.client.area.is_recording = False
 					self.client.area.statement += 1
-					statement = Statement(msg_type, pre, folder, anim, msg,
-										  pos, sfx, anim_type, cid, sfx_delay,
-										  button, evidence,
-										  flip, ding, color, showname, charid_pair,
-										  other_folder, other_emote, offset_pair,
-										  other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-					statement.id = self.client.area.statement
+					statement = Statement(send_args)
 					self.client.area.recorded_messages.append(statement)
 					self.client.send_ooc('No longer recording testimony.')
 					self.client.area.statement = 0
 			if msg.startswith('+'):
 				if self.client in self.client.area.owners and self.client.area.is_recording:
+					if self.client.area.statement >= 30:
+						return self.client.send_ooc('You\'re trying to add too many statements.')
 					self.client.area.statement += 1
 					msg = msg[1:]
-					statement = Statement(msg_type, pre, folder, anim, msg,
-										  pos, sfx, anim_type, cid, sfx_delay,
-										  button, evidence,
-										  flip, ding, 1, showname, charid_pair,
-										  other_folder, other_emote, offset_pair,
-										  other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-					statement.id = self.client.area.statement
+					statement = Statement(send_args)
+					statement.args[14] = 1
 					self.client.area.recorded_messages.append(statement)
 					self.client.send_ooc('Statement added!')
 				elif self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
+					if self.client.area.statement >= 30:
+						return self.client.send_ooc('You\'re trying to add too many statements.')
 					oldstatement = self.client.area.statement
 					self.client.area.statement += 1
 					msg = msg[1:]
-					statement = Statement(msg_type, pre, folder, anim, msg,
-										  pos, sfx, anim_type, cid, sfx_delay,
-										  button, evidence,
-										  flip, ding, 1, showname, charid_pair,
-										  other_folder, other_emote, offset_pair,
-										  other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-					statement.id = self.client.area.statement
+					statement = Statement(send_args)
+					statement.args[14] = 1
 					for s in self.client.area.recorded_messages:
 						if s.id >= statement.id:
 							s.id += 1
@@ -714,69 +699,14 @@ class AOProtocol(asyncio.Protocol):
 				if self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
 					for s in self.client.area.recorded_messages:
 						if s.id == self.client.area.statement:
-							color = 1
 							msg = msg[5:]
-							s.msg_type = msg_type
-							s.pre = pre
-							s.folder = folder
-							s.anim = anim
-							s.msg = msg
-							s.sfx = sfx
-							s.anim_type = anim_type
-							s.cid = cid
-							s.button = button
-							s.evidence = evidence
-							s.flip = flip
-							s.ding = ding
-							s.showname = showname
-							s.charid_pair = charid_pair
-							s.other_folder = other_folder
-							s.other_emote = other_emote
-							s.other_flip = other_flip
-							s.nonint_pre = nonint_pre
-							s.looping_sfx = looping_sfx
-							s.screenshake = screenshake
-							s.frame_screenshake = frame_screenshake
-							s.frame_realization = frame_realization
-							s.frame_sfx = frame_sfx
-							s.additive = additive
-							s.effect = effect
-							self.client.send_ooc(f'Statement {s.id} amended.')			  
+							statement = Statement(send_args)
+							statement.args[14] = 1
+							self.client.send_ooc(f'Statement {s.id} amended.')
 
-			if self.client.areapair != 'middle' and not confirmed:
-				ap = self.client.area.areapair
-				apdupe = ap.copy()
-				if self.client.areapair == 'left':
-					ap[f'left-{pos}'] = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if f'right-{pos}' in ap:
-						right = ap[f'right-{pos}']
-						offset_pair = '-25'
-						other_offset = '25'
-						other_emote = right.anim
-						other_flip = right.flip
-						other_folder = right.folder
-						charid_pair = right.cid
-					else:
-						offset_pair = '-25'
-					for x in apdupe:
-						if apdupe[x].client == self.client:
-							ap.pop(x)
-				else:
-					ap[f'right-{pos}'] = AreaPairMessage(self.client, folder, anim, msg, cid, flip)
-					if f'left-{pos}' in ap:
-						left = ap[f'left-{pos}']
-						offset_pair = '25'
-						other_offset = '-25'
-						other_emote = left.anim
-						other_flip = left.flip
-						other_folder = left.folder
-						charid_pair = left.cid
-					else:
-						offset_pair = '25'
-					for x in apdupe:
-						if apdupe[x].client == self.client:
-							ap.pop(x)
-					
+			if statement != None:
+				statement.args[4] = msg
+				statement.id = self.client.area.statement
 
 			playback = False
 			if msg == '>':
@@ -792,13 +722,6 @@ class AOProtocol(asyncio.Protocol):
 							statement = s
 							break
 					playback = True
-					self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
-										  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
-										  statement.button, self.client.evi_list[statement.evidence],
-										  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
-										  statement.other_folder, statement.other_emote, statement.offset_pair,
-										  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-										  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 			elif msg.startswith('>'):
 				if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 					msg = msg[1:]
@@ -812,13 +735,6 @@ class AOProtocol(asyncio.Protocol):
 							statement = s
 							self.client.area.statement = statementno
 							playback = True
-							self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
-										  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
-										  statement.button, self.client.evi_list[statement.evidence],
-										  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
-										  statement.other_folder, statement.other_emote, statement.offset_pair,
-										  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-										  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 							self.client.area.broadcast_ooc(f'{self.client.char_name} skipped to statement {self.client.area.statement}.')
 							break
 					if not playback:
@@ -838,13 +754,6 @@ class AOProtocol(asyncio.Protocol):
 								playback = True
 								break
 						self.client.area.broadcast_ooc(f'{self.client.char_name} went to the previous statement of the testimony.')
-						self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
-										  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
-										  statement.button, self.client.evi_list[statement.evidence],
-										  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
-										  statement.other_folder, statement.other_emote, statement.offset_pair,
-										  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-										  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
 			if msg == '=':
 				if len(self.client.area.recorded_messages) != 0 and not self.client.area.is_recording:
 					if self.client.area.statement <= 0:
@@ -855,107 +764,32 @@ class AOProtocol(asyncio.Protocol):
 							playback = True
 							break
 					self.client.area.broadcast_ooc(f'{self.client.char_name} repeated the current statement.')
-					self.client.area.send_command('MS', statement.msg_type, statement.pre, statement.folder, statement.anim, statement.msg,
-										  statement.pos, statement.sfx, statement.anim_type, statement.cid, statement.sfx_delay,
-										  statement.button, self.client.evi_list[statement.evidence],
-										  statement.flip, statement.ding, statement.color, statement.showname, statement.charid_pair,
-										  statement.other_folder, statement.other_emote, statement.offset_pair,
-										  statement.other_offset, statement.other_flip, statement.nonint_pre, statement.looping_sfx, 
-										  statement.screenshake, statement.frame_screenshake, statement.frame_realization, statement.frame_sfx, statement.additive, statement.effect)
+
+			if playback:
+				self.client.area.send_command('MS', *statement.args)
 
 			if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
 				if not playback:
-					if self.client.visible and not self.client.narrator:
-						self.client.area.send_command('MS', msg_type, pre, folder, anim, msg, pos, sfx, anim_type, cid,
-									sfx_delay, button, self.client.evi_list[evidence], flip, ding, color, showname,
-									charid_pair, other_folder, other_emote, offset_pair, other_offset, other_flip,
-									nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-				   
-						self.client.area.send_owner_command('MS', msg_type, pre, folder, anim,
-									'[' + self.client.area.abbreviation + ']' + msg, pos, sfx, anim_type, cid,
-									sfx_delay, button, self.client.evi_list[evidence], flip, ding, color,
-									showname,
-									charid_pair, other_folder, other_emote, offset_pair, other_offset,
-									other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-				   
-						self.server.area_manager.send_remote_command(target_area, 'MS', msg_type, pre, folder, anim, msg, pos, sfx,
-									 anim_type, cid,
-									 sfx_delay, button, self.client.evi_list[evidence], flip, ding,
-									 color, showname,
-									 charid_pair, other_folder, other_emote, offset_pair, other_offset,
-									 other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
+					if self.client.narrator:
+						send_args[2] = 'Narrator'
+						send_args[3] = 'normal'
+					elif not self.client.visible:
+						send_args[1] = 0
+						send_args[3] = '../../background/AADetentionCenter/defensedesk'
 
-						self.client.area.set_next_msg_delay(len(msg))
-						self.client.area.last_speaker = self.client
-						if msg != '' and msg != ' ':
-							database.log_ic(self.client, self.client.area, showname, msg)
-					elif self.client.narrator:
-						self.client.area.send_command('MS', msg_type, pre, 'Narrator', 'normal', msg,
-										  pos, sfx, anim_type, cid, sfx_delay,
-										  button, self.client.evi_list[evidence],
-										  flip, ding, color, showname, charid_pair,
-										  other_folder, other_emote, offset_pair,
-										  other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-
-						self.client.area.send_owner_command(
-							'MS', msg_type, pre, 'Narrator', 'normal',
-							'[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
-							anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-							flip, ding, color, showname, charid_pair, other_folder,
-							other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-
-						self.server.area_manager.send_remote_command(
-							target_area, 'MS', msg_type, pre, 'Narrator', 'normal', msg, pos, sfx,
-							anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-							flip, ding, color, showname, charid_pair, other_folder,
-							other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-
-						self.client.area.set_next_msg_delay(len(msg))
-						self.client.area.last_speaker = self.client
-						if msg != '' and msg != ' ':
-							database.log_ic(self.client, self.client.area, showname, msg)
-					else:
-						self.client.area.send_command('MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk', msg,
-										  pos, sfx, anim_type, cid, sfx_delay,
-										  button, self.client.evi_list[evidence],
-										  flip, ding, color, showname, charid_pair,
-										  other_folder, other_emote, offset_pair,
-										  other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-
-						self.client.area.send_owner_command(
-							'MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk',
-							'[' + self.client.area.abbreviation + ']' + msg, pos, sfx,
-							anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-							flip, ding, color, showname, charid_pair, other_folder,
-							other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-
-						self.server.area_manager.send_remote_command(
-							target_area, 'MS', msg_type, 0, folder, '../../background/AADetentionCenter/defensedesk', msg, pos, sfx,
-							anim_type, cid, sfx_delay, button, self.client.evi_list[evidence],
-							flip, ding, color, showname, charid_pair, other_folder,
-							other_emote, offset_pair, other_offset, other_flip, nonint_pre, looping_sfx, 
-										  screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-
-						self.client.area.set_next_msg_delay(len(msg))
-						self.client.area.last_speaker = self.client
-						if msg != '' and msg != ' ':
+					self.client.area.send_command('MS', *send_args)
+					self.client.area.send_owner_command('MS', *send_args[:5], '[' + self.client.area.abbreviation + ']' + msg, *send_args[5:])
+					self.server.area_manager.send_remote_command(target_area, 'MS', *send_args)
+					self.client.area.set_next_msg_delay(len(msg))
+					self.client.area.last_speaker = self.client
+					if msg != '' and msg != ' ':
 							database.log_ic(self.client, self.client.area, showname, msg)
 		else:
-			self.client.call.send_owner_command('MS', msg_type, pre, folder, anim,
-						'[' + self.client.area.abbreviation + ']' + msg, pos, sfx, anim_type, cid,
-						sfx_delay, button, self.client.evi_list[evidence], flip, ding, color,
-						showname,
-						charid_pair, other_folder, other_emote, offset_pair, other_offset,
-						other_flip, nonint_pre, looping_sfx, screenshake, frame_screenshake, frame_realization, frame_sfx, additive, effect)
-
+			self.client.area.send_owner_command('MS', *send_args[:5], '[' + self.client.area.abbreviation + ']' + msg, *send_args[5:])
 			self.client.call.set_next_msg_delay(len(msg))
 			self.client.call.last_speaker = self.client
-			database.log_ic(self.client, self.client.call, showname, msg)
+			if msg != '' and msg != ' ':
+				database.log_ic(self.client, self.client.area, showname, msg)
 
 	def net_cmd_ct(self, args):
 		"""OOC Message
