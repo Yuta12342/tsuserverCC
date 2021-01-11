@@ -22,3 +22,5 @@ class Statement:
 	def __init__(self, args):
 		self.args = args
 		self.id = 0
+	def prepce(self):
+		self.args[14] = 1

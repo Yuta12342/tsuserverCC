@@ -667,8 +667,8 @@ class AOProtocol(asyncio.Protocol):
 					self.client.area.is_recording = True
 					self.client.area.recorded_messages.clear()
 					self.client.area.statement = 0
-					msg = msg[2:]
 					statement = Statement(send_args)
+					statement.args[4] = msg[2:]
 					self.client.area.recorded_messages.append(statement)
 					self.client.send_ooc('Recording testimony!')
 					if self.client.can_wtce:
@@ -678,6 +678,8 @@ class AOProtocol(asyncio.Protocol):
 					self.client.area.is_recording = False
 					self.client.area.statement += 1
 					statement = Statement(send_args)
+					statement.id = self.client.area.statement
+					self.client.area.statement = 0
 					self.client.area.recorded_messages.append(statement)
 					self.client.send_ooc('No longer recording testimony.')
 			if msg.startswith('+'):
@@ -685,9 +687,9 @@ class AOProtocol(asyncio.Protocol):
 					if self.client.area.statement >= 30:
 						return self.client.send_ooc('You\'re trying to add too many statements.')
 					self.client.area.statement += 1
-					msg = msg[1:]
 					statement = Statement(send_args)
-					statement.args[14] = 1
+					statement.args[4] = msg[1:]
+					statement.id = self.client.area.statement
 					self.client.area.recorded_messages.append(statement)
 					self.client.send_ooc('Statement added!')
 				elif self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
@@ -695,9 +697,10 @@ class AOProtocol(asyncio.Protocol):
 						return self.client.send_ooc('You\'re trying to add too many statements.')
 					oldstatement = self.client.area.statement
 					self.client.area.statement += 1
-					msg = msg[1:]
 					statement = Statement(send_args)
+					statement.args[4] = msg[1:]
 					statement.args[14] = 1
+					statement.id = self.client.area.statement
 					for s in self.client.area.recorded_messages:
 						if s.id >= statement.id:
 							s.id += 1
@@ -705,18 +708,25 @@ class AOProtocol(asyncio.Protocol):
 					self.client.send_ooc(f'Substatement added after statement {oldstatement}!')
 			if msg.startswith('<and>'):
 				if self.client in self.client.area.owners and not self.client.area.is_recording and len(self.client.area.recorded_messages) != 0:
-					for s in self.client.area.recorded_messages:
+					"""for s in self.client.area.recorded_messages:
 						if s.id == self.client.area.statement:
 							msg = msg[5:]
-							statement = Statement(send_args)
-							statement.args[14] = 1
+							s = Statement(send_args)
+							s.id = self.client.area.statement
+							s.args[4] = msg[4:]
+							s.args[14] = 1
 							self.client.send_ooc(f'Statement {s.id} amended.')
-
-			if msg != '///' and statement != None:
-				statement.args[4] = msg
-				statement.id = self.client.area.statement
-				if msg == '/end':
-					self.client.area.statement = 0
+					"""
+					amend = None
+					for s in self.client.area.recorded_messages:
+						if s.id == self.client.area.statement:
+							amend = s
+					if amend != None:
+						newamend = self.client.area.recorded_messages[amend.id] = Statement(send_args)
+						newamend.id = self.client.area.statement
+						newamend.args[4] = msg[5:]
+						newamend.args[14] = 1
+						self.client.send_ooc(f'Statement {newamend.id} amended.')
 
 			playback = False
 			if msg == '>':
@@ -776,6 +786,9 @@ class AOProtocol(asyncio.Protocol):
 					self.client.area.broadcast_ooc(f'{self.client.char_name} repeated the current statement.')
 
 			if playback:
+				last = len(self.client.area.recorded_messages) - 1
+				if not self.client.area.statement < 1 and not self.client.area.statement == last:
+					statement.prepce()
 				self.client.area.send_command('MS', *statement.args)
 
 			if not msg == '///' or not self.client in self.client.area.owners or len(self.client.area.recorded_messages) == 0:
