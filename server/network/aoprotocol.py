@@ -639,8 +639,16 @@ class AOProtocol(asyncio.Protocol):
                      looping_sfx, screenshake, frame_screenshake,
                      frame_realization, frame_sfx,
                      additive, effect]
-		owner_args = send_args
-		owner_args[4] = f'[{self.client.area.abbreviation}]{msg}'
+		msg2 = f'[{self.client.area.abbreviation}]{msg}'
+		owner_args = [msg_type, pre, folder, anim, msg2,
+                     pos, sfx, anim_type, cid, sfx_delay,
+                     button, self.client.evi_list[evidence],
+                     flip, ding, color, showname, charid_pair,
+                     other_folder, other_emote, offset_pair,
+                     other_offset, other_flip, nonint_pre,
+                     looping_sfx, screenshake, frame_screenshake,
+                     frame_realization, frame_sfx,
+                     additive, effect]
 
 		if self.client.area.last_speaker != self.client:
 			additive = 0
