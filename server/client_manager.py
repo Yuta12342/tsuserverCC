@@ -965,7 +965,7 @@ class ClientManager:
 			database.ipid(peername))
 		self.clients.add(c)
 		temp_ipid = c.ipid
-		for client in self.server.client_manager.clients:
+		for client in self.clients:
 			if client.ipid == temp_ipid:
 				client.clientscon += 1
 		return c
@@ -975,6 +975,8 @@ class ClientManager:
 		Remove a disconnected client from the client list.
 		:param client: disconnected client
 		"""
+		heappush(self.cur_id, client.id)
+		self.clients.remove(client)
 		if client.area.jukebox:
 			client.area.remove_jukebox_vote(client, True)
 		for a in self.server.area_manager.areas:
@@ -1043,11 +1045,14 @@ class ClientManager:
 					callarea.owners.clear()
 					client.call = None
 					caller.call = None
-		for c in self.server.client_manager.clients:
+				elif caller.call != None:
+					callarea = caller.call
+					callarea.owners.clear()
+					client.call = None
+					caller.call = None
+		for c in self.clients:
 			if c.ipid == client.ipid:
 				c.clientscon -= 1
-		heappush(self.cur_id, client.id)
-		self.clients.remove(client)
 
 	def get_targets(self, client, key, value, local=False, single=False):
 		"""

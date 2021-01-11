@@ -779,12 +779,12 @@ class AreaManager:
 				if client in client.area.hub.owners:
 					ooc_name += '[CM]'
 				self.server.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area.hub.subareas)
-				self.server.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area.hub)
+				self.server.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area is client.area.hub)
 			else:
 				if client in client.area.owners:
 					ooc_name += '[CM]'
 				self.server.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area.subareas)
-				self.server.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area in client.area)
+				self.server.send_all_cmd_pred('CT', ooc_name, msg, pred=lambda x: x.area is client.area)
 		
 		class JukeboxVote:
 			"""Represents a single vote cast for the jukebox."""

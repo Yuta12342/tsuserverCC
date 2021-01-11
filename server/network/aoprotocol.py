@@ -639,6 +639,8 @@ class AOProtocol(asyncio.Protocol):
                      looping_sfx, screenshake, frame_screenshake,
                      frame_realization, frame_sfx,
                      additive, effect]
+		owner_args = send_args
+		owner_args[4] = f'[{self.client.area.abbreviation}]{msg}'
 
 		if self.client.area.last_speaker != self.client:
 			additive = 0
@@ -779,15 +781,13 @@ class AOProtocol(asyncio.Protocol):
 
 					self.client.area.send_command('MS', *send_args)
 					self.server.area_manager.send_remote_command(target_area, 'MS', *send_args)
-					send_args[4] = f'[{self.client.area.abbreviation}]{msg}'
-					self.client.area.send_owner_command('MS', *send_args)
+					self.client.area.send_owner_command('MS', *owner_args)
 					self.client.area.set_next_msg_delay(len(msg))
 					self.client.area.last_speaker = self.client
 					if msg != '' and msg != ' ':
 							database.log_ic(self.client, self.client.area, showname, msg)
 		else:
-			send_args[4] = f'[{self.client.area.abbreviation}]{msg}'
-			self.client.call.send_owner_command('MS', *send_args)
+			self.client.call.send_owner_command('MS', *owner_args)
 			self.client.call.set_next_msg_delay(len(msg))
 			self.client.call.last_speaker = self.client
 			if msg != '' and msg != ' ':
