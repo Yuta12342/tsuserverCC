@@ -222,11 +222,6 @@ class AOProtocol(asyncio.Protocol):
 			return
 		else:
 			self.client.is_checked = True
-			if len(self.client.hdid) == 32:
-				if self.client.ipid in self.server.webperms:
-					self.client.permission = True
-			else:
-				self.client.permission = True
 
 		database.log_connect(self.client, failed=False)
 		self.client.send_command('ID', self.client.id, self.server.software,
@@ -341,6 +336,11 @@ class AOProtocol(asyncio.Protocol):
 		self.client.send_done()
 		self.client.send_motd()
 		self.client.send_poll()
+		if len(self.client.hdid) == 32:
+			if self.client.ipid in self.server.webperms:
+				self.client.permission = True
+		else:
+			self.client.permission = True
 
 	def net_cmd_cc(self, args):
 		"""Character selection.
