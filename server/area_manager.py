@@ -142,10 +142,6 @@ class AreaManager:
 		def remove_client(self, client):
 			"""Remove a disconnected client from the area."""
 			self.clients.remove(client)
-			ap = self.areapair.copy()
-			for x in ap:
-				if ap[x].client == client:
-					self.areapair.pop(x)
 			if len(self.clients) == 0:
 				if len(self.owners) == 0 and not self.is_hub:
 					self.change_status('IDLE')

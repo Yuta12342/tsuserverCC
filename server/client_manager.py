@@ -939,7 +939,8 @@ class ClientManager:
 	def __init__(self, server):
 		self.clients = set()
 		self.server = server
-		self.cur_id = [i for i in range(self.server.config['playerlimit'])]
+		self.available_ids = [i for i in range(self.server.config['playerlimit'])]
+		self.all_ids = [i for i in range(self.server.config['playerlimit'])]
 
 	def new_client_preauth(self, client):
 		maxclients = self.server.config['multiclient_limit']
@@ -954,10 +955,17 @@ class ClientManager:
 		Create a new client, add it to the list, and assign it a player ID.
 		:param transport: asyncio transport
 		"""
-		try:
-			user_id = heappop(self.cur_id)
-		except IndexError:
+		user_id = None
+		if len(self.available_ids) < 1:
 			transport.write(b'BD#This server is full.#%')
+			raise ClientError
+		for id in self.all_ids:
+			if id in self.available_ids:
+				user_id = id
+				self.available_ids.remove(id)
+				break
+		if user_id == None:
+			transport.write(b'BD#Could not assign ID.#%')
 			raise ClientError
 		peername = transport.get_extra_info('peername')[0]
 		c = self.Client(
@@ -975,7 +983,8 @@ class ClientManager:
 		Remove a disconnected client from the client list.
 		:param client: disconnected client
 		"""
-		heappush(self.cur_id, client.id)
+		if client.id not in self.available_ids:
+			self.available_ids.append(client.id)
 		self.clients.remove(client)
 		if client.area.jukebox:
 			client.area.remove_jukebox_vote(client, True)

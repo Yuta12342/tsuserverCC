@@ -112,7 +112,6 @@ class TsuServerCC:
 				input('(Press Enter to exit)')
 			sys.exit(1)
 
-		self.client_manager = ClientManager(self)
 		server.logger.setup_logger(debug=self.config['debug'])
 
 
