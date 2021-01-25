@@ -93,7 +93,13 @@ def ooc_cmd_forcepos(client, arg):
 
 	pos = args[0]
 	if len(args) > 1:
-		targets = client.server.client_manager.get_targets(client, TargetType.ID, int(args[1]), True)
+		for id in args:
+			if id != pos:
+				try:
+					c = client.server.client_manager.get_targets(client, TargetType.ID, int(id), True)
+					targets.append(c[0])
+				except:
+					raise ArgumentError(f'{id} does not seem to be a valid ID. Make sure you enter the pos first and then IDs after.')
 		if len(targets) == 0:
 			raise ArgumentError('No targets found.')
 	else:

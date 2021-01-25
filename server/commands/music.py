@@ -178,7 +178,7 @@ def ooc_cmd_play(client, arg):
 		else:
 			name = 'custom/'
 		name += args[0]
-		length = -1
+		length = 0
 	else:
 		raise ArgumentError('Too many arguments. Use /play "name" "length in seconds".')
 	client.area.play_music(name, client.char_id, length)
