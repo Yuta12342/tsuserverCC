@@ -808,7 +808,7 @@ class ClientManager:
 				char_list[x] = 0
 			return char_list
 
-		def auth_mod(self, arg):
+		def auth_mod(self, password):
 			"""
 			Attempt to log in as a moderator.
 			:param password: password string
