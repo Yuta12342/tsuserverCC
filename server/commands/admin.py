@@ -231,7 +231,7 @@ def ooc_cmd_addmod(client, arg):
 	if len(args) > 2:
 		if args[2].lower() == 'admin':
 			status = 'admin'
-	mods.append({'name': args[1], 'status': status, 'hdid': c.hdid, 'ipid': c.ipid})
+	mods.append({'name': args[1], 'status': status, 'ipid': c.ipid})
 	if not new:
 		os.remove(modfile)
 	with open(modfile, 'w', encoding='utf-8') as dump:
@@ -251,6 +251,8 @@ def ooc_cmd_removemod(client, arg):
 			mods = yaml.safe_load(chars)
 		for item in mods:
 			if item['name'].lower() == arg.lower():
+				rem = item
+			elif item['ipid'].lower() == arg.lower():
 				rem = item
 		if rem != None:
 			mods.remove(rem)
@@ -587,18 +589,13 @@ def ooc_cmd_login(client, arg):
 	client.send_ooc('Logged in as a moderator.')
 	database.log_misc('login', client, data={'profile': login_name})
 	"""
-	if len(arg) > 0:
-		raise ArgumentError('This command doesn\'t take arguments.')
 	login_name = None
 	try:
-		login_name = client.auth_mod()
+		login_name = client.auth_mod(arg)
 	except ClientError:
 		database.log_misc('login.invalid', client)
 		raise
-	if not client.is_admin:
-		client.send_ooc('Logged in as a moderator.')
-	else:
-		client.send_ooc('Logged in as an admin.')
+	client.send_ooc('Logged in as a moderator.')
 	database.log_misc('login', client, data={'profile': login_name})
 
 @mod_only()

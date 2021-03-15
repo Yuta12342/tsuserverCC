@@ -160,9 +160,9 @@ def ooc_cmd_play(client, arg):
 	if len(args) < 1:
 		raise ArgumentError('Not enough arguments. Use /play "name" "length in seconds".')
 	elif len(args) == 2:
-		if re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
+		if not client.is_mod and re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
 			name = ''
-			length = -1
+			length = 0
 		else:
 			name = 'custom/'
 			length = args[1]
@@ -173,7 +173,7 @@ def ooc_cmd_play(client, arg):
 		except ValueError:
 			raise ClientError(f'{length} does not look like a valid length.')
 	elif len(args) == 1:
-		if re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
+		if not client.is_mod and re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
 			name = ''
 		else:
 			name = 'custom/'

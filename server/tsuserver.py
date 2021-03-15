@@ -624,7 +624,7 @@ class TsuServerCC:
 						client.mod_profile_name = None
 						database.log_misc('unmod.modpass', client)
 						client.send_ooc('Your moderator credentials have been revoked.')
-			"""if isinstance(self.config['modpass'], str):
+			if isinstance(self.config['modpass'], str):
 				self.config['modpass'] = {'default': {'password': self.config['modpass']}}
 			if isinstance(cfg_yaml['modpass'], str):
 				cfg_yaml['modpass'] = {'default': {'password': cfg_yaml['modpass']}}
@@ -641,7 +641,7 @@ class TsuServerCC:
 						client.send_ooc(
 							'Your moderator credentials have been revoked.')
 			self.config['modpass'] = cfg_yaml['modpass']
-			"""
+
 		self.load_characters()
 		self.load_iniswaps()
 		self.load_music()

@@ -32,6 +32,7 @@ class HubManager:
 	def loadhub(self, client, arg):
 		index = 0
 		hubname = f'storage/hub/{arg}.yaml'
+		hubmusiclist = ''
 		new = not os.path.exists(hubname)
 		if new:
 			client.send_ooc('No hub with that name found.')
@@ -48,7 +49,8 @@ class HubManager:
 					client.area.background = item['background']
 					client.area.doc = item['doc']
 					if item['musiclist'] != '':
-						self.server.music_manager.loadlist(client.area, item['musiclist'])
+						self.server.musiclist_manager.loadlist(client.area, item['musiclist'])
+						hubmusiclist = item['musiclist']
 				else:
 					newsub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
 							  item['background'], bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, 
@@ -59,9 +61,10 @@ class HubManager:
 					newsub.hub = client.area
 					if 'doc' in item:
 						newsub.doc = item['doc']
-					if 'musiclist' in item:
-						if item['musiclist'] != '':
-							self.server.music_manager.loadsublist(newsub, item['musiclist'])
+					if item['musiclist'] != '':
+						self.server.musiclist_manager.loadsublist(newsub, item['musiclist'])
+					elif hubmusiclist != '':
+						self.server.musiclist_manager.loadsublist(newsub, hubmusiclist)
 					newsub.abbreviation = f'H{client.area.hubid}S{newsub.id}'
 					client.area.cur_subid += 1
 					if 'reachable_areas' in item:
