@@ -128,10 +128,17 @@ class AreaManager:
 			"""Add a client to the area."""
 			self.clients.add(client)
 			if self.sub:
+				for othersub in self.hub.subareas:
+					if othersub.is_restricted:
+						if self in othersub.connections:
+							othersub.conn_arup_players()
 				if self.is_restricted:
 					self.conn_arup_players()
 				self.hub.sub_arup_players()
 			elif self.is_hub:
+				for sub in self.subareas:
+					if sub.is_restricted:
+						sub.conn_arup_players()
 				self.sub_arup_players()
 				self.server.area_manager.send_arup_players()
 			else:
@@ -142,6 +149,15 @@ class AreaManager:
 		def remove_client(self, client):
 			"""Remove a disconnected client from the area."""
 			self.clients.remove(client)
+			if self.sub:
+				for othersub in self.hub.subareas:
+					if othersub.is_restricted:
+						if self in othersub.connections:
+							othersub.conn_arup_players()
+			elif self.is_hub:
+				for sub in self.subareas:
+					if sub.is_restricted:
+						sub.conn_arup_players()
 			if len(self.clients) == 0:
 				if len(self.owners) == 0 and not self.is_hub:
 					self.change_status('IDLE')
@@ -154,8 +170,10 @@ class AreaManager:
 			self.blankposting_allowed = True
 			self.invite_list = {}
 			if self.sub:
-				if self.is_restricted:
-					self.conn_arup_lock()
+				for othersub in self.hub.subareas:
+					if othersub.is_restricted:
+						if self in othersub.connections:
+							othersub.conn_arup_lock()
 				else:
 					self.hub.sub_arup_lock()
 			elif self.is_hub:
@@ -164,6 +182,27 @@ class AreaManager:
 			else:
 				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is open now.')
+			
+		def lock(self):
+			"""Mark the area as locked."""
+			self.is_locked = self.Locked.LOCKED
+			for i in self.clients:
+				self.invite_list[i.id] = None
+			for i in self.owners:
+				self.invite_list[i.id] = None
+			if self.sub:
+				for othersub in self.hub.subareas:
+					if othersub.is_restricted:
+						if self in othersub.connections:
+							othersub.conn_arup_lock()
+				else:
+					self.hub.sub_arup_lock()
+			elif self.is_hub:
+				self.sub_arup_lock()
+				self.server.area_manager.send_arup_lock()
+			else:
+				self.server.area_manager.send_arup_lock()
+			self.broadcast_ooc('This area is locked now.')
 
 		def spectator(self):
 			"""Mark the area as spectator-only."""
@@ -183,25 +222,6 @@ class AreaManager:
 			else:
 				self.server.area_manager.send_arup_lock()
 			self.broadcast_ooc('This area is spectatable now.')
-
-		def lock(self):
-			"""Mark the area as locked."""
-			self.is_locked = self.Locked.LOCKED
-			for i in self.clients:
-				self.invite_list[i.id] = None
-			for i in self.owners:
-				self.invite_list[i.id] = None
-			if self.sub:
-				if self.is_restricted:
-					self.conn_arup_lock()
-				else:
-					self.hub.sub_arup_lock()
-			elif self.is_hub:
-				self.sub_arup_lock()
-				self.server.area_manager.send_arup_lock()
-			else:
-				self.server.area_manager.send_arup_lock()
-			self.broadcast_ooc('This area is locked now.')
 
 		def is_char_available(self, char_id):
 			"""

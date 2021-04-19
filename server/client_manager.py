@@ -469,7 +469,8 @@ class ClientManager:
 					if old_area.is_hub:
 						old_area.sub_arup_players()
 					else:
-						old_area.hub.sub_arup_players()
+						if old_area.is_restricted:
+							old_area.hub.sub_arup_players()
 			if self.area.sub and self.area.is_restricted:
 				if not self in self.area.hub.owners:
 					area_list = []
@@ -480,9 +481,13 @@ class ClientManager:
 						if conn != lobby and conn != area.hub:
 							area_list.append(conn.name)
 					self.send_command('FA', *area_list)
-				self.area.conn_arup_cms()
-				self.area.conn_arup_status()
-				self.area.conn_arup_lock()
+					self.area.conn_arup_cms()
+					self.area.conn_arup_status()
+					self.area.conn_arup_lock()
+				else:
+					self.area.hub.sub_arup_cms(self)
+					self.area.hub.sub_arup_status(self)
+					self.area.hub.sub_arup_lock(self)
 			if self.area.sub and not self.area.is_restricted and old_area.is_restricted:
 				area_list = []
 				area_list.append(lobby.name)
