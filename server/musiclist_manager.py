@@ -57,11 +57,11 @@ class MusicListManager:
 		if new:
 			return
 		else:
-			client.area.cmusic_list = []
+			area.cmusic_list = []
 			with open(listname, 'r', encoding='utf-8') as chars:
 				list = yaml.safe_load(chars)
-			client.area.cmusic_listname = arg
-			client.area.cmusic_list = list
+			area.cmusic_listname = arg
+			area.cmusic_list = list
 
 	def storelist(self, client, arg):
 		listname = f'storage/musiclist/{arg}.yaml'

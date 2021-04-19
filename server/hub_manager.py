@@ -49,7 +49,7 @@ class HubManager:
 					client.area.background = item['background']
 					client.area.doc = item['doc']
 					if item['musiclist'] != '':
-						self.server.musiclist_manager.loadlist(client.area, item['musiclist'])
+						self.server.musiclist_manager.loadlist(client, item['musiclist'])
 						hubmusiclist = item['musiclist']
 				else:
 					newsub = self.server.area_manager.Area(client.area.cur_subid, self.server, item['area'],
