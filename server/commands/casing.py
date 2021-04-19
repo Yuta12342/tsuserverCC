@@ -178,6 +178,10 @@ def ooc_cmd_cm(client, arg):
 			if client.area.sub:
 				client.area.hub.sub_arup_cms()
 			elif client.area.is_hub:
+				for sub in client.area.subareas:
+					sub.owners.append(client)
+					if sub.is_restricted:
+						sub.conn_arup_cms()
 				client.area.sub_arup_cms()
 				client.server.area_manager.send_arup_cms()
 			else:
@@ -213,16 +217,11 @@ def ooc_cmd_cm(client, arg):
 		for id in arg:
 			try:
 				id = int(id)
-				c = client.server.client_manager.get_targets(
-					client, TargetType.ID, id, False)[0]
+				c = client.server.client_manager.get_targets(client, TargetType.ID, id, False)[0]
 				if not c in client.area.clients and not client.is_mod:
-					raise ArgumentError(
-						'You can only \'nominate\' people to be CMs when they are in the area.'
-					)
+					raise ArgumentError('You can only \'nominate\' people to be CMs when they are in the area.')
 				elif c in client.area.owners:
-					client.send_ooc(
-						'{} [{}] is already a CM here.'.format(
-							c.char_name, c.id))
+					client.send_ooc('{} [{}] is already a CM here.'.format(c.char_name, c.id))
 				else:
 					client.area.owners.append(c)
 					if client.area.evidence_mod == 'HiddenCM':
@@ -230,17 +229,18 @@ def ooc_cmd_cm(client, arg):
 					if client.area.sub:
 						client.area.hub.sub_arup_cms()
 					elif client.area.is_hub:
+						for sub in client.area.subareas:
+							sub.owners.append(c)
+							if sub.is_restricted:
+								sub.conn_arup_cms()
 						client.area.sub_arup_cms()
 						client.server.area_manager.send_arup_cms()
 					else:
 						client.server.area_manager.send_arup_cms()
-					client.area.broadcast_ooc(
-						'{} [{}] is CM in this area now.'.format(
-							c.char_name, c.id))
+					client.area.broadcast_ooc('{} [{}] is CM in this area now.'.format(c.char_name, c.id))
 					database.log_room('cm.add', client, client.area, target=c)
 			except:
-				client.send_ooc(
-					f'{id} does not look like a valid ID.')
+				client.send_ooc(f'{id} does not look like a valid ID.')
 	else:
 		raise ClientError('You must be authorized to do that.')
 
