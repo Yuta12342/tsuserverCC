@@ -134,6 +134,8 @@ def ooc_cmd_savehub(client, arg):
 		raise ClientError('You must be CM to save a hub.')
 	if len(arg) > 20:
 		raise ArgumentError('That name is too long!')
+	if '/' in arg or "\\" in arg or '..' in arg:
+		raise ArgumentError('Contains bad characters')
 	client.server.hub_manager.savehub(client, arg)
 	
 def ooc_cmd_loadhub(client, arg):
@@ -141,6 +143,8 @@ def ooc_cmd_loadhub(client, arg):
 		raise ClientError('You must be in a hub.')
 	if not client in client.area.owners and not client.is_mod:
 		raise ClientError('You must be CM to save a hub.')
+	if '/' in arg or "\\" in arg or '..' in arg:
+		raise ArgumentError('Contains bad characters')
 	client.server.hub_manager.loadhub(client, arg)
 
 def ooc_cmd_addarea(client, arg):

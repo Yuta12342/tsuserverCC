@@ -107,10 +107,10 @@ def ooc_cmd_storemlist(client, arg):
 		raise ArgumentError('Your stored list requires a name!')
 	if len(arg) > 12:
 		raise ArgumentError('Keep the name of your list to 12 characters or below.')
-	if ' ' in arg:
-		raise ArgumentError('Try to use a name without spaces.')
 	if len(client.area.cmusic_list) == 0:
 		raise ArgumentError('No list to store!')
+	if '/' in arg or "\\" in arg or '..' in arg:
+		raise ArgumentError('Contains bad characters')
 	client.server.musiclist_manager.storelist(client, arg)
 
 def ooc_cmd_loadmlist(client, arg):
@@ -120,8 +120,8 @@ def ooc_cmd_loadmlist(client, arg):
 		raise ArgumentError('Your stored list requires a name!')
 	if len(arg) > 12:
 		raise ArgumentError('Keep the name of your list to 12 characters or below.')
-	if ' ' in arg:
-		raise ArgumentError('Try to use a name without spaces.')
+	if '/' in arg or "\\" in arg or '..' in arg:
+		raise ArgumentError('Contains bad characters')
 	client.server.musiclist_manager.loadlist(client, arg)
 
 def ooc_cmd_musiclist(client, arg):

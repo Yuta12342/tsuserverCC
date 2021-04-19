@@ -824,7 +824,7 @@ class ClientManager:
 				raise ClientError('There is no moderation file!')
 			if self.is_mod:
 				raise ClientError('Already logged in.') 
-			if len(arg) == 0:
+			if len(password) == 0:
 				with open(modfile, 'r') as chars:
 					mods = yaml.safe_load(chars)
 				for item in mods:
