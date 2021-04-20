@@ -897,7 +897,7 @@ class AOProtocol(asyncio.Protocol):
 				args[1] = self.client.shake_message(args[1])
 			if self.client.disemvowel:
 				args[1] = self.client.disemvowel_message(args[1])
-			self.client.ooc_delay = (time.perf_counter() + 2)
+			self.client.ooc_delay = (time.perf_counter() + self.server.config['ooc_delay'])
 			self.client.area.send_command('CT', self.client.name, args[1])
 			self.client.area.send_owner_command('CT', '[' + self.client.area.abbreviation + ']' + self.client.name, args[1])
 			database.log_room('ooc', self.client, self.client.area, message=args[1])

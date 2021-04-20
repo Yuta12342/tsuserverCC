@@ -18,8 +18,14 @@ __all__ = [
 	'ooc_cmd_reload',
 	'ooc_cmd_visible',
 	'ooc_cmd_narrator',
-	'ooc_cmd_kickother'
+	'ooc_cmd_kickother',
+	'ooc_cmd_afk'
 ]
+
+def ooc_cmd_afk(client, arg):
+	if len(arg) > 0:
+		raise ArgumentError('This command takes no arguments.')
+	client.toggle_afk()
 
 def ooc_cmd_narrator(client, arg):
 	if len(arg) > 0:

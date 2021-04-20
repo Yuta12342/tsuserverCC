@@ -58,7 +58,7 @@ class TsuServerCC:
 		self.software = 'tsuservercc'
 
 		self.release = 1
-		self.major_version = 3
+		self.major_version = 4
 		self.minor_version = 0
 
 		self.config = None
@@ -249,6 +249,9 @@ class TsuServerCC:
 
 		if 'webhook_url' not in self.config:
 			self.config['webhook_url'] = "example.com"
+		
+		if 'ooc_delay' not in self.config:
+			self.config['ooc_delay'] = 0
 
 		#if isinstance(self.config['modpass'], str):
 		#	self.config['modpass'] = {'default': {'password': self.config['modpass']}}
