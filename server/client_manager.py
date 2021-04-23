@@ -484,10 +484,6 @@ class ClientManager:
 					self.area.conn_arup_cms()
 					self.area.conn_arup_status()
 					self.area.conn_arup_lock()
-				else:
-					self.area.hub.sub_arup_cms(self)
-					self.area.hub.sub_arup_status(self)
-					self.area.hub.sub_arup_lock(self)
 			if self.area.sub and not self.area.is_restricted and old_area.is_restricted:
 				area_list = []
 				area_list.append(lobby.name)
@@ -523,6 +519,24 @@ class ClientManager:
 					if self.hidden:
 						self.hidden = False
 						self.send_ooc('You are no longer hidden.')
+			
+			if area.sub:
+				for othersub in area.hub.subareas:
+					if othersub.is_restricted:
+						if area in othersub.connections:
+							othersub.conn_arup_players()
+				if area.is_restricted:
+					area.conn_arup_players()
+				area.hub.sub_arup_players()
+			elif area.is_hub:
+				for sub in area.subareas:
+					if sub.is_restricted:
+						sub.conn_arup_players()
+				area.sub_arup_players()
+				if not old_area.sub:
+					self.server.area_manager.send_arup_players()
+			else:
+				self.server.area_manager.send_arup_players()
 
 			self.send_ooc(f'Changed area to {area.name} [{self.area.status}].')
 			if self.autopass == True:

@@ -90,10 +90,12 @@ class HubManager:
 			area_list.append(client.area.name)
 			for a in client.area.subareas:
 				area_list.append(a.name)
+			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
+			client.area.sub_arup_players()
 			client.area.sub_arup_cms()
 			client.area.sub_arup_status()
 			client.area.sub_arup_lock()
-			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
+			
 			client.send_ooc(f'Hub {arg} loaded!')
 		
 	def savehub(self, client, arg):
@@ -161,6 +163,7 @@ class HubManager:
 		for sub in hub.subareas:
 			area_list.append(sub.name)
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == hub or x.area in hub.subareas)
+		hub.sub_arup_players()
 		hub.sub_arup_cms()
 		hub.sub_arup_status()
 		hub.sub_arup_lock()
@@ -184,6 +187,7 @@ class HubManager:
 		area_list.append(lobby.name)
 		area_list.append(hub.name)
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == hub or x.area in hub.subareas)
+		hub.sub_arup_players()
 		hub.sub_arup_cms()
 		hub.sub_arup_status()
 		hub.sub_arup_lock()
@@ -205,6 +209,7 @@ class HubManager:
 			area_list.append(a.name)
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area or x.area in client.area.subareas)
 		
+		client.area.sub_arup_players()
 		client.area.sub_arup_cms()
 		client.area.sub_arup_status()
 		client.area.sub_arup_lock()
@@ -270,8 +275,11 @@ class HubManager:
 				area_list.append(client.area.hub.name)
 				for a in client.area.hub.subareas:
 					area_list.append(a.name)
+			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
+			
+			newsub.hub.sub_arup_players()
 			newsub.hub.sub_arup_cms()
 			newsub.hub.sub_arup_status()
 			newsub.hub.sub_arup_lock()
-			client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == newsub.hub or x.area in newsub.hub.subareas)
+	
 			client.send_ooc('Area created!')

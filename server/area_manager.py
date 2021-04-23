@@ -127,22 +127,14 @@ class AreaManager:
 		def new_client(self, client):
 			"""Add a client to the area."""
 			self.clients.add(client)
-			if self.sub:
-				for othersub in self.hub.subareas:
-					if othersub.is_restricted:
-						if self in othersub.connections:
-							othersub.conn_arup_players()
-				if self.is_restricted:
-					self.conn_arup_players()
-				self.hub.sub_arup_players()
-			elif self.is_hub:
-				for sub in self.subareas:
-					if sub.is_restricted:
-						sub.conn_arup_players()
-				self.sub_arup_players()
-				self.server.area_manager.send_arup_players()
-			else:
-				self.server.area_manager.send_arup_players()
+			lobby = self.server.area_manager.default_area()
+			if self == lobby:
+				for area in self.server.area_manager.areas:
+					if area.is_hub:
+						area.sub_arup_players()
+						for sub in area.subareas:
+							if sub.is_restricted and len(sub.clients) > 0:
+								sub.conn_arup_players()
 			if client.char_id != -1:
 				database.log_room('area.join', client, self)
 
