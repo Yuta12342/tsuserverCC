@@ -160,7 +160,7 @@ def ooc_cmd_play(client, arg):
 	if len(args) < 1:
 		raise ArgumentError('Not enough arguments. Use /play "name" "length in seconds".')
 	elif len(args) == 2:
-		if not client.is_mod and re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
+		if re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
 			name = ''
 			length = 0
 		else:
@@ -173,7 +173,7 @@ def ooc_cmd_play(client, arg):
 		except ValueError:
 			raise ClientError(f'{length} does not look like a valid length.')
 	elif len(args) == 1:
-		if not client.is_mod and re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
+		if re.match(r"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", args[0]):
 			name = ''
 		else:
 			name = 'custom/'
@@ -378,7 +378,7 @@ def ooc_cmd_shuffle(client, arg):
 	Play a track.
 	Usage: /play <name>
 	"""
-	if arg == 'musiclist':
+	if arg == 'musiclist' or 'custom':
 		client.area.musiclist_shuffle(client)
 	else:
 		client.area.music_shuffle(arg, client)

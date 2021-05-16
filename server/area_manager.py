@@ -392,8 +392,12 @@ class AreaManager:
 		def musiclist_shuffle(self, client, track=-1):
 			client = client
 			index = 0
-			for name, length in client.area.cmusic_list.items():
-				index += 1
+			for item in client.area.cmusic_list:
+				if 'songs' in item:
+					for song in item['songs']:
+						index += 1
+				else:
+					index += 1
 			if index == 0:
 				client.send_ooc('Area musiclist empty.')
 				return
@@ -403,15 +407,32 @@ class AreaManager:
 				while trackid == track:
 					trackid = random.choice(tuple(music_set))
 				index = 0
-				for name, length in client.area.cmusic_list.items():
-					if index == trackid:
-						self.play_music_shownamed(name, client.char_id, 'Custom Shuffle')
-						self.music_looper = asyncio.get_event_loop().call_later(length, lambda: self.musiclist_shuffle(client, trackid))
-						self.add_music_playing(client, name)
-						database.log_room('play', client, self, message=name)
-						return
+				for item in client.area.cmusic_list:
+					if 'songs' in item:
+						for song in item['songs']:
+							if index == trackid:
+								if song['length'] <= 5:
+									client.send_ooc('Track seems to have too little or no length, shuffle canceled.')
+									return
+								self.play_music_shownamed(song['name'], client.char_id, 'Custom Shuffle')
+								self.music_looper = asyncio.get_event_loop().call_later(song['length'], lambda: self.musiclist_shuffle(client, trackid))
+								self.add_music_playing(client, song['name'])
+								database.log_room('play', client, self, message=song['name'])
+								return
+							else:
+								index += 1
 					else:
-						index += 1
+						if index == trackid:
+							if item['length'] <= 5:
+								client.send_ooc('Track seems to have too little or no length, shuffle canceled.')
+								return
+							self.play_music_shownamed(item['name'], client.char_id, 'Custom Shuffle')
+							self.music_looper = asyncio.get_event_loop().call_later(item['length'], lambda: self.musiclist_shuffle(client, trackid))
+							self.add_music_playing(client, item['name'])
+							database.log_room('play', client, self, message=item['name'])
+							return
+						else:
+							index += 1
 
 		def can_send_message(self, client):
 			"""

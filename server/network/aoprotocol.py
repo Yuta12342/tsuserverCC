@@ -798,6 +798,7 @@ class AOProtocol(asyncio.Protocol):
 						send_args[3] = 'normal'
 					elif not self.client.visible:
 						send_args[1] = 0
+						send_args[2] = 'Narrator'
 						send_args[3] = '../../background/AADetentionCenter/defensedesk'
 
 					self.client.area.send_command('MS', *send_args)
