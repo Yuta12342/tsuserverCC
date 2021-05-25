@@ -997,22 +997,16 @@ class ClientManager:
 				if len(a.owners) == 0:
 					if a.is_locked != a.Locked.FREE:
 						a.unlock()
-					if a.is_restricted:
-						a.is_restricted = False
-						a.connections.clear()
 			if a.is_hub:
 				for sub in a.subareas:
 					if client in sub.owners:
 						sub.owners.remove(client)
 						sub.hub.sub_arup_cms()
 					if len(sub.owners) == 0:
-						if sub.is_locked != sub.Locked.FREE:
-							sub.unlock()
-						if sub.is_restricted:
-							sub.is_restricted = False
-							sub.connections.clear()
 						if len(sub.clients) == 0 and a.hubtype == 'user':
 							client.server.hub_manager.removesub(self, sub)
+							if sub.is_locked != sub.Locked.FREE:
+								sub.unlock()
 		#if len(client.area.clients) < 1:
 		#	if client.area.is_locked != client.area.Locked.FREE:
 		#		client.area.unlock()

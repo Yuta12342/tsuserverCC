@@ -56,7 +56,8 @@ class HubManager:
 							  item['background'], bg_lock=False, evidence_mod='CM', locking_allowed=True, iniswap_allowed=True, 
 							  showname_changes_allowed=True, shouts_allowed=True, jukebox=False, abbreviation='', non_int_pres_only=False)
 					client.area.subareas.append(newsub)
-					newsub.owners.append(client)
+					for owner in client.area.owners:
+						newsub.owners.append(owner)
 					newsub.sub = True
 					newsub.hub = client.area
 					if 'doc' in item:
@@ -261,7 +262,12 @@ class HubManager:
 			newsub.abbreviation = f'H{newsub.hub.hubid}S{new_id}'
 		
 		#client.server.send_all_cmd_pred('CT', '{}'.format(client.server.config['hostname']),f'=== Announcement ===\r\nA new area has been created.\n[{new_id}] {arg}\r\n==================', '1')
-		newsub.owners.append(client)
+		if client.area.is_hub:
+			for owner in client.area.owners:
+				newsub.owners.append(owner)
+		else:
+			for owner in client.area.hub.owners:
+				newsub.owners.append(owner)
 		newsub.status = client.area.status
 		if not more:
 			area_list = []

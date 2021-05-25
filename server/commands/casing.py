@@ -279,9 +279,6 @@ def ooc_cmd_uncm(client, arg):
 					client.send_ooc('You are no longer ghost CM of this area.')
 				database.log_room('cm.remove', client, client.area, target=c)
 				if len(client.area.owners) == 0:
-					if client.area.is_restricted:
-						client.area.is_restricted = False
-						client.area.connections.clear()
 					client.area.is_recording = False
 					client.area.recorded_messages = []
 					client.area.statement = 0
