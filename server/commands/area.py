@@ -238,6 +238,10 @@ def ooc_cmd_rename(client, arg):
 		for area in client.server.area_manager.areas:
 			area_list.append(area.name)
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: not x.area.is_hub and not x.area.sub)
+		client.server.area_manager.send_arup_cms()
+		client.server.area_manager.send_arup_players()
+		client.server.area_manager.send_arup_lock()
+		client.server.area_manager.send_arup_status()
 	else:
 		client.area.name = arg
 		area_list = []
@@ -247,6 +251,10 @@ def ooc_cmd_rename(client, arg):
 		for a in client.area.hub.subareas:
 			area_list.append(a.name)
 		client.server.send_all_cmd_pred('FA', *area_list, pred=lambda x: x.area == client.area.hub or x.area in client.area.hub.subareas)
+		client.area.hub.sub_arup_players()
+		client.area.hub.sub_arup_cms()
+		client.area.hub.sub_arup_status()
+		client.area.hub.sub_arup_lock()
 	client.send_ooc('Area renamed!')
 
 def ooc_cmd_bg(client, arg):
