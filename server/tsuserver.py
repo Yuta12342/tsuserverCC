@@ -252,6 +252,9 @@ class TsuServerCC:
 		
 		if 'ooc_delay' not in self.config:
 			self.config['ooc_delay'] = 0
+			
+		if 'asset_url' not in self.config:
+			self.config['asset_url'] = ''
 
 		#if isinstance(self.config['modpass'], str):
 		#	self.config['modpass'] = {'default': {'password': self.config['modpass']}}
