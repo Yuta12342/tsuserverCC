@@ -50,8 +50,8 @@ def ooc_cmd_ambiance(client, arg):
 			for sub in area.subs:
 				sub.ambiance = True
 				sub.broadcast_ooc('Ambiance for this area has been enabled, music played will loop server-side.')
-		
-		
+
+
 def ooc_cmd_addmusic(client, arg):
 	if client not in client.area.owners and not client.is_mod:
 		raise ClientError('You must be a CM.')
@@ -154,8 +154,7 @@ def ooc_cmd_play(client, arg):
 	Play a track.
 	Usage: /play <name>
 	"""
-	if client not in client.area.owners and not client.is_mod:
-		raise ClientError('You must be a CM.')
+
 	args = shlex.split(arg)
 	if len(args) < 1:
 		raise ArgumentError('Not enough arguments. Use /play "name" "length in seconds".')
@@ -167,7 +166,7 @@ def ooc_cmd_play(client, arg):
 			name = 'custom/'
 			length = args[1]
 		name += args[0]
-		
+
 		try:
 			length = int(args[1])
 		except ValueError:
@@ -184,7 +183,7 @@ def ooc_cmd_play(client, arg):
 	client.area.play_music(name, client.char_id, length)
 	client.area.add_music_playing(client, args[0])
 	database.log_room('play', client, client.area, message=name)
-	
+
 def ooc_cmd_hubplay(client, arg):
 	"""
 	Play a track.
