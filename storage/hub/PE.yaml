@@ -1,0 +1,43 @@
+- area: 'Hub 7: Primal Elements Hub'
+  background: P4AMeetingRoom
+  doc: No document.
+  hub: 'true'
+  musiclist: ''
+  reachable_areas: []
+- area: Aquatic Deep
+  background: custom/newbeach
+  doc: No document.
+  musiclist: ''
+  reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
+- area: City Park
+  background: custom/parkpath
+  doc: No document.
+  musiclist: ''
+  reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
+- area: Arkhalis City
+  background: custom/newcity
+  doc: 'Battle Turn Order:
+
+    Kris > Anniram > Ralsei > Dante > Owain > Duke > Itzal > Rindo '
+  musiclist: ''
+  reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
+- area: Outskirts Plains
+  background: custom/outskirtsplains
+  doc: No document.
+  musiclist: ''
+  reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
+- area: Aquatic Caverns
+  background: custom/ArkhalisMines
+  doc: No document.
+  musiclist: ''
+  reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
+- area: Lab
+  background: custom/MetalDeep
+  doc: No document.
+  musiclist: ''
+  reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
+- area: Peculiar Street - Elevator 1
+  background: custom/PeculiarStreet
+  doc: No document.
+  musiclist: ''
+  reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
