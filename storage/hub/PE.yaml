@@ -41,3 +41,13 @@
   doc: No document.
   musiclist: ''
   reachable_areas: 'Hub 7: Primal Elements Hub, Lobby'
+- area: Strange Desert
+  background: custom/TheWest
+  doc: No document.
+  musiclist: ''
+  reachable_areas: ''
+- area: Arkhalis Tower
+  background: custom/LabThing
+  doc: No document.
+  musiclist: ''
+  reachable_areas: ''
